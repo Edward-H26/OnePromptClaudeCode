@@ -76,7 +76,7 @@ The brainstorm summary feeds directly into the orchestrator, so tasks are decomp
 
 After brainstorming, Super Ralph scans your environment for available skills and agents, then assembles a custom toolset for the run:
 
-1. **Scans** -- finds all skills and agents available inside the current Claude setup, starting with `$CLAUDE_PROJECT_DIR/.claude/`
+1. **Scans** -- finds all skills in `~/.claude/skills/`, `.claude/skills/`, and project-local skill directories, plus all available agents
 2. **Matches** -- compares what you're building (from the brainstorm summary) to what each skill/agent does
 3. **Recommends** -- presents 2-4 relevant tools (e.g., `frontend-design` for UI work, `doc-search` for third-party APIs, `system-arch` for complex architecture)
 4. **You confirm** -- pick the recommended set, activate everything, or stick with Ralph's 5 default agents only
@@ -259,12 +259,12 @@ Just say "ralph this" or "break this down and build it" in any conversation.
 Clone and add to your Claude Code configuration:
 
 ```bash
-git clone https://github.com/ashcastelinocs124/super-ralph.git "$CLAUDE_PROJECT_DIR/.claude/skills/super-ralph"
+git clone https://github.com/ashcastelinocs124/super-ralph.git ~/.claude/skills/super-ralph
 ```
 
 ### Manual
 
-Copy the files into `$CLAUDE_PROJECT_DIR/.claude/skills/` and ensure the local command and agent files point to this repo, not to external symlinks.
+Copy the files into your `~/.claude/skills/` directory and ensure the plugin manifest is recognized by Claude Code.
 
 ---
 

@@ -158,10 +158,12 @@ Search for all available skills and agents in the environment:
 
 ```bash
 # Scan for skills
-find "$CLAUDE_PROJECT_DIR/.claude/skills" -name "SKILL.md" 2>/dev/null
+find ~/.claude/skills/ -name "SKILL.md" 2>/dev/null
+find .claude/skills/ -name "SKILL.md" 2>/dev/null
 
 # Scan for agents
-find "$CLAUDE_PROJECT_DIR/.claude/agents" -name "*.md" 2>/dev/null
+find ~/.claude/agents/ -name "*.md" 2>/dev/null
+find .claude/agents/ -name "*.md" 2>/dev/null
 
 # Also check for project-local skills
 find . -path "*/.claude/skills/*/SKILL.md" 2>/dev/null
@@ -408,21 +410,21 @@ mkdir -p workspace/task-{id}/tests workspace/task-{id}/output
 
 ### Step 4: Dispatch tasks
 
-Dispatch independent tasks in parallel by using the environment's supported concurrent agent workflow. Tasks with dependencies wait for their dependencies to complete first. Do not rely on undocumented background-agent flags.
+Dispatch independent tasks **in parallel** by making multiple Agent tool calls in a single message. Tasks with dependencies wait for their dependencies to complete first. **Never use `run_in_background: true`** — instead, dispatch multiple foreground agents concurrently.
 
 ---
 
 ## CRITICAL: Agent Dispatch Rule
 
-Do not rely on undocumented background-agent flags when dispatching agents. Use the environment's supported concurrent agent workflow instead.
+**Never set `run_in_background: true`** when dispatching agents via the Agent tool. Background agents cannot prompt the user for tool permission approvals (WebSearch, WebFetch, Bash, etc.), causing tools to be auto-denied and agents to fail silently.
 
-To parallelize, use the environment's supported concurrent agent execution for independent tasks with no shared dependencies.
+**To parallelize:** dispatch multiple foreground agents in a single message (multiple Agent tool calls). They run concurrently and can each prompt for tool permissions. Use this for independent tasks with no shared dependencies.
 
 ---
 
 ## Phase 2: Per-Task Execution Loop
 
-For each task from the orchestrator, parallelize independent tasks using the environment's supported concurrent agent workflow.
+For each task from the orchestrator. **Parallelize independent tasks** by dispatching multiple foreground agents in a single message (no shared dependencies). Never use `run_in_background`.
 
 ### Step 2a: Test Agent + Judge Gate
 

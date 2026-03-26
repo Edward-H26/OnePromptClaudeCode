@@ -1,23 +1,14 @@
 ---
 name: super-ralph
-description: Wrapper skill for the vendored Super Ralph autonomous workflow. Use when running /super-ralph or when the user explicitly asks for Super Ralph, Ralph, or autonomous multi-agent execution in this workspace.
+description: Local wrapper that dispatches into the vendored Super Ralph autonomous workflow bundle.
 ---
 
-# Super Ralph
+# Super Ralph (Wrapper)
 
-This directory vendors the upstream Super Ralph bundle. The canonical implementation lives in:
+This is a vendored bundle. The full autonomous workflow lives at:
 
-- `./skills/super-ralph/SKILL.md`
-- `./agents/`
-- `./commands/super-ralph.md`
+- `skills/super-ralph/SKILL.md` (the main skill prompt)
+- `agents/` (ralph-tester, ralph-worker, ralph-debugger, ralph-merger, ralph-judge)
+- `commands/super-ralph.md` (the vendored command)
 
-## How To Use It Here
-
-1. Start with `./skills/super-ralph/SKILL.md`.
-2. Follow the vendored workflow and agent definitions from that bundle.
-3. Keep the vendored bundle intact unless the task is specifically about maintaining the bundle itself.
-
-## Local Contract
-
-- Treat this wrapper as the entrypoint used by local skill routing, prompt templates, and slash-command documentation.
-- If local docs and the vendored bundle disagree, update the local docs to point at the vendored bundle rather than rewriting the vendored internals.
+**Read `skills/super-ralph/SKILL.md` in this directory and follow its instructions.**

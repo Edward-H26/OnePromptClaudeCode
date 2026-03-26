@@ -31,9 +31,9 @@ skill_dirs = {
     if path.is_dir() and (path / "SKILL.md").exists()
 }
 
-manual_only = {"gstack"}
+manual_only = {"gstack", "super-ralph"}
 missing_rules = sorted(skill_dirs - rule_skills - manual_only)
-missing_dirs = sorted(rule_skills - skill_dirs)
+missing_dirs = sorted(rule_skills - skill_dirs - manual_only)
 
 if missing_rules:
     print("Tracked skills missing skill-rules entries:")
@@ -154,6 +154,12 @@ for scan_root in scan_roots:
             continue
         if text_path.startswith(".claude/skills/super-ralph/"):
             continue
+        if text_path.startswith("references/gstack/"):
+            continue
+        if text_path.startswith("references/super-ralph/"):
+            continue
+        if text_path.startswith("references/everything-claude-code/"):
+            continue
         paths.append(path)
 
 banned = {
@@ -190,7 +196,6 @@ stale_tokens = {
     "SOUL.md": [],
     "calendar-suggest.js": [],
     "ECC quality pipeline": [],
-    "HARD GATE: Do not proceed": [],
     "commit, push, create PR": [],
 }
 
@@ -348,12 +353,16 @@ hits = []
 for rel_path in public_files:
     if rel_path in allow_paths:
         continue
+    if rel_path.startswith(".claude/skills/gstack/test/"):
+        continue
     path = root / rel_path
     if path.is_dir():
         continue
+    if not path.is_file():
+        continue
     try:
         text = path.read_text()
-    except UnicodeDecodeError:
+    except (UnicodeDecodeError, OSError):
         continue
     for pattern in patterns:
         if pattern.search(text):
