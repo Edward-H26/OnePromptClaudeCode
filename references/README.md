@@ -8,6 +8,7 @@ This directory holds upstream reference repositories whose content is tracked in
 |---|---|---|
 | **gstack** (`garrytan/gstack`) | Workflow skill framework with browse, review, ship, QA, and other development skills | Provides gstack-backed skills |
 | **super-ralph** (`ashcastelinocs124/super-ralph`) | Autonomous multi-agent execution bundle | Provides Super Ralph agents and workflow |
+| **codex** (`oil-oil/codex`) | Codex CLI skill for delegating coding tasks and cross-model review | Provides the codex skill (ask_codex.sh, review/challenge/consult modes) |
 | **everything-claude-code** (`affaan-m/everything-claude-code`) | Community reference material for Claude Code patterns and configuration | Provides reference skills (deep-research, e2e-testing, etc.) |
 
 ## Updating from Upstream

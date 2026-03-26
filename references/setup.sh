@@ -6,6 +6,7 @@ REPOS=(
     "https://github.com/garrytan/gstack.git"
     "https://github.com/ashcastelinocs124/super-ralph.git"
     "https://github.com/affaan-m/everything-claude-code"
+    "https://github.com/oil-oil/codex.git"
 )
 
 for url in "${REPOS[@]}"; do

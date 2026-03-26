@@ -121,6 +121,8 @@ references/gstack/browse/dist/
 references/gstack/.env
 references/gstack/.env.*
 references/super-ralph/node_modules/
+references/codex/node_modules/
+references/codex/.runtime/
 references/everything-claude-code/node_modules/
 references/everything-claude-code/assets/images/
 references/gstack/docs/images/
