@@ -1,14 +1,16 @@
 ---
 name: super-ralph
-description: Local wrapper that dispatches into the vendored Super Ralph autonomous workflow bundle.
+description: Local wrapper that dispatches into the bundled Super Ralph autonomous workflow in this repo.
 ---
 
 # Super Ralph (Wrapper)
 
-This is a vendored bundle. The full autonomous workflow lives at:
+This is a local router only. The bundled Super Ralph workflow lives at:
 
-- `skills/super-ralph/SKILL.md` (the main skill prompt)
-- `agents/` (ralph-tester, ralph-worker, ralph-debugger, ralph-merger, ralph-judge)
-- `commands/super-ralph.md` (the vendored command)
+- `$CLAUDE_PROJECT_DIR/.claude/skills/super-ralph/skills/super-ralph/SKILL.md`
+- `$CLAUDE_PROJECT_DIR/.claude/skills/super-ralph/agents/`
+- `$CLAUDE_PROJECT_DIR/.claude/skills/super-ralph/commands/super-ralph.md`
 
-**Read `skills/super-ralph/SKILL.md` in this directory and follow its instructions.**
+Stay inside the local `.claude/skills/super-ralph/` tree when following that workflow.
+
+**Read `$CLAUDE_PROJECT_DIR/.claude/skills/super-ralph/skills/super-ralph/SKILL.md` and follow its instructions.**

@@ -8,7 +8,7 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 
 **Global config**: On some local setups, a user-scoped Claude home directory may be symlinked to this project directory. This is a machine-specific convention, not a requirement of the published repo.
 **Repo-local multi-model flow**: `/multi-plan` and `/multi-execute` use the bundled Codex bridge plus installed plugin agents. They no longer depend on personal wrapper tooling outside this repo.
-**Published surface**: This repo intentionally keeps vendored `gstack`, vendored `super-ralph`, and bundled `ui-styling` assets in git. Both vendored bundles are sourced from `references/` clones; update them via `bash references/update-references.sh`. Runtime state remains gitignored.
+**Published surface**: This repo tracks the workflow content it runs, including bundled `gstack`, bundled `super-ralph`, and bundled `ui-styling` assets. `references/` is optional and only used for local upstream comparison copies.
 
 ---
 
@@ -37,6 +37,7 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 | `search-first` | ask to "search first" | Explore existing code before writing new code. Codebase search methodology. |
 | `code-refactor` | ask to refactor | Grep + Edit workflow for bulk refactoring with verification. |
 | `ui-styling` | auto on UI/CSS work | shadcn/ui components, Tailwind CSS, canvas-based design, 40+ fonts. |
+| `shadcn-ui` | ask about shadcn/ui | shadcn/ui component composition, theming, registry workflow, and OKLCH tokens. |
 | `liquid-glass-design` | ask for "glass design" | Modern glassmorphic UI: translucent layers, depth, frosted effects. |
 
 ### Review Skills
@@ -54,6 +55,7 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 |---|---|---|
 | `tdd-workflow` | auto on test writing | RED-GREEN-REFACTOR cycle, unit/integration/E2E patterns, 80%+ coverage target. |
 | `e2e-testing` | auto on E2E/Playwright | Playwright patterns, Page Object Model, flaky test strategies, CI/CD. |
+| `webapp-testing` | ask to test a local webapp | Python-driven Playwright workflow for local app lifecycle, screenshots, and browser verification. |
 | `qa` | `/qa` | Browser-based QA: test app, find bugs, fix them, auto-generate regression tests. |
 | `qa-only` | `/qa-only` | Same as qa but report-only, no code changes. |
 | `verification-loop` | auto on verification | 6-phase verification: build, type, lint, test, security, diff. |
@@ -87,7 +89,8 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 
 | Skill | Trigger | What it does |
 |---|---|---|
-| `codex` | `/codex` | Dual-purpose: delegate coding tasks via ask_codex.sh, OR cross-model review (review/challenge/consult modes). |
+| `codex` (oiloil) | `/codex` or auto-trigger | Delegate coding tasks to Codex CLI via bundled `ask_codex.sh`. Also provides cross-model review modes (review/challenge/consult) via direct `codex` CLI. |
+| `gstack codex` | internal to gstack workflow | Enhanced cross-model review within gstack. Adds telemetry, GitHub/GitLab platform detection, plan file integration, and session management. Used internally by `/review-staff`. |
 | `agentic-engineering` | ask about "agent development" | Agent development patterns: tool use, loops, error handling, context management. |
 | `autonomous-loops` | ask about "autonomous loop" | Continuous agent loop patterns for self-running iterative workflows. |
 | `claude-api` | ask about "Claude API" | Claude API and Anthropic SDK patterns for programmatic integration. |
@@ -100,6 +103,7 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 | `autoresearch` | `/autoresearch` | Karpathy's autoresearch framework: iterative train.py modification, hypothesis testing, result logging. |
 | `professional-research-writing` | always active | Writing style guide: participial phrases, sentence construction, paragraph structure. Dash prohibition. |
 | `pdf-processing-pro` | auto on PDF work | PDF text extraction, form analysis, table extraction, OCR. |
+| `web-artifacts-builder` | ask for a self-contained HTML artifact | Bundle React, Tailwind, and shadcn/ui output into a single HTML artifact. |
 
 ### Utility Skills
 
@@ -107,7 +111,7 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 |---|---|---|
 | `skill-developer` | ask about skills/hooks | Meta-skill for creating and managing Claude Code skills, hooks, commands, agents. |
 | `strategic-compact` | at phase boundaries | Strategic context compaction. Decision guide for when to compact. |
-| `super-ralph` | `/super-ralph` | Local wrapper skill that dispatches into the vendored autonomous workflow bundle. |
+| `super-ralph` | `/super-ralph` | Local wrapper skill that dispatches into the bundled autonomous workflow under `.claude/skills/super-ralph/`. |
 | `chrome-devtools` | ask about Chrome DevTools | Node.js scripts for Chrome DevTools Protocol: navigate, screenshot, console, evaluate, network. |
 | `browse` | ask to "open browser" | Real Chromium browser with ~100ms command latency. Persistent state across calls. |
 | `setup-browser-cookies` | ask about browser cookies | Import cookies from Chrome, Arc, Brave, Edge for authenticated testing. |
@@ -136,7 +140,7 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 | `/investigate` | Root-cause debugging | `/investigate <bug description>` |
 | `/retro` | Retrospective | `/retro <period>` |
 | `/document-release` | Update docs | `/document-release` |
-| `/codex` | Cross-model review | `/codex review`, `/codex challenge`, `/codex <question>` |
+| `/codex` | Coding delegation and cross-model review (oiloil) | `/codex review`, `/codex challenge`, `/codex <task>` |
 | `/simplify` | Code simplification review | `/simplify <focus area>` |
 | `/autoresearch` | ML experiment loop | `/autoresearch <hypothesis>` |
 | `/super-ralph` | Autonomous execution | `/super-ralph <task>` |
@@ -171,7 +175,7 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 | `research-search-system` | Deep research | Multi-source research with synthesis |
 | `task-orchestrator` | Task breakdown | Decomposing complex tasks into steps |
 | `ui-ux-designer` | Design work | UI/UX design decisions and implementation |
-| `ralph-*` (5 sub-agents) | Super-ralph system | Part of the `super-ralph` vendored bundle, not standalone agents |
+| `ralph-*` (5 sub-agents) | Super-ralph system | Part of the bundled `super-ralph` workflow, not standalone agents |
 
 ---
 
@@ -218,10 +222,12 @@ Availability depends on the local Claude installation, enabled plugins, and any 
 
 ## Hooks System
 
+The 8 locally-maintained hook scripts live in `.claude/hooks/`. The 2 PreToolUse hooks below are provided by the bundled gstack workflow under `.claude/skills/gstack/` and are registered via settings.json when the corresponding skills are activated.
+
 | Hook | When | What it does |
 |---|---|---|
-| **PreToolUse** | Before Bash | `check-careful.sh`: Warns before destructive commands (when /careful active) |
-| **PreToolUse** | Before Edit/Write | `check-freeze.sh`: Blocks edits outside frozen directory (when /freeze active) |
+| **PreToolUse** | Before Bash | `check-careful.sh` (gstack): Warns before destructive commands (when /careful active) |
+| **PreToolUse** | Before Edit/Write | `check-freeze.sh` (gstack): Blocks edits outside frozen directory (when /freeze active) |
 | **UserPromptSubmit** | On prompt | `task-orchestrator-hook.sh`: Detects analysis vs coding, injects guidance |
 | **UserPromptSubmit** | On prompt | `auto-codex-trigger.sh`: Auto-launches Codex in background for coding tasks |
 | **UserPromptSubmit** | On prompt | `skill-activation-prompt.sh`: Suggests skills based on keyword matching |

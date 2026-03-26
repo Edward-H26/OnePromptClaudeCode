@@ -8,6 +8,7 @@ AdditionalChecks/
 # Runtime directories (Claude Code may recreate these in root)
 shell-snapshots/
 session-env/
+.superpowers/
 debug/
 file-history/
 history.jsonl
@@ -114,10 +115,16 @@ settings.json
 **/bun.lock
 **/bun.lockb
 
-# Cloned reference repositories (run references/setup.sh to populate)
-references/gstack/
-references/super-ralph/
-references/everything-claude-code/
+# Reference repository build artifacts and runtime state (content is tracked, artifacts are not)
+references/gstack/node_modules/
+references/gstack/browse/dist/
+references/gstack/.env
+references/gstack/.env.*
+references/super-ralph/node_modules/
+references/everything-claude-code/node_modules/
+references/everything-claude-code/assets/images/
+references/gstack/docs/images/
+references/*/.git/
 
 # Memory system (auto-generated per user)
 memory/
@@ -163,3 +170,7 @@ secrets.*
 .claude/skills/**/workspace/
 .claude/skills/**/PROGRESS.md
 .claude/skills/**/.runtime/
+.claude/skills/**/.agents/
+.claude/skills/**/learnings.md
+.claude/skills/**/__pycache__/
+.claude/skills/**/*.pyc

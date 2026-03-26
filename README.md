@@ -4,7 +4,7 @@
 
 A complete Claude Code workflow that covers the entire software development lifecycle. Clone it, start coding, and never write a prompt from scratch again.
 
-54 skills. 21 commands. 16 agents. 10 hooks. 6 templates. 12+ MCP servers. 400+ auto-triggers.
+54 skill entries. 30 commands. 15 agents. 8 local hooks. 6 templates. 12+ MCP servers. 400+ auto-triggers.
 
 Built for beginners. Scales for power users.
 
@@ -30,7 +30,7 @@ cd OnePromptClaudeCode
 claude
 ```
 
-That's it. Skills suggest themselves. Hooks catch your mistakes. Agents handle the complex parts.
+That is the full setup. `references/setup.sh` is optional and only clones local upstream comparison copies under `references/`.
 
 ---
 
@@ -57,10 +57,10 @@ Zero commands to memorize. Zero prompts to write. Zero configuration.
 
 | Component | Count | Description |
 |---|---|---|
-| **Skills** | 54 | Auto-activated by 400+ keyword triggers |
-| **Commands** | 21 | Slash commands for every workflow phase |
-| **Agents** | 16 | Specialized agents for complex tasks |
-| **Hooks** | 10 | Automated safety and quality gates |
+| **Skills** | 54 | Bundled workflow skill entries available directly from the tracked repo |
+| **Commands** | 30 | Slash commands for planning, implementation, review, QA, and release handoff |
+| **Agents** | 15 | Specialized local agents for complex tasks |
+| **Hooks** | 8 | Automated local safety, tracking, and validation hooks |
 | **Templates** | 6 | Reusable prompt templates for common workflows |
 | **MCP Servers** | 12+ | Figma, GitHub, Playwright, MongoDB, HuggingFace, and more |
 
@@ -112,6 +112,7 @@ The workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Te
 | `postgres-patterns` | ask about PostgreSQL | Queries, indexing, migrations, performance tuning |
 | `deployment-patterns` | ask about deployment | CI/CD, blue-green, canary strategies |
 | `ui-styling` | auto on UI/CSS work | shadcn/ui, Tailwind CSS, 40+ fonts |
+| `shadcn-ui` | ask about shadcn/ui | shadcn/ui component composition, theming, registry, OKLCH tokens |
 | `code-refactor` | ask to refactor | Grep + Edit workflow for bulk refactoring |
 
 ### Review and Testing
@@ -123,6 +124,7 @@ The workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Te
 | `security-scan` | ask for "security scan" | Claude Code config audit, severity grades A-F |
 | `tdd-workflow` | auto on test writing | RED-GREEN-REFACTOR, 80%+ coverage |
 | `e2e-testing` | auto on Playwright | Page Object Model, flaky test strategies |
+| `webapp-testing` | ask to test a local webapp | Python-driven Playwright workflow for local app and browser verification |
 | `qa` | `/qa` | Browser QA: find bugs, fix them, generate tests |
 | `verification-loop` | auto on verification | 6-phase: build, type, lint, test, security, diff |
 
@@ -131,7 +133,8 @@ The workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Te
 | Skill | Trigger | What it does |
 |---|---|---|
 | `super-ralph` | `/super-ralph` | Fully autonomous multi-agent development |
-| `codex` | `/codex` | Cross-model review using OpenAI's Codex CLI |
+| `codex` (oiloil) | `/codex` | Delegate coding to Codex CLI via `ask_codex.sh`, plus cross-model review (review/challenge/consult) |
+| `gstack codex` | internal to `/review-staff` | Enhanced cross-model review with telemetry, platform detection, and plan file integration |
 | `autoresearch` | `/autoresearch` | Karpathy-style ML experiment loops |
 | `autonomous-loops` | ask about "autonomous loop" | Continuous agent loop patterns |
 | `agentic-engineering` | ask about "agent development" | Agent development patterns |
@@ -143,6 +146,7 @@ The workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Te
 | `deep-research` | ask for "deep research" | Multi-source research with synthesis |
 | `professional-research-writing` | always active | Writing style guide |
 | `pdf-processing-pro` | auto on PDF work | PDF extraction, forms, tables, OCR |
+| `web-artifacts-builder` | ask for a self-contained HTML artifact | Bundle React, Tailwind, and shadcn/ui output into a single HTML artifact |
 
 ---
 
@@ -174,7 +178,7 @@ The workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Te
 
 ## Agents
 
-16 specialized agents handle complex tasks:
+15 specialized agents handle complex tasks:
 
 | Agent | Purpose |
 |---|---|
@@ -190,6 +194,9 @@ The workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Te
 | `research-search-system` | Multi-source research with synthesis |
 | `task-orchestrator` | Task decomposition |
 | `ui-ux-designer` | UI/UX design decisions |
+| `architecture-review-system` | Architecture review and improvement |
+| `auto-error-resolver` | Automated error resolution post-hook |
+| `context-manager` | Conversation context and state management |
 
 ---
 
@@ -253,31 +260,30 @@ Ready-to-use templates at `.claude/prompt-templates/`:
   CLAUDE-skills.md       # Skills inventory reference
   WORKFLOW-REFERENCE.md  # Complete reference (single source of truth)
   settings.json          # Permissions, hooks, plugins, env
-  agents/                # 16 agent definitions
-  commands/              # 21 slash commands
-  hooks/                 # 10 automated hook scripts
+  agents/                # 15 local agent definitions
+  commands/              # 30 slash commands
+  hooks/                 # 8 automated hook scripts
   prompt-templates/      # 6 reusable templates
-  skills/                # 54 skill directories
+  skills/                # 54 skill entries
     skill-rules.json     # 400+ keyword trigger engine
-    gstack/              # Vendored gstack bundle
-    super-ralph/         # Vendored super-ralph bundle
-    [32 local skills]    # Backend, frontend, testing, etc.
-    [20 symlinks]        # Aliases to gstack sub-skills
-references/              # Setup scripts for upstream repos
+    gstack/              # Bundled gstack workflow content
+    super-ralph/         # Bundled Super Ralph wrapper and assets
+    [local skills]       # Backend, frontend, testing, and utility skills
+references/              # Optional upstream comparison clones and setup scripts
 social/                  # Social media assets and demo video
 ```
 
 ---
 
-## Updating Vendored Bundles
+## Updating External References
 
-gstack and super-ralph are vendored from upstream repos. To update:
+Use `references/` only when you want to refresh the local upstream comparison copies:
 
 ```bash
 bash references/update-references.sh
 ```
 
-This pulls latest changes and re-syncs into `.claude/skills/`.
+This pulls the latest changes into `references/`. It does not rewrite the tracked workflow under `.claude/skills/`.
 
 ---
 
@@ -289,7 +295,7 @@ This workflow integrates and builds upon the work of incredible community projec
 |---|---|---|
 | [gstack](https://github.com/garrytan/gstack) | @garrytan | Think-Plan-Build-Review-Test-Ship-Reflect cycle |
 | [Super Ralph](https://github.com/ashcastelinocs124/super-ralph) | @ashcastelinocs124 | Autonomous multi-agent execution |
-| [everything-claude-code](https://github.com/hesreallyhim/awesome-claude-code) | @hesreallyhim | Claude Code patterns and community resources |
+| [everything-claude-code](https://github.com/affaan-m/everything-claude-code) | @affaan-m | Claude Code patterns and community resources |
 | Codex skill | @oiloil | Cross-model review via Codex CLI |
 | autoresearch | Karpathy-inspired | Autonomous ML research loops |
 | Agentic Engineering | Cognition's ECC | Eval-driven development patterns |

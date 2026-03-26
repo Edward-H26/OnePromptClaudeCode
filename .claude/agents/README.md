@@ -34,7 +34,7 @@ Several workflows in this repo also rely on installed plugin agents that do not 
 
 - Use these as local prompts or subagent definitions only when their assumptions match the active task.
 - The `task-orchestrator` agent is now a lightweight coordination reference, not the source of mandatory workflow policy.
-- The Ralph sub-agents are vendored inside `.claude/skills/super-ralph/` and should be treated as part of that bundle, not as standalone top-level agents.
+- The Ralph sub-agents live under `.claude/skills/super-ralph/agents/` in this repo and should be treated as part of that bundled workflow, not as standalone top-level agents.
 
 ## Maintenance Rule
 

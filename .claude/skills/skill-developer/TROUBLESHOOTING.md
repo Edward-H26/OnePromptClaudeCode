@@ -47,14 +47,14 @@ sed -n '1,220p' .claude/hooks/tsc-check.sh
 sed -n '1,220p' .claude/hooks/workflow-step-tracker.sh
 ```
 
-If documentation references `.ts` wrappers, `.claude/settings.json`, or `.claude/hooks/state/`, update the docs.
+If documentation references `.ts` wrappers, root `settings.json`, or `.claude/hooks/state/`, update the docs.
 
 ## Settings path confusion
 
 In this repo, the active project settings file is:
 
 ```text
-settings.json
+.claude/settings.json
 ```
 
-Do not point documentation at `.claude/settings.json` unless you add one and wire the repo to use it.
+Point workflow docs at `.claude/settings.json`, not the ignored root `settings.json` runtime file.

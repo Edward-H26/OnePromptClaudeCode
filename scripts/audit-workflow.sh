@@ -16,10 +16,7 @@ root = Path(".")
 skills_dir = root / ".claude" / "skills"
 skill_rules_path = skills_dir / "skill-rules.json"
 
-for path in [
-    root / ".claude" / "settings.json",
-    skill_rules_path,
-]:
+for path in [root / ".claude" / "settings.json", skill_rules_path]:
     with path.open() as handle:
         json.load(handle)
 
@@ -28,7 +25,7 @@ rule_skills = set(skill_rules.get("skills", {}))
 skill_dirs = {
     path.name
     for path in skills_dir.iterdir()
-    if path.is_dir() and (path / "SKILL.md").exists()
+    if (path.is_dir() or path.is_symlink()) and (path / "SKILL.md").exists()
 }
 
 manual_only = {"gstack", "super-ralph"}
@@ -46,6 +43,26 @@ if missing_dirs:
     for name in missing_dirs:
         print(f"  {name}")
     raise SystemExit(1)
+
+for required in [
+    skills_dir / "gstack" / "SKILL.md",
+    skills_dir / "super-ralph" / "SKILL.md",
+]:
+    if not required.exists():
+        print(f"Missing required local skill entry: {required.as_posix()}")
+        raise SystemExit(1)
+
+reference_dirs = [
+    root / "references" / "gstack",
+    root / "references" / "super-ralph",
+    root / "references" / "everything-claude-code",
+]
+missing_references = [path for path in reference_dirs if not path.exists()]
+if missing_references:
+    print("Note: reference clones are optional and currently absent:")
+    for path in missing_references:
+        print(f"  {path.as_posix()}")
+    print("Run bash references/setup.sh only if you want local upstream comparison copies.")
 PY
 
 echo "[3/8] Hook prompt classification and cache-key safety"
@@ -127,6 +144,18 @@ for expected_skill in skill-developer security-review security-scan; do
     fi
 done
 
+SKILL_OUTPUT="$(run_skill_activation "Implement a secure route testing workflow in .claude hooks and update gitignore for runtime state.")"
+for expected_skill in skill-developer security-review security-scan; do
+    if ! printf "%s\n" "$SKILL_OUTPUT" | grep -q "$expected_skill"; then
+        echo "Missing expected implementation-scope skill activation: $expected_skill" >&2
+        exit 1
+    fi
+done
+if printf "%s\n" "$SKILL_OUTPUT" | grep -q "backend-dev-guidelines"; then
+    echo "Unexpected backend skill activation for workflow-hardening prompt" >&2
+    exit 1
+fi
+
 CACHE_KEY="$(repo_cache_key "packages/app")"
 if [[ -z "$CACHE_KEY" ]] || [[ "$CACHE_KEY" == *"/"* ]]; then
     echo "Unsafe repo cache key: $CACHE_KEY" >&2
@@ -140,6 +169,57 @@ import re
 
 root = Path(".")
 paths = []
+external_prefixes = [
+    ".claude/skills/gstack/",
+    ".claude/skills/browse/",
+    ".claude/skills/careful/",
+    ".claude/skills/design-consultation/",
+    ".claude/skills/design-review/",
+    ".claude/skills/document-release/",
+    ".claude/skills/freeze/",
+    ".claude/skills/gstack-upgrade/",
+    ".claude/skills/guard/",
+    ".claude/skills/investigate/",
+    ".claude/skills/office-hours/",
+    ".claude/skills/plan-ceo-review/",
+    ".claude/skills/plan-design-review/",
+    ".claude/skills/plan-eng-review/",
+    ".claude/skills/qa/",
+    ".claude/skills/qa-only/",
+    ".claude/skills/retro/",
+    ".claude/skills/review/",
+    ".claude/skills/setup-browser-cookies/",
+    ".claude/skills/ship/",
+    ".claude/skills/unfreeze/",
+    ".claude/skills/super-ralph/agents/",
+    ".claude/skills/super-ralph/commands/",
+    ".claude/skills/super-ralph/skills/",
+    "references/gstack/",
+    "references/super-ralph/",
+    "references/everything-claude-code/",
+]
+external_prefixes.extend(
+    f".claude/skills/{name}/" for name in [
+        "agentic-engineering",
+        "autonomous-loops",
+        "claude-api",
+        "deep-research",
+        "deployment-patterns",
+        "docker-patterns",
+        "e2e-testing",
+        "eval-harness",
+        "liquid-glass-design",
+        "postgres-patterns",
+        "python-patterns",
+        "python-testing",
+        "search-first",
+        "security-review",
+        "security-scan",
+        "strategic-compact",
+        "tdd-workflow",
+        "verification-loop",
+    ]
+)
 scan_roots = [
     root / ".claude",
     root / "references",
@@ -150,15 +230,7 @@ for scan_root in scan_roots:
         continue
     for path in scan_root.rglob("*.md"):
         text_path = path.as_posix()
-        if text_path.startswith(".claude/skills/gstack/"):
-            continue
-        if text_path.startswith(".claude/skills/super-ralph/"):
-            continue
-        if text_path.startswith("references/gstack/"):
-            continue
-        if text_path.startswith("references/super-ralph/"):
-            continue
-        if text_path.startswith("references/everything-claude-code/"):
+        if any(text_path.startswith(prefix) for prefix in external_prefixes):
             continue
         paths.append(path)
 
@@ -274,9 +346,32 @@ if installed_path.exists():
         }
         blocked_enabled = sorted(enabled & blocklisted)
         if blocked_enabled:
-            print("Runtime warning: enabled plugins currently appear in ignored local blocklist state:")
+            print("Enabled plugins appear in ignored local blocklist state:")
             for name in blocked_enabled:
                 print(f"  {name}")
+            raise SystemExit(1)
+
+gitignore_check = subprocess.run(
+    ["git", "-C", str(root), "check-ignore", ".superpowers/"],
+    text=True,
+    stdout=subprocess.DEVNULL,
+    stderr=subprocess.DEVNULL,
+)
+if gitignore_check.returncode != 0:
+    print("Missing gitignore coverage for .superpowers/")
+    raise SystemExit(1)
+
+optional_build_artifacts = [
+    (root / ".claude" / "skills" / "gstack" / "browse" / "dist" / "browse",
+     "gstack browse binary not built. Run: cd .claude/skills/gstack/browse && npm run build"),
+    (root / ".claude" / "skills" / "chrome-devtools" / "scripts" / "node_modules",
+     "chrome-devtools deps not installed. Run: cd .claude/skills/chrome-devtools/scripts && npm install"),
+]
+missing_optional = [(p, msg) for p, msg in optional_build_artifacts if not p.exists()]
+if missing_optional:
+    print("Note: optional build artifacts are absent (expected on fresh clones):")
+    for _, msg in missing_optional:
+        print(f"  {msg}")
 
 public_files = subprocess.check_output(
     ["git", "-C", str(root), "ls-files", "-co", "--exclude-standard"],
@@ -349,9 +444,13 @@ public_files = subprocess.check_output(
     text=True,
 ).splitlines()
 
+allow_prefixes = [
+    "references/",
+]
+
 hits = []
 for rel_path in public_files:
-    if rel_path in allow_paths:
+    if rel_path in allow_paths or any(rel_path.startswith(p) for p in allow_prefixes):
         continue
     if rel_path.startswith(".claude/skills/gstack/test/"):
         continue

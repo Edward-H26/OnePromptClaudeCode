@@ -1,0 +1,23 @@
+# Secrets and credentials
+.env
+.env.*
+.env.local
+*.pem
+*.key
+credentials.json
+secrets.*
+
+# Local config
+.claude/settings.local.json
+
+# Internal working files
+CLAUDE.md
+memory.md
+learnings.md
+PLAN.md
+SPEC.md
+PROGRESS.md
+workspace/
+
+# OS
+.DS_Store

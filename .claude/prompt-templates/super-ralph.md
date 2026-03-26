@@ -18,14 +18,14 @@ You are working in the project directory: **[DIRECTORY]**
 
 **Constraints:** [CONSTRAINTS]
 
-Invoke `/super-ralph` and read the wrapper skill at `$CLAUDE_PROJECT_DIR/.claude/skills/super-ralph/SKILL.md`. Follow it to the vendored Super Ralph bundle and then run the full autonomous loop.
+Invoke `/super-ralph` and read the local wrapper at `$CLAUDE_PROJECT_DIR/.claude/skills/super-ralph/SKILL.md`. Then use the bundled Super Ralph files under `$CLAUDE_PROJECT_DIR/.claude/skills/super-ralph/` and run the full autonomous loop.
 
 Before launching, use available tools to set up the context:
 
 1. Apply `search-first` to deeply explore the codebase in [DIRECTORY]. Map the project structure, tech stack, conventions, and test infrastructure before Ralph begins.
 2. Use Context7 MCP: call `resolve-library-id` and `query-docs` for every significant dependency so Ralph's agents have up-to-date API docs.
 3. If the project has a database, use MongoDB MCP (`collection-schema`, `collection-indexes`) or apply `postgres-patterns` to understand the data layer.
-4. Use Filesystem MCP: call `directory_tree` to get a structural overview Ralph can reference.
+4. Use repo file search and reads to get a structural overview Ralph can reference.
 5. Use Memory MCP: call `search_nodes` to check for prior architectural decisions or constraints relevant to this task.
 6. Consider activating `/careful` if the task touches critical systems, or `/freeze [MODULE_DIR]` to restrict edits to a specific module.
 

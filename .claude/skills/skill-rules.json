@@ -27,15 +27,25 @@
                     "prompt template",
                     "prompt templates",
                     "settings.json",
-                    ".claude/settings.json"
+                    ".claude/settings.json",
+                    "gitignore",
+                    "ignored files",
+                    "public surface",
+                    "runtime state",
+                    "workflow hardening",
+                    "reference sync",
+                    "reference wiring",
+                    "plugin drift"
                 ],
                 "intentPatterns": [
                     "(how do|how does|explain).*?skill",
                     "(create|add|modify|build).*?skill",
                     "skill.*?(work|trigger|activate|system)",
                     "(fix|debug|update|refactor).*?(hook|workflow|skill|command|agent|plugin|template|settings)",
+                    "(implement|fix|update|harden|rewrite|migrate).*?(hook|workflow|skill|command|agent|plugin|template|settings|gitignore|reference)",
                     "(how do|how does|explain).*?(hook|workflow|plugin|command|agent|template|settings)",
-                    "(audit|review).*?(claude|workflow|prompt template|slash command)"
+                    "(audit|review).*?(claude|workflow|prompt template|slash command)",
+                    "(audit|review|scan).*?(workflow|hooks|gitignore|references|public surface)"
                 ]
             }
         },
@@ -66,6 +76,20 @@
                     "dependency injection",
                     "unifiedConfig",
                     "configuration"
+                ],
+                "keywordExclusions": [
+                    ".claude",
+                    "hook",
+                    "hooks",
+                    "plugin",
+                    "plugins",
+                    "gitignore",
+                    "skill",
+                    "skills",
+                    "command",
+                    "commands",
+                    "template",
+                    "templates"
                 ],
                 "intentPatterns": [
                     "(create|add|implement|build).*?(route|endpoint|API|controller|service|repository)",
@@ -551,11 +575,17 @@
                     "api key",
                     "owasp",
                     "security review",
-                    "security audit"
+                    "security audit",
+                    "sensitive information",
+                    "secrets exposure",
+                    "credential leak",
+                    "gitignore"
                 ],
                 "intentPatterns": [
                     "(review|check|audit|scan).*?security",
-                    "(secure|harden|protect).*?(code|api|endpoint|app)"
+                    "(secure|harden|protect).*?(code|api|endpoint|app)",
+                    "(scan|check|review).*?(secrets|credentials|sensitive|exposure)",
+                    "(audit|review|check).*?(gitignore|ignored files|sensitive files)"
                 ]
             },
             "fileTriggers": {
@@ -576,7 +606,7 @@
         "security-scan": {
             "type": "domain",
             "enforcement": "suggest",
-            "priority": "medium",
+            "priority": "high",
             "description": "Scan Claude Code configuration for security vulnerabilities using AgentShield",
             "promptTriggers": {
                 "keywords": [
@@ -587,12 +617,20 @@
                     "security audit config",
                     "permissions audit",
                     "plugin blocklist",
-                    "workflow security"
+                    "workflow security",
+                    "workflow audit",
+                    "gitignore audit",
+                    "secrets scan",
+                    "sensitive information scan",
+                    "plugin drift"
                 ],
                 "intentPatterns": [
                     "scan.*?(config|claude|hooks|settings)",
                     "security.*?(scan|audit).*?(config|setup)",
-                    "(review|audit|check).*?(permissions|hooks|plugins|blocklist)"
+                    "(implement|fix|update|harden|rewrite).*?(workflow|hooks|gitignore|plugins|settings|permissions)",
+                    "(review|audit|check).*?(permissions|hooks|plugins|blocklist)",
+                    "(audit|scan|check).*?(workflow|gitignore|sensitive|secrets|exposure)",
+                    "(review|check).*?(what would be pushed|public surface)"
                 ]
             },
             "fileTriggers": {
@@ -1074,7 +1112,7 @@
             "description": "Search-first development: explore existing code before writing new code.",
             "promptTriggers": {
                 "keywords": ["search first", "search before code", "codebase search", "find existing"],
-                "intentPatterns": ["search.*first", "(search|find|explore).*before.*(code|implement)"]
+                "intentPatterns": ["search.*first", "(search|find|explore).*before.*(code|implement)", "(go through|scan|evaluate).*?(every file|codebase|workflow)"]
             }
         },
         "liquid-glass-design": {

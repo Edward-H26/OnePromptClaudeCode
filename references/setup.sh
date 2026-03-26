@@ -2,16 +2,6 @@
 set -eu
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CLAUDE_DIR="$(dirname "$SCRIPT_DIR")/.claude"
-
-sync_reference() {
-    local source_dir="$1"
-    local target_dir="$2"
-
-    mkdir -p "$target_dir"
-    rsync -a --delete --exclude ".git/" "$source_dir/" "$target_dir/"
-}
-
 REPOS=(
     "https://github.com/garrytan/gstack.git"
     "https://github.com/ashcastelinocs124/super-ralph.git"
@@ -21,26 +11,18 @@ REPOS=(
 for url in "${REPOS[@]}"; do
     name="$(basename "$url" .git)"
     target="$SCRIPT_DIR/$name"
+    tmpdir="$(mktemp -d)"
 
-    if [[ -d "$target/.git" ]]; then
-        echo "Updating $name..." >&2
-        git -C "$target" pull --ff-only 2>&1
-    else
-        echo "Cloning $name..." >&2
-        git clone "$url" "$target" 2>&1
-    fi
+    echo "Fetching $name..." >&2
+    git clone --depth 1 "$url" "$tmpdir" 2>&1
+
+    echo "Syncing $name to references/$name..." >&2
+    rsync -a --delete --exclude='.git/' "$tmpdir/" "$target/"
+
+    rm -rf "$tmpdir"
+    echo "Done: $name" >&2
 done
 
-if [[ -d "$SCRIPT_DIR/gstack" ]]; then
-    echo "Syncing gstack into .claude/skills/gstack/..." >&2
-    sync_reference "$SCRIPT_DIR/gstack" "$CLAUDE_DIR/skills/gstack"
-    echo "gstack skills synced." >&2
-fi
-
-if [[ -d "$SCRIPT_DIR/super-ralph" ]]; then
-    echo "Syncing super-ralph into .claude/skills/super-ralph/..." >&2
-    sync_reference "$SCRIPT_DIR/super-ralph" "$CLAUDE_DIR/skills/super-ralph"
-    echo "super-ralph skills synced." >&2
-fi
-
-echo "Setup complete. Run this script again to update." >&2
+echo "" >&2
+echo "Setup complete. Reference content is now under references/." >&2
+echo "Review the changes and commit them to track the updated content." >&2

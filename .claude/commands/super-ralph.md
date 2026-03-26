@@ -7,15 +7,14 @@ argument-hint: "QUERY"
 
 The user wants to run the Super Ralph autonomous agentic loop.
 
-Use the local wrapper skill at `.claude/skills/super-ralph/SKILL.md` as the entrypoint. That wrapper points to the vendored Super Ralph bundle, which remains the source of truth for the actual autonomous workflow.
+Use the local wrapper skill at `.claude/skills/super-ralph/SKILL.md` as the entrypoint. That wrapper routes into the bundled Super Ralph source that ships inside this repo.
 
 Start from:
-- `.claude/skills/super-ralph/SKILL.md`
-- `.claude/skills/super-ralph/skills/super-ralph/SKILL.md`
-- `.claude/skills/super-ralph/agents/`
-- `.claude/skills/super-ralph/commands/super-ralph.md`
+- `$CLAUDE_PROJECT_DIR/.claude/skills/super-ralph/commands/super-ralph.md`
+- `$CLAUDE_PROJECT_DIR/.claude/skills/super-ralph/skills/super-ralph/SKILL.md`
+- `$CLAUDE_PROJECT_DIR/.claude/skills/super-ralph/agents/`
 
-The vendored bundle handles everything:
+The bundled workflow handles everything:
 
 1. Brainstorm (interactive Q&A to explore intent, scope, and edge cases with the user)
 2. Tooling discovery (scan available skills/agents, recommend a custom toolset for the run)
@@ -30,4 +29,4 @@ The vendored bundle handles everything:
 
 The user's query is: ${ARGUMENTS}
 
-**Start by following the vendored Super Ralph workflow now.**
+**Start by following the bundled Super Ralph workflow now.**

@@ -1,23 +1,20 @@
 ---
 name: codex
-description: Delegate coding tasks to Codex CLI for execution, or discuss implementation approaches with it. CodeX is a cost-effective, strong coder — great for batch refactoring, code generation, multi-file changes, test writing, and multi-turn implementation tasks. Use when the plan is clear and needs hands-on coding. Claude handles architecture, strategy, copywriting, and ambiguous problems better.
+description: Delegate coding tasks to Codex CLI for execution. Only invoke this skill when the user explicitly asks to use Codex — e.g., "用 codex 来做", "让 codex 执行", "ask codex to...", "codex 帮我写". Do not proactively delegate to Codex for general coding requests the user didn't specifically ask Codex to handle. Codex is an autonomous coding agent with the same tools as Claude (file read/write, grep, bash) — it explores the codebase and implements changes on its own. Claude's role is to understand the problem clearly and frame it well for Codex to execute.
 ---
-
-# CodeX — Your Codex Coding Partner
-
-Delegate coding execution to Codex CLI. CodeX turns clear plans into working code.
 
 ## Critical rules
 
-- For delegated coding work, use the bundled shell script. The direct `codex` CLI is reserved for the read-only review, challenge, and consult modes documented below.
-- Run the script ONCE per task. If it succeeds (exit code 0), read the output file and proceed. Do NOT re-run or retry.
-- Do NOT read or inspect the script source code. Treat it as a black box.
-- ALWAYS quote file paths containing brackets, spaces, or special characters when passing to the script (e.g. `--file "src/app/[locale]/page.tsx"`). Unquoted `[...]` triggers zsh glob expansion.
-- **Keep the task prompt focused.** Aim for under ~500 words. Describe WHAT to do and key constraints, not step-by-step HOW. CodeX is an autonomous agent with full workspace access — it reads files, explores code, and figures out implementation details on its own.
-- **Never paste file contents into the prompt.** Use `--file` to point CodeX to key files — it reads them directly. Duplicating file contents in the prompt wastes tokens and adds no value.
-- **Don't reference or describe the SKILL.md itself in the prompt.** CodeX doesn't need to know about this skill's configuration.
+- Use the bundled shell script rather than calling `codex` CLI directly — the script handles output capture, session tracking, and real-time progress streaming correctly.
+- Run the script once per task. If it succeeds (exit code 0), read the output file and proceed. Don't re-run just because the output seems short — Codex often makes changes quietly without narrating every step.
+- Quote file paths containing `[`, `]`, spaces, or special characters (e.g. `--file "src/app/[locale]/page.tsx"`). Without quotes, zsh treats `[...]` as a glob pattern and fails with "no matches found".
+- **Keep the task prompt to the goal and constraints, not the implementation steps.** Aim for under ~500 words. Codex has the same tools as Claude and will explore the codebase itself — spelling out every file to change or every step tends to constrain it rather than help.
+- **Don't paste file contents into the prompt.** Use `--file` to point Codex to key files — it reads them directly at their current version. Pasting contents wastes tokens and risks passing stale code.
+- **Don't mention this skill or its configuration in the prompt.** Codex doesn't need to know about it.
 
 ## How to call the script
+
+### Linux/macOS (bash)
 
 The script path is:
 
@@ -46,6 +43,37 @@ Multi-turn conversation (continue a previous session):
   --session <session_id from previous run>
 ```
 
+### Windows (PowerShell)
+
+The script path is:
+
+```
+$CLAUDE_PROJECT_DIR/.claude/skills/codex/scripts/ask_codex.ps1
+```
+
+Minimal invocation:
+
+```powershell
+& $CLAUDE_PROJECT_DIR/.claude/skills/codex/scripts/ask_codex.ps1 "Your request in natural language"
+```
+
+With file context:
+
+```powershell
+& $CLAUDE_PROJECT_DIR/.claude/skills/codex/scripts/ask_codex.ps1 "Refactor these components to use the new API" `
+  -f src/components/UserList.tsx `
+  -f src/components/UserDetail.tsx
+```
+
+Multi-turn conversation (continue a previous session):
+
+```powershell
+& $CLAUDE_PROJECT_DIR/.claude/skills/codex/scripts/ask_codex.ps1 "Also add retry logic with exponential backoff" `
+  -Session <session_id from previous run>
+```
+
+### Output format
+
 The script prints on success:
 
 ```
@@ -55,27 +83,22 @@ output_path=<path to markdown file>
 
 Read the file at `output_path` to get CodeX's response. Save `session_id` if you plan follow-up calls.
 
-## Decision policy
-
-Call CodeX when at least one of these is true:
-
-- The implementation plan is clear and needs coding execution.
-- The task involves batch refactoring, code generation, or repetitive changes.
-- Multiple files need coordinated modifications following a defined pattern.
-- You want a practitioner's perspective on whether a plan is feasible.
-- The task is cost-sensitive and doesn't require deep architectural reasoning.
-- Writing or updating tests based on existing code.
-- Simple-to-moderate bug fixes where the root cause is identified.
-
 ## Workflow
 
-1. Design the solution and identify the key files involved.
-2. Run the script with a clear, concise task description. Tell CodeX the goal and constraints, not step-by-step implementation details — it figures those out itself. For discussion, use a question-oriented task with `--read-only`.
-3. Pass relevant files with `--file` (2-6 high-signal entry points; CodeX has full workspace access and will discover related files on its own).
-4. Read the output — CodeX executes changes and reports what it did.
+1. Understand the problem: read the key files to grasp what's broken or needed. Focus on being able to describe the problem and goal clearly — you don't need to design the full solution or enumerate every affected file. Codex will explore the codebase itself.
+2. Run the script with a focused task description: the goal, key constraints, and any non-obvious context. For discussion or analysis without changes, use `--read-only`.
+3. Pass 1-4 entry-point files with `--file` as starting hints. Codex has the same tools as Claude and will discover related files on its own — no need to enumerate everything upfront.
+4. Read the output — Codex executes changes and reports what it did.
 5. Review the changes in your workspace.
 
-For multi-step projects, use `--session <id>` to continue with full conversation history. For independent parallel tasks, start separate background shell runs only when the current environment supports that workflow cleanly.
+For multi-step projects, use `--session <id>` to continue with full conversation history. For independent parallel tasks, use the Task tool with `run_in_background: true`.
+
+## Failure handling
+
+- **`script: tcgetattr/ioctl: Operation not supported on socket`** (exit code 1): the `script` command probes stdin with `tcgetattr` at startup and only tolerates `ENOTTY`/`ENODEV` errors. When Claude Code connects stdin via a socketpair, the kernel returns `EOPNOTSUPP` instead — which `script` doesn't whitelist, so it exits immediately. The script detects this automatically by probing with `script -q /dev/null true` first and falls back to direct execution. Update to the latest version if you still see this error.
+- **Exit code 137**: the task was interrupted (user cancel or OOM). Not a Codex bug — retry or break the task into smaller pieces.
+- **`ERROR codex_core::codex: failed to load skill ...`** in stderr: one of Codex's own installed skills has a broken YAML file. This warning is harmless and doesn't affect the current task — ignore it.
+- **`(no response from codex)`** in the output file: Codex ran but produced no readable output. Check stderr for clues; the task may have hit a sandbox restriction.
 
 ## Options
 
@@ -86,6 +109,19 @@ For multi-step projects, use `--session <id>` to continue with full conversation
 - `--reasoning <level>` — Reasoning effort: `low`, `medium`, `high` (default: `medium`). Use `high` for code review, debugging, complex refactoring, or root cause analysis.
 - `--sandbox <mode>` — Override sandbox policy (default: workspace-write via full-auto).
 - `--read-only` — Read-only mode for pure discussion/analysis, no file changes.
+
+## Resume mode limitations
+
+When using `--session` to resume a previous conversation, note these limitations:
+
+- **Must run in a git repository** — The `codex exec resume` command requires a git-trusted directory. It does not support `--skip-git-repo-check`.
+- **Limited options** — Resume mode only supports `-c/--config` and `--last`. The following options are **not supported** in resume mode:
+  - `--sandbox`
+  - `--full-auto`
+  - `--read-only`
+  - `--model`
+  - `--workspace` (resumes in the original session's context)
+- **Text output only** — Resume mode returns plain text instead of JSON-structured output.
 
 ---
 

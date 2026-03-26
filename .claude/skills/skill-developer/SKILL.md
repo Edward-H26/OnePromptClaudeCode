@@ -77,7 +77,7 @@ If you changed file-trigger behavior in a validation hook, test the specific hoo
 - Keep descriptions explicit. They help both humans and trigger design.
 - Prefer `suggest` over `block` unless the repo really has a hook that enforces blocking.
 - Update related docs when changing hook or trigger behavior.
-- Keep examples aligned with actual local paths, especially the root `settings.json`.
+- Keep examples aligned with actual local paths, especially `.claude/settings.json` in this repo.
 
 ## Maintenance Checklist
 
@@ -85,7 +85,7 @@ If you changed file-trigger behavior in a validation hook, test the specific hoo
 - `skill-rules.json` entry matches the skill name exactly
 - Trigger keywords and intent patterns reflect real user prompts
 - Hook docs mention the shell hooks that actually exist
-- No references to `.claude/settings.json` when the active settings file is root `settings.json`
+- References to the active shared settings file should point at `.claude/settings.json` in this repo
 - No references to nonexistent state directories or TypeScript hook wrappers
 
 ## References

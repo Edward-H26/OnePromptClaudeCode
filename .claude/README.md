@@ -15,12 +15,12 @@ This directory contains the maintained workflow source for this `agent/claude` e
 - `.claude/settings.json` is the canonical shared config for this workspace.
 - `.claude/settings.local.json` is for machine-local overrides only.
 - `.claude/CLAUDE*.md`, `.claude/hooks/`, `.claude/commands/`, `.claude/prompt-templates/`, `.claude/agents/`, and `.claude/skills/` are maintained source files.
-- `.claude/skills/gstack/` and `.claude/skills/super-ralph/` are vendored upstream bundles synced from `references/`. Update them via `bash references/update-references.sh` rather than editing their internals directly.
+- `.claude/skills/` is the published workflow surface in this repo, including the bundled `gstack` and `super-ralph` content.
 - Repo-local orchestration commands should rely on bundled scripts and installed plugins, not personal wrapper tooling in a machine-local Claude home directory.
 - Root-level `projects/`, `file-history/`, `history.jsonl`, `statsig/`, `debug/`, `shell-snapshots/`, `sessions/`, `tasks/`, `usage-data/`, `paste-cache/`, and `cache/` are runtime data.
 - Root-level `plugins/` is local plugin installation state and should not be published.
 - Root-level `social/` is optional promotional material and is gitignored for workflow-only publishing.
-- `references/gstack/`, `references/super-ralph/`, and `references/everything-claude-code/` are cloned reference repos. The first two are synced into `.claude/skills/` by the setup and update scripts. `everything-claude-code` is local research material and is not synced.
+- `references/gstack/`, `references/super-ralph/`, and `references/everything-claude-code/` are optional gitignored upstream comparison clones.
 - Runtime mirrors that appear under `.claude/` should be treated as disposable state unless explicitly documented as source.
 
 ## Current Inventory
@@ -28,10 +28,10 @@ This directory contains the maintained workflow source for this `agent/claude` e
 - Local agent prompts live in `.claude/agents/`.
 - Local slash-command wrappers live in `.claude/commands/`.
 - Prompt templates live in `.claude/prompt-templates/`.
-- `.claude/skills/` contains maintained local skills, vendored upstream bundles (gstack, super-ralph), and gstack-backed symlink aliases.
+- `.claude/skills/` contains the maintained local skills and bundled workflow content used at runtime.
 - Project hooks are registered through [settings.json](./settings.json).
-- The published source intentionally includes vendored `gstack`, vendored `super-ralph`, and bundled `ui-styling` font assets. Runtime data still lives outside that tracked surface.
-- To update vendored bundles from upstream, run `bash references/update-references.sh`.
+- The published source intentionally includes the workflow code it needs at runtime, plus bundled `ui-styling` font assets.
+- Run `bash references/setup.sh` only if you want local upstream comparison clones under `references/`.
 
 ## Working Principles
 

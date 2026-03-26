@@ -1,4 +1,4 @@
-Invoke the /careful skill. Read the SKILL.md at $CLAUDE_PROJECT_DIR/.claude/skills/careful/SKILL.md and follow it exactly.
+Invoke the `/careful` skill. Read the SKILL at `$CLAUDE_PROJECT_DIR/.claude/skills/careful/SKILL.md` and follow it exactly.
 
 Activate safety guardrails for destructive commands (rm -rf, DROP TABLE, force-push, git reset --hard).
 
