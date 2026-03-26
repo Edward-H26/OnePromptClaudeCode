@@ -1,0 +1,17 @@
+{
+  "name": "super-ralph",
+  "description": "Autonomous agentic loop that decomposes user queries into tasks, writes tests first, implements with fresh sub-agents, self-debugs on failure, and learns over time. Like the Ralph Wiggum loop, but it gets smarter.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Ash"
+  },
+  "keywords": [
+    "agentic-loop",
+    "multi-agent",
+    "test-driven",
+    "self-debugging",
+    "learning",
+    "task-decomposition",
+    "autonomous"
+  ]
+}

@@ -1,0 +1,165 @@
+# Claude Code Runtime/Cache Directories
+# These are automatically created by Claude Code during sessions
+# and should not be committed to version control
+
+# AdditionalChecks folder (organized runtime directories)
+AdditionalChecks/
+
+# Runtime directories (Claude Code may recreate these in root)
+shell-snapshots/
+session-env/
+debug/
+file-history/
+history.jsonl
+plans/
+projects/
+sessions/
+usage-data/
+paste-cache/
+telemetry/
+todos/
+statsig/
+plugins/
+chrome/
+.claude/plugins
+social/
+
+# macOS system files
+.DS_Store
+
+# Editor and workstation files
+.idea/
+.vscode/
+*.swp
+*.swo
+*.tmp
+*.temp
+*.log
+*.pid
+*.orig
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+
+# Runtime cache directories (recreated by hooks during sessions)
+tsc-cache/
+.claude/tsc-cache/
+.claude/skills/codex/.runtime/
+.claude/skills/super-ralph/.git/
+.claude/skills/chrome-devtools/scripts/node_modules/
+.claude/skills/chrome-devtools/scripts/docs/
+.claude/projects/
+.claude/file-history/
+.claude/history.jsonl
+.claude/statsig/
+.claude/debug/
+.claude/shell-snapshots/
+.claude/ide/
+.claude/plugins/
+.claude/todos/
+tasks/
+cache/
+
+# Cache and state files
+mcp-needs-auth-cache.json
+stats-cache.json
+plugins/install-counts-cache.json
+plugins/installed_plugins.json
+plugins/known_marketplaces.json
+plugins/blocklist.json
+settings.local.json
+.claude/settings.local.json
+.env
+.env.*
+*.local
+**/__pycache__/
+**/*.pyc
+
+# Image cache (not tracked)
+/image-cache/
+
+# gstack runtime artifacts
+.claude/skills/gstack/.git/
+.claude/skills/gstack/node_modules/
+.claude/skills/gstack/bin/browse
+.claude/skills/gstack/browse/test/fixtures/
+.claude/skills/gstack/.github/
+.gstack/
+
+# Claude runtime state (session data, not user config)
+.claude.json
+.claude.json.backup*
+backups/
+*.bak
+
+# Generated lock files for local helper installs
+.claude/skills/chrome-devtools/scripts/package-lock.json
+
+# gstack .env files
+.claude/skills/gstack/.env*
+
+# Settings file (contains machine-specific data)
+settings.json
+!.claude/settings.json
+
+# Local command/runtime artifacts
+.claude/checkpoints.log
+.claude/checkpoints/
+.claude/plan/
+
+# Node modules and lock files anywhere
+**/node_modules/
+**/bun.lock
+**/bun.lockb
+
+# Cloned reference repositories (run references/setup.sh to populate)
+references/gstack/
+references/super-ralph/
+references/everything-claude-code/
+
+# Memory system (auto-generated per user)
+memory/
+**/MEMORY.md
+
+# Additional runtime artifacts
+*.sqlite
+*.sqlite3
+*.db
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+coverage/
+.coverage
+htmlcov/
+
+# OS files
+Thumbs.db
+Desktop.ini
+._*
+
+# ── Public sharing hardening ──
+
+# Telemetry failed event NDJSON (contain email, session IDs, device IDs)
+**/1p_failed_events.*.json
+
+# Plugin orphan markers
+**/.orphaned_at
+
+# Credentials catch-all safety net
+*.pem
+*.key
+credentials.json
+secrets.*
+
+# Database journal files
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+*.db-journal
+
+# Skill runtime working files (safety net across all skills)
+.claude/skills/**/workspace/
+.claude/skills/**/PROGRESS.md
+.claude/skills/**/.runtime/

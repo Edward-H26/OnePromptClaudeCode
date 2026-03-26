@@ -1,0 +1,5 @@
+Invoke the /freeze skill. Read the SKILL.md at $CLAUDE_PROJECT_DIR/.claude/skills/freeze/SKILL.md and follow it exactly.
+
+Restrict file edits to a specific directory for this session. Use when debugging to prevent accidentally modifying unrelated code.
+
+Directory to freeze to: $ARGUMENTS

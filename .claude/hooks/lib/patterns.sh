@@ -1,0 +1,13 @@
+#!/bin/bash
+
+ANALYSIS_PATTERN="(^|[^[:alnum:]_])(audit|review|analyze|evaluate|assess|inspect|examine|find all issues|what can be improved|list all|identify problems|check for|compare|explain|summarize|investigate|look at|go through|scan for|what are|how does|why does|describe|show me|tell me about)([^[:alnum:]_]|$)"
+
+CODING_PATTERN="(^|[^[:alnum:]_])(fix|implement|add|change|update|refactor|build|create|modify|write|debug|develop|migrate|deploy|optimize|convert|replace|remove|delete|move|rename|extract|split|merge|integrate|connect|configure|setup|install|upgrade|downgrade|patch|resolve|handle|improve|enhance|extend|wrap|unwrap|style|design|animate|test|spec|solve|harden|rewrite|sync|cleanup|clean up)([^[:alnum:]_]|$)"
+
+PURE_QUESTION_PATTERN="^(what is|what are|what does|how does|why does|can you explain|tell me about|describe|show me|list all|where is|who is|is there|should I|would you|can I)"
+
+CODING_CONTEXT_PATTERN="(\.(ts|tsx|js|jsx|py|css|scss|html|json|yaml|yml|sh|sql|go|rs|java|rb|php|swift|kt)|function|class|component|module|api|endpoint|route|schema|database|query|table|migration|hook|middleware|controller|service|model|view|template|layout|page|screen|button|form|input|modal|dialog|menu|navbar|sidebar|footer|header|card|grid|flex|container|wrapper|workflow|plugin|plugins|permission|permissions|gitignore|setting|settings)"
+
+EXPLICIT_IMPLEMENTATION_PATTERN="((edit|modify|change|update|fix|implement|refactor|remove|delete|rename|patch|wire|configure|create).*(file|files|code|script|scripts|hook|hooks|config|configs|setting|settings|command|commands|template|templates|function|functions|module|modules|component|components|class|classes|test|tests))|(\.(ts|tsx|js|jsx|py|css|scss|html|json|yaml|yml|sh|sql|go|rs|java|rb|php|swift|kt)([^[:alnum:]_]|$))|(make the changes|apply the changes|implement the plan|fix it now|ship it|edit the files|update the files)"
+
+WORKFLOW_IMPLEMENTATION_PATTERN="(^|[^[:alnum:]_])(fix|implement|add|update|remove|rewrite|harden|sync|cleanup|clean up|solve|improve)([^[:alnum:]_]).*(workflow|workflows|process|processes|config|configs|configuration|configurations|permission|permissions|gitignore|plugin|plugins|hook|hooks|skill|skills|command|commands|template|templates|agent|agents|settings|docs|documentation)([^[:alnum:]_]|$)"

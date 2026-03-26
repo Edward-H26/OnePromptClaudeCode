@@ -1,0 +1,1141 @@
+{
+    "version": "1.0",
+    "description": "Unified project-local skill activation triggers for Claude Code. Controls when skills automatically suggest or block actions in this workspace.",
+    "skills": {
+        "skill-developer": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Meta-skill for creating and managing Claude Code skills, hooks, prompt templates, settings, commands, agents, and plugin workflow",
+            "promptTriggers": {
+                "keywords": [
+                    "skill system",
+                    "create skill",
+                    "add skill",
+                    "skill triggers",
+                    "skill rules",
+                    "hook system",
+                    "skill development",
+                    "skill-rules.json",
+                    "workflow hooks",
+                    "custom command",
+                    "slash command",
+                    "custom agent",
+                    "subagent",
+                    "plugin workflow",
+                    "claude workflow",
+                    "prompt template",
+                    "prompt templates",
+                    "settings.json",
+                    ".claude/settings.json"
+                ],
+                "intentPatterns": [
+                    "(how do|how does|explain).*?skill",
+                    "(create|add|modify|build).*?skill",
+                    "skill.*?(work|trigger|activate|system)",
+                    "(fix|debug|update|refactor).*?(hook|workflow|skill|command|agent|plugin|template|settings)",
+                    "(how do|how does|explain).*?(hook|workflow|plugin|command|agent|template|settings)",
+                    "(audit|review).*?(claude|workflow|prompt template|slash command)"
+                ]
+            }
+        },
+        "backend-dev-guidelines": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Backend development patterns for Node.js/Express/TypeScript",
+            "promptTriggers": {
+                "keywords": [
+                    "backend",
+                    "backend development",
+                    "microservice",
+                    "controller",
+                    "service",
+                    "repository",
+                    "route",
+                    "routing",
+                    "express",
+                    "API",
+                    "endpoint",
+                    "middleware",
+                    "validation",
+                    "Zod",
+                    "Prisma",
+                    "database access",
+                    "BaseController",
+                    "dependency injection",
+                    "unifiedConfig",
+                    "configuration"
+                ],
+                "intentPatterns": [
+                    "(create|add|implement|build).*?(route|endpoint|API|controller|service|repository)",
+                    "(fix|handle|debug).*?(error|exception|backend)",
+                    "(add|implement).*?(middleware|validation|error.*?handling)",
+                    "(organize|structure|refactor).*?(backend|service|API)",
+                    "(how to|best practice).*?(backend|route|controller|service)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "backend/**/*.ts",
+                    "api/**/*.ts",
+                    "server/**/*.ts",
+                    "services/**/*.ts"
+                ],
+                "pathExclusions": [
+                    "**/*.test.ts",
+                    "**/*.spec.ts"
+                ],
+                "contentPatterns": [
+                    "router\\.",
+                    "app\\.(get|post|put|delete|patch)",
+                    "export.*Controller",
+                    "export.*Service",
+                    "prisma\\."
+                ]
+            }
+        },
+        "frontend-dev-guidelines": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "React/TypeScript patterns, Suspense, TanStack Query/Router. For styling use ui-styling skill.",
+            "promptTriggers": {
+                "keywords": [
+                    "react component",
+                    "suspense",
+                    "lazy loading",
+                    "tanstack query",
+                    "tanstack router",
+                    "useSuspenseQuery",
+                    "data fetching",
+                    "react hook",
+                    "useCallback",
+                    "useMemo",
+                    "feature directory",
+                    "file organization"
+                ],
+                "keywordExclusions": [
+                    "design",
+                    "styling",
+                    "beautiful",
+                    "aesthetic",
+                    "UI design",
+                    "color",
+                    "theme"
+                ],
+                "intentPatterns": [
+                    "(create|add|make|build).*?(component|page|feature)",
+                    "(how to|best practice).*?(react|suspense|data fetching)",
+                    "(fetch|load).*?(data|api)",
+                    "(organize|structure).*?(frontend|react|feature)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "frontend/src/**/*.tsx",
+                    "frontend/src/**/*.ts",
+                    "client/src/**/*.tsx",
+                    "client/src/**/*.ts",
+                    "src/**/*.tsx"
+                ],
+                "pathExclusions": [
+                    "**/*.test.tsx",
+                    "**/*.test.ts",
+                    "**/*.spec.tsx",
+                    "**/*.spec.ts",
+                    "**/vite.config.ts",
+                    "**/tsconfig.json",
+                    "**/tailwind.config.*",
+                    "**/components/ui/**",
+                    "**/styles/**",
+                    "**/globals.css"
+                ],
+                "contentPatterns": [
+                    "useSuspenseQuery",
+                    "React.lazy",
+                    "Suspense",
+                    "createFileRoute",
+                    "@tanstack"
+                ]
+            }
+        },
+        "professional-research-writing": {
+            "type": "writing-style",
+            "enforcement": "suggest",
+            "priority": "critical",
+            "description": "Professional research writing style for all written content - ALWAYS ACTIVE",
+            "promptTriggers": {
+                "keywords": [
+                    "write",
+                    "writing",
+                    "document",
+                    "documentation",
+                    "paper",
+                    "research",
+                    "report",
+                    "summary",
+                    "description",
+                    "explain",
+                    "paragraph",
+                    "section",
+                    "text",
+                    "content",
+                    "README",
+                    "markdown",
+                    "comments",
+                    "docstring",
+                    "article",
+                    "blog",
+                    "technical writing",
+                    "academic writing"
+                ],
+                "intentPatterns": [
+                    "(write|create|draft|compose|generate).*?(paper|document|section|paragraph|content|text|description|summary|report)",
+                    "(explain|describe|summarize|document).*",
+                    "(how to|best practice|approach|method|methodology)",
+                    "(introduction|motivation|background|related work|approach|implementation|results|discussion|conclusion)",
+                    ".*?(abstract|literature review|findings|evaluation|analysis)",
+                    "(help me|can you).*?(write|explain|describe)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "**/*.md",
+                    "**/*.markdown",
+                    "**/README*",
+                    "**/*.txt",
+                    "**/docs/**/*",
+                    "**/documentation/**/*",
+                    "**/*.rst",
+                    "**/*.adoc"
+                ],
+                "contentPatterns": [
+                    "# ",
+                    "## ",
+                    "### ",
+                    "\\*\\*.*?\\*\\*",
+                    "^In recent years,",
+                    "^We propose",
+                    "^This research",
+                    "^However,"
+                ]
+            },
+            "alwaysActive": true,
+            "applyToAllWriting": true
+        },
+        "pdf-processing-pro": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Professional PDF processing with OCR, form extraction, and table parsing",
+            "promptTriggers": {
+                "keywords": [
+                    "pdf",
+                    "pdf processing",
+                    "ocr",
+                    "optical character recognition",
+                    "extract text",
+                    "document processing",
+                    "form extraction",
+                    "table extraction",
+                    "pdf parsing",
+                    "pdf to text",
+                    "scanned document"
+                ],
+                "intentPatterns": [
+                    "(process|parse|extract|read).*?pdf",
+                    "(ocr|scan).*?(document|pdf|image)",
+                    "(extract|get).*?(text|data|table|form).*?pdf",
+                    "pdf.*?(processing|extraction|parsing)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "**/*.pdf"
+                ],
+                "contentPatterns": []
+            }
+        },
+        "chrome-devtools": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Chrome DevTools debugging and performance analysis",
+            "promptTriggers": {
+                "keywords": [
+                    "devtools",
+                    "chrome devtools",
+                    "browser debugging",
+                    "network tab",
+                    "console debugging",
+                    "performance profiling",
+                    "memory leak",
+                    "lighthouse",
+                    "inspect element",
+                    "debug javascript",
+                    "browser console"
+                ],
+                "intentPatterns": [
+                    "(debug|inspect|profile).*?(browser|chrome|javascript)",
+                    "(devtools|developer tools).*?(use|open|how)",
+                    "(performance|memory|network).*?(analyze|debug|profile)",
+                    "(lighthouse|audit).*?(run|check|score)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [],
+                "contentPatterns": []
+            }
+        },
+        "code-refactor": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Code refactoring patterns and clean code practices",
+            "promptTriggers": {
+                "keywords": [
+                    "refactor",
+                    "refactoring",
+                    "clean code",
+                    "code quality",
+                    "improve code",
+                    "technical debt",
+                    "code smell",
+                    "dry principle",
+                    "solid principles",
+                    "extract function",
+                    "extract component",
+                    "simplify"
+                ],
+                "intentPatterns": [
+                    "(refactor|improve|clean|simplify).*?(code|function|component|class)",
+                    "(reduce|eliminate).*?(duplication|complexity|debt)",
+                    "(extract|split|break).*?(function|method|component)",
+                    "(apply|follow).*?(solid|dry|kiss|pattern)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "**/*.ts",
+                    "**/*.tsx",
+                    "**/*.js",
+                    "**/*.jsx",
+                    "**/*.py"
+                ],
+                "pathExclusions": [
+                    "**/instrument.ts",
+                    "**/sentry*.ts"
+                ],
+                "contentPatterns": []
+            }
+        },
+        "ui-styling": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "shadcn/ui components with Tailwind CSS styling and accessible design patterns",
+            "promptTriggers": {
+                "keywords": [
+                    "shadcn",
+                    "shadcn/ui",
+                    "tailwind",
+                    "tailwindcss",
+                    "ui styling",
+                    "accessible components",
+                    "design system",
+                    "responsive layout",
+                    "dark mode",
+                    "theming",
+                    "radix ui",
+                    "button component",
+                    "dialog component",
+                    "dropdown",
+                    "form component",
+                    "card component",
+                    "table component",
+                    "accessible UI",
+                    "utility classes"
+                ],
+                "intentPatterns": [
+                    "(add|install|use|implement).*?(shadcn|tailwind|component)",
+                    "(create|build|style).*?(button|dialog|form|card|table|dropdown)",
+                    "(dark mode|theme|theming).*?(implement|add|toggle)",
+                    "(responsive|accessible).*?(design|layout|component)",
+                    "(design system|component library).*?(create|setup|use)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "**/tailwind.config.*",
+                    "**/components/ui/**/*",
+                    "**/*.css",
+                    "**/globals.css",
+                    "**/styles/**/*"
+                ],
+                "contentPatterns": [
+                    "from \"@/components/ui",
+                    "tailwindcss",
+                    "className=\"",
+                    "cn\\(",
+                    "@tailwind",
+                    "dark:",
+                    "hover:",
+                    "focus:"
+                ]
+            }
+        },
+        "systematic-debugging": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "4-phase root cause debugging methodology: investigation, pattern analysis, hypothesis testing, implementation",
+            "promptTriggers": {
+                "keywords": [
+                    "fix",
+                    "bug",
+                    "debug",
+                    "error",
+                    "unexpected behavior",
+                    "test failure",
+                    "broken",
+                    "not working",
+                    "issue",
+                    "failing",
+                    "crash",
+                    "wrong output",
+                    "incorrect",
+                    "regression",
+                    "root cause"
+                ],
+                "intentPatterns": [
+                    "(fix|debug|investigate|diagnose).*?(bug|error|issue|problem|failure)",
+                    "(why|what).*?(not working|broken|failing|crashing)",
+                    "(find|identify|locate).*?(root cause|source|origin).*?(bug|error|issue)",
+                    "(unexpected|incorrect|wrong).*?(behavior|output|result)",
+                    "test.*?(fail|failing|broken)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [],
+                "contentPatterns": []
+            }
+        },
+        "codex": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Delegate coding tasks to Codex CLI for execution, batch refactoring, code generation, multi-file changes, and test writing. Also used for post-implementation code review.",
+            "promptTriggers": {
+                "keywords": [
+                    "codex",
+                    "delegate",
+                    "batch refactor",
+                    "code generation",
+                    "multi-file changes",
+                    "ask codex",
+                    "codex review",
+                    "review changes",
+                    "review code",
+                    "quality check"
+                ],
+                "intentPatterns": [
+                    "delegate.*coding",
+                    "run codex",
+                    "use codex",
+                    "codex.*review",
+                    "launch codex",
+                    "review.*implementation",
+                    "check.*code quality"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "**/*.ts",
+                    "**/*.tsx",
+                    "**/*.js",
+                    "**/*.jsx",
+                    "**/*.py"
+                ],
+                "contentPatterns": []
+            }
+        },
+        "python-patterns": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Python coding patterns, type hints, dataclasses, async, and best practices",
+            "promptTriggers": {
+                "keywords": [
+                    "python",
+                    "fastapi",
+                    "flask",
+                    "django",
+                    "pip",
+                    "pyproject",
+                    "dataclass",
+                    "async python",
+                    "asyncio",
+                    "pydantic"
+                ],
+                "intentPatterns": [
+                    "(create|write|build|implement).*?python",
+                    "(python|py).*?(pattern|best practice|idiomatic)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "**/*.py"
+                ],
+                "pathExclusions": [
+                    "**/*test*.py",
+                    "**/conftest.py",
+                    "**/tests/**/*.py"
+                ],
+                "contentPatterns": [
+                    "import ",
+                    "def ",
+                    "class ",
+                    "async def"
+                ]
+            }
+        },
+        "python-testing": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Python testing with pytest, fixtures, mocking, and TDD",
+            "promptTriggers": {
+                "keywords": [
+                    "pytest",
+                    "python test",
+                    "python testing",
+                    "conftest",
+                    "fixture",
+                    "parametrize",
+                    "mock python"
+                ],
+                "intentPatterns": [
+                    "(test|testing).*?python",
+                    "python.*?(test|testing|pytest)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "**/*test*.py",
+                    "**/conftest.py",
+                    "**/tests/**/*.py"
+                ],
+                "contentPatterns": [
+                    "import pytest",
+                    "@pytest",
+                    "def test_"
+                ]
+            }
+        },
+        "security-review": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Security review: secrets, input validation, SQL injection, XSS, CSRF, auth, rate limiting",
+            "promptTriggers": {
+                "keywords": [
+                    "security",
+                    "vulnerability",
+                    "injection",
+                    "xss",
+                    "csrf",
+                    "authentication",
+                    "authorization",
+                    "secrets",
+                    "api key",
+                    "owasp",
+                    "security review",
+                    "security audit"
+                ],
+                "intentPatterns": [
+                    "(review|check|audit|scan).*?security",
+                    "(secure|harden|protect).*?(code|api|endpoint|app)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "**/auth/**",
+                    "**/middleware/**",
+                    "**/security/**"
+                ],
+                "contentPatterns": [
+                    "password",
+                    "token",
+                    "secret",
+                    "api_key",
+                    "authorization"
+                ]
+            }
+        },
+        "security-scan": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Scan Claude Code configuration for security vulnerabilities using AgentShield",
+            "promptTriggers": {
+                "keywords": [
+                    "security scan",
+                    "agentshield",
+                    "scan config",
+                    "scan hooks",
+                    "security audit config",
+                    "permissions audit",
+                    "plugin blocklist",
+                    "workflow security"
+                ],
+                "intentPatterns": [
+                    "scan.*?(config|claude|hooks|settings)",
+                    "security.*?(scan|audit).*?(config|setup)",
+                    "(review|audit|check).*?(permissions|hooks|plugins|blocklist)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "settings.json",
+                    ".claude/**/*.md",
+                    ".claude/hooks/**/*.sh",
+                    "plugins/*.json"
+                ],
+                "contentPatterns": [
+                    "permissions",
+                    "mcp",
+                    "hook",
+                    "plugin"
+                ]
+            }
+        },
+        "tdd-workflow": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Test-driven development: RED-GREEN-REFACTOR cycle with 80%+ coverage",
+            "promptTriggers": {
+                "keywords": [
+                    "tdd",
+                    "test driven",
+                    "test-driven",
+                    "write tests first",
+                    "failing test",
+                    "red green refactor",
+                    "test coverage"
+                ],
+                "intentPatterns": [
+                    "(tdd|test.driven).*?(workflow|development|approach)",
+                    "(write|create).*?test.*?first"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "**/*.test.*",
+                    "**/*.spec.*",
+                    "**/jest.config.*",
+                    "**/vitest.config.*"
+                ],
+                "contentPatterns": []
+            }
+        },
+        "e2e-testing": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Playwright E2E testing patterns, Page Object Model, CI/CD integration, flaky test strategies",
+            "promptTriggers": {
+                "keywords": [
+                    "e2e",
+                    "end to end",
+                    "playwright",
+                    "browser test",
+                    "e2e test",
+                    "page object",
+                    "integration test",
+                    "playwright test"
+                ],
+                "intentPatterns": [
+                    "(e2e|end.to.end|playwright).*?(test|testing)",
+                    "(browser|ui).*?(test|automation)",
+                    "(write|add|create).*e2e",
+                    "(write|add|create).*end.to.end",
+                    "playwright.*(test|spec)",
+                    "page.*object.*model"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "**/e2e/**",
+                    "**/*.spec.ts",
+                    "**/*.e2e.ts",
+                    "**/playwright.config.*"
+                ],
+                "contentPatterns": [
+                    "@playwright",
+                    "test.describe",
+                    "page.goto"
+                ],
+                "pathExclusions": ["**/node_modules/**"]
+            }
+        },
+        "deep-research": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Multi-source research reports with citations, synthesis, and structured delivery",
+            "promptTriggers": {
+                "keywords": [
+                    "deep research",
+                    "deep dive",
+                    "research report",
+                    "investigate thoroughly",
+                    "comprehensive research",
+                    "literature review",
+                    "competitive analysis",
+                    "market research"
+                ],
+                "intentPatterns": [
+                    "(deep|thorough|comprehensive).*?(research|investigation|analysis)",
+                    "(research|investigate).*?(report|paper|analysis)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "**/research/**",
+                    "**/papers/**"
+                ],
+                "contentPatterns": []
+            }
+        },
+        "verification-loop": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "6-phase verification: build, type check, lint, test, security scan, diff review",
+            "promptTriggers": {
+                "keywords": [
+                    "verify",
+                    "verification",
+                    "quality check",
+                    "pre-deploy check",
+                    "full check",
+                    "run all checks",
+                    "typecheck",
+                    "lint",
+                    "build verification",
+                    "browser verification"
+                ],
+                "intentPatterns": [
+                    "(verify|check|validate).*?(everything|all|code|changes)",
+                    "(run|execute).*?(all|full).*?(check|test|verification)",
+                    "(run|check).*?(build|lint|type.?check|playwright|browser)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "**/Makefile",
+                    "**/.github/workflows/*"
+                ],
+                "contentPatterns": []
+            }
+        },
+        "strategic-compact": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "low",
+            "description": "Strategic context compaction at logical task boundaries",
+            "promptTriggers": {
+                "keywords": [
+                    "compact",
+                    "context limit",
+                    "context window",
+                    "running out of context",
+                    "token limit",
+                    "compaction"
+                ],
+                "intentPatterns": [
+                    "(compact|compress).*?(context|session|conversation)",
+                    "context.*?(limit|window|pressure)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [],
+                "contentPatterns": []
+            }
+        },
+        "autoresearch": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Autonomous ML research loop based on Karpathy's autoresearch framework. Iteratively modifies train.py, runs training, evaluates improvements, keeps or discards via git.",
+            "promptTriggers": {
+                "keywords": [
+                    "autoresearch",
+                    "autonomous research",
+                    "ml experiment loop",
+                    "training loop experiments",
+                    "karpathy research",
+                    "autonomous ml",
+                    "experiment loop"
+                ],
+                "intentPatterns": [
+                    "run.*autoresearch",
+                    "start.*experiment.*loop",
+                    "autonomous.*ml.*research",
+                    "autoresearch.*train"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "**/train.py",
+                    "**/experiment*.py"
+                ],
+                "contentPatterns": []
+            }
+        },
+        "super-ralph": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Autonomous multi-agent orchestration with test-first development, self-debugging, and learning",
+            "promptTriggers": {
+                "keywords": [
+                    "super ralph",
+                    "super-ralph",
+                    "ralph",
+                    "break this down and build",
+                    "ralph this",
+                    "autonomous agents",
+                    "multi-agent execution"
+                ],
+                "intentPatterns": [
+                    "(super|use).*ralph",
+                    "ralph.*(build|execute|decompose|this)",
+                    "break.*down.*build"
+                ]
+            }
+        },
+        "office-hours": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Pre-development brainstorming and product reframing. YC Office Hours style forcing questions before writing code.",
+            "promptTriggers": {
+                "keywords": ["office hours", "brainstorm idea", "think through", "is this worth building", "product idea", "startup idea", "reframe problem"],
+                "intentPatterns": ["(brainstorm|think through|help me think).*?(idea|feature|product)", "office.*hours", "(is this|should I).*?(build|worth)"]
+            }
+        },
+        "plan-ceo-review": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "CEO/founder product strategy review with scope modes: expansion, hold, reduction.",
+            "promptTriggers": {
+                "keywords": ["ceo review", "product strategy", "scope review", "product review", "founder review"],
+                "intentPatterns": ["(ceo|founder|product).*review", "(strategy|scope).*(review|check)"]
+            }
+        },
+        "plan-eng-review": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Engineering manager architecture review with diagrams, data flow, edge cases, and test matrices.",
+            "promptTriggers": {
+                "keywords": ["eng review", "architecture review", "engineering review", "tech review", "plan eng"],
+                "intentPatterns": ["(eng|engineering|architecture|technical).*review", "review.*(architecture|plan|design)"]
+            }
+        },
+        "plan-design-review": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Senior designer evaluation rating design dimensions 0-10, detecting AI slop.",
+            "promptTriggers": {
+                "keywords": ["design review", "design audit", "ui review", "design evaluation", "plan design"],
+                "intentPatterns": ["(design|ui|ux).*review", "review.*(design|ui|visual)"]
+            }
+        },
+        "design-consultation": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Design partner building complete design systems with competitive research and mockups.",
+            "promptTriggers": {
+                "keywords": ["design system", "design consultation", "design partner", "build design", "create design system"],
+                "intentPatterns": ["(build|create|design).*design system", "design.*(consultation|partner)"]
+            }
+        },
+        "careful": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Safety guardrails for destructive commands: rm -rf, DROP TABLE, force-push, git reset --hard.",
+            "promptTriggers": {
+                "keywords": ["careful", "safety mode", "careful mode", "be careful", "prod mode", "production mode"],
+                "intentPatterns": ["(be|activate|enable).*careful", "(safety|careful|prod).*mode"]
+            }
+        },
+        "freeze": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Restrict file edits to a specific directory for the session to prevent accidental changes.",
+            "promptTriggers": {
+                "keywords": ["freeze", "restrict edits", "lock edits", "only edit this folder", "scope edits"],
+                "intentPatterns": ["(freeze|restrict|lock).*edit", "only.*edit.*(this|folder|directory)"]
+            }
+        },
+        "unfreeze": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "low",
+            "description": "Remove edit restrictions set by /freeze.",
+            "promptTriggers": {
+                "keywords": ["unfreeze", "remove restriction", "unlock edits"],
+                "intentPatterns": ["(unfreeze|unlock|remove).*(edit|restriction|freeze)"]
+            }
+        },
+        "guard": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Combined safety: activates both /careful and /freeze for maximum protection.",
+            "promptTriggers": {
+                "keywords": ["guard", "maximum safety", "full safety", "guard mode"],
+                "intentPatterns": ["(guard|maximum|full).*safety", "activate.*guard"]
+            }
+        },
+        "ship": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Release engineering: sync base, test, coverage audit, version bump, changelog, commit, push, create PR.",
+            "promptTriggers": {
+                "keywords": ["ship", "release", "create pr", "ship it", "deploy", "push and pr"],
+                "intentPatterns": ["(ship|release|deploy).*?(it|this|code|branch)", "(create|open|make).*?(pr|pull request)"]
+            }
+        },
+        "document-release": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Auto-update project documentation to match shipped changes.",
+            "promptTriggers": {
+                "keywords": ["document release", "update docs", "sync documentation", "update readme"],
+                "intentPatterns": ["(update|sync|refresh).*?(docs|documentation|readme)", "document.*release"]
+            }
+        },
+        "retro": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Weekly retrospective with metrics, shipping streaks, test health trends.",
+            "promptTriggers": {
+                "keywords": ["retro", "retrospective", "weekly review", "sprint review", "what shipped"],
+                "intentPatterns": ["(run|do|start).*retro", "(weekly|sprint).*review"]
+            }
+        },
+        "investigate": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Systematic root-cause debugging with hypothesis testing. Stops after 3 failed fixes.",
+            "promptTriggers": {
+                "keywords": ["investigate", "root cause", "debug systematically", "hypothesis test"],
+                "intentPatterns": ["investigate.*(bug|issue|error)", "(root cause|systematic).*debug"]
+            }
+        },
+        "review": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Staff engineer code review finding production bugs that pass CI, with auto-fixes.",
+            "promptTriggers": {
+                "keywords": ["staff review", "code review gstack", "review staff", "production review"],
+                "intentPatterns": ["staff.*review", "review.*(production|staff)"]
+            }
+        },
+        "design-review": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Design audit with atomic commit fixes and before/after screenshots.",
+            "promptTriggers": {
+                "keywords": ["design review fix", "design audit fix", "fix design", "design review with fixes"],
+                "intentPatterns": ["(design|ui).*review.*fix", "fix.*(design|ui).*issues"]
+            }
+        },
+        "qa": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Browser-based QA testing with auto-generated regression tests.",
+            "promptTriggers": {
+                "keywords": ["qa", "qa test", "browser test", "test in browser", "regression test"],
+                "intentPatterns": ["(qa|browser).*test", "test.*(browser|qa|regression)"]
+            }
+        },
+        "qa-only": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "QA reporting without code changes. Same methodology as /qa but report-only.",
+            "promptTriggers": {
+                "keywords": ["qa only", "qa report", "test report only"],
+                "intentPatterns": ["qa.*only", "qa.*report.*only"]
+            }
+        },
+        "browse": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Real Chromium browser with ~100ms command latency for QA, dogfooding, and site testing.",
+            "promptTriggers": {
+                "keywords": ["browse", "open browser", "chromium", "headless browser", "dogfood", "site test", "gstack browse"],
+                "intentPatterns": ["(open|use|start|navigate).*browser", "browse.*(url|page|site)", "(open|browse|navigate).*headless", "dogfood.*site", "gstack.*browse"]
+            }
+        },
+        "agentic-engineering": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Agent development patterns: tool use, agent loops, error handling, context management.",
+            "promptTriggers": {
+                "keywords": ["agentic engineering", "agent development", "build agent", "agent patterns", "tool use patterns"],
+                "intentPatterns": ["(build|create|design).*agent", "agent.*(pattern|architecture|development)"]
+            }
+        },
+        "autonomous-loops": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Continuous agent loop patterns for self-running, iterative agent workflows.",
+            "promptTriggers": {
+                "keywords": ["autonomous loop", "continuous loop", "agent loop", "self-running", "iterative agent"],
+                "intentPatterns": ["(autonomous|continuous|self).*loop", "loop.*(agent|autonomous)"]
+            }
+        },
+        "claude-api": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Claude API and Anthropic SDK patterns for programmatic integration.",
+            "promptTriggers": {
+                "keywords": ["claude api", "anthropic api", "anthropic sdk", "messages api", "claude sdk"],
+                "intentPatterns": ["(claude|anthropic).*api", "api.*(claude|anthropic)"]
+            }
+        },
+        "deployment-patterns": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Deployment strategies: CI/CD, staging, rollback, blue-green, canary.",
+            "promptTriggers": {
+                "keywords": ["deployment", "deploy pattern", "ci/cd", "staging", "rollback", "blue-green", "canary deploy"],
+                "intentPatterns": ["(deploy|deployment).*(pattern|strategy|pipeline)", "(ci|cd|release).*pipeline"]
+            }
+        },
+        "docker-patterns": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Docker best practices: Dockerfile, multi-stage builds, compose, image optimization.",
+            "promptTriggers": {
+                "keywords": ["docker", "dockerfile", "container", "docker-compose", "docker compose", "image build"],
+                "intentPatterns": ["(docker|container).*(build|pattern|best practice)", "(create|write|optimize).*dockerfile"]
+            }
+        },
+        "postgres-patterns": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "PostgreSQL patterns: queries, indexing, migrations, performance, schema design.",
+            "promptTriggers": {
+                "keywords": ["postgres", "postgresql", "sql query", "database schema", "migration", "index optimization"],
+                "intentPatterns": ["(postgres|postgresql).*(pattern|query|schema|index)", "(database|sql).*(optimize|migration|schema)"]
+            }
+        },
+        "eval-harness": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Evaluation frameworks for testing agent and model quality.",
+            "promptTriggers": {
+                "keywords": ["eval harness", "evaluation framework", "benchmark", "model eval", "agent eval"],
+                "intentPatterns": ["(eval|evaluation|benchmark).*(framework|harness|build)", "(test|evaluate).*(agent|model).*quality"]
+            }
+        },
+        "search-first": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Search-first development: explore existing code before writing new code.",
+            "promptTriggers": {
+                "keywords": ["search first", "search before code", "codebase search", "find existing"],
+                "intentPatterns": ["search.*first", "(search|find|explore).*before.*(code|implement)"]
+            }
+        },
+        "liquid-glass-design": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Modern glassmorphic UI design: translucent layers, depth, frosted glass effects.",
+            "promptTriggers": {
+                "keywords": ["liquid glass", "glassmorphism", "frosted glass", "translucent ui", "glass effect", "modern ui design"],
+                "intentPatterns": ["(liquid|glass|frosted).*(design|ui|effect)", "modern.*ui.*design"]
+            }
+        },
+        "shadcn-ui": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "shadcn/ui component library: CLI, theming, OKLCH colors, composition patterns, registry.",
+            "promptTriggers": {
+                "keywords": ["shadcn", "shadcn/ui", "radix ui", "components.json", "tailwind components", "ui components"],
+                "intentPatterns": ["(add|install|use).*shadcn", "(shadcn|radix).*component", "ui.*component.*(library|pattern)"]
+            }
+        },
+        "web-artifacts-builder": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Build self-contained HTML artifacts with React, Tailwind, and shadcn/ui. Bundles into single HTML file.",
+            "promptTriggers": {
+                "keywords": ["artifact", "html artifact", "self-contained html", "single file app", "web artifact", "bundle html"],
+                "intentPatterns": ["(build|create|generate).*artifact", "(single|self-contained).*html", "bundle.*html"]
+            }
+        },
+        "webapp-testing": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Test local web applications using Playwright in Python. Browser screenshots, UI debugging, server lifecycle.",
+            "promptTriggers": {
+                "keywords": ["webapp test", "playwright python", "browser test python", "test local app", "ui test python"],
+                "intentPatterns": ["test.*webapp", "playwright.*python", "(test|verify).*local.*(app|server)"]
+            }
+        },
+        "gstack-upgrade": {
+            "type": "utility",
+            "enforcement": "suggest",
+            "priority": "low",
+            "description": "Upgrade gstack to the latest version. Detects install type, shows changelog.",
+            "promptTriggers": {
+                "keywords": ["upgrade gstack", "update gstack", "gstack version", "gstack update"],
+                "intentPatterns": ["(upgrade|update).*gstack"]
+            }
+        },
+        "setup-browser-cookies": {
+            "type": "utility",
+            "enforcement": "suggest",
+            "priority": "low",
+            "description": "Import cookies from real browsers into headless browse session for authenticated testing.",
+            "promptTriggers": {
+                "keywords": ["browser cookies", "import cookies", "authenticated browse", "cookie setup"],
+                "intentPatterns": ["(import|setup|load).*cookies", "authenticated.*(browse|test)"]
+            }
+        }
+    }
+}

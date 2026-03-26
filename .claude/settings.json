@@ -1,0 +1,266 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "cleanupPeriodDays": 30,
+  "includeGitInstructions": true,
+  "plansDirectory": "./plans",
+  "env": {
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "64000",
+    "MAX_THINKING_TOKENS": "128000",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:m3.material.io)",
+      "WebFetch(domain:www.radix-ui.com)",
+      "WebFetch(domain:ui.shadcn.com)",
+      "WebFetch(domain:deepwiki.com)",
+      "WebFetch(domain:gist.github.com)",
+      "WebFetch(domain:www.figma.com)",
+      "WebFetch(domain:web.archive.org)",
+      "WebSearch",
+      "Bash(rg:*)",
+      "Bash(find:*)",
+      "Bash(jq:*)",
+      "Bash(sed:*)",
+      "Bash(awk:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(du:*)",
+      "Bash(cut:*)",
+      "Bash(sort:*)",
+      "Bash(paste:*)",
+      "Bash(diff:*)",
+      "Bash(readlink:*)",
+      "Bash(ls:*)",
+      "Bash(tree:*)",
+      "Bash(wc:*)",
+      "Bash(which:*)",
+      "Bash(test:*)",
+      "Bash(lsof:*)",
+      "Bash(gh:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git stash:*)",
+      "Bash(git fetch:*)",
+      "Bash(git remote:*)",
+      "Bash(git show:*)",
+      "Bash(git blame:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git tag:*)",
+      "Bash(git worktree:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(mkdir:*)",
+      "Bash(zip:*)",
+      "Bash(unzip:*)",
+      "Bash(curl:*)",
+      "Bash(bundle exec:*)",
+      "Bash(streamlit:*)",
+      "Bash(sqlite3:*)",
+      "Bash(iconv:*)",
+      "Bash(node:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(npm test:*)",
+      "Bash(npm ls:*)",
+      "Bash(npm init:*)",
+      "Bash(npm ci:*)",
+      "Bash(npm exec:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npx playwright:*)",
+      "Bash(npx -y:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npx vitest:*)",
+      "Bash(npx eslint:*)",
+      "Bash(pnpm:*)",
+      "Bash(yarn:*)",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(pip:*)",
+      "Bash(pip3 install:*)",
+      "Bash(pytest:*)",
+      "Bash(uv:*)",
+      "Bash(ruff:*)",
+      "Bash(mypy:*)",
+      "Bash(pyright:*)",
+      "mcp__filesystem",
+      "mcp__memory",
+      "mcp__claude-in-chrome",
+      "mcp__claude_ai_Figma",
+      "mcp__playwright",
+      "mcp__claude_ai_Hugging_Face",
+      "mcp__plugin_context7_context7",
+      "mcp__claude_ai_PDF_Viewer",
+      "mcp__claude_ai_Scholar_Gateway",
+      "mcp__puppeteer",
+      "mcp__plugin_playwright_playwright",
+      "mcp__plugin_github_github",
+      "Edit:*",
+      "Write:*",
+      "MultiEdit:*",
+      "NotebookEdit:*"
+    ],
+    "deny": [
+      "Bash(git commit:*)",
+      "Bash(git commit)",
+      "Bash(git push:*)",
+      "Bash(git push)",
+      "Bash(git reset --hard:*)",
+      "Bash(rm -rf:*)",
+      "Bash(env)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./.claude.json)",
+      "Read(./.claude/settings.local.json)",
+      "Read(./settings.json)",
+      "Read(./history.jsonl)",
+      "Read(./mcp-needs-auth-cache.json)",
+      "Read(./backups/**)",
+      "Read(./file-history/**)",
+      "Read(./projects/**)",
+      "Read(./session-env/**)",
+      "Read(./sessions/**)"
+    ],
+    "ask": [
+      "Bash(chmod:*)",
+      "Bash(xargs kill:*)",
+      "Bash(claude:*)",
+      "Bash(git merge:*)",
+      "Bash(git rebase:*)",
+      "Bash(git cherry-pick:*)"
+    ],
+    "defaultMode": "auto"
+  },
+  "enableAllProjectMcpServers": false,
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/skills/gstack/careful/bin/check-careful.sh",
+            "statusMessage": "Checking careful mode..."
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/skills/gstack/freeze/bin/check-freeze.sh",
+            "statusMessage": "Checking freeze boundary..."
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/task-orchestrator-hook.sh"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/auto-codex-trigger.sh"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/skill-activation-prompt.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/post-tool-use-tracker.sh"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/tsc-check.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/workflow-step-tracker.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/workflow-step-tracker.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__claude-in-chrome__*|mcp__plugin_playwright_playwright__*|mcp__playwright__*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/workflow-step-tracker.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/stop-build-check-enhanced.sh"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/workflow-completion-gate.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "pyright-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true,
+    "figma@claude-plugins-official": true,
+    "github@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true,
+    "huggingface-skills@claude-plugins-official": true,
+    "mongodb@mongodb-plugins": true
+  },
+  "extraKnownMarketplaces": {},
+  "alwaysThinkingEnabled": true,
+  "promptSuggestionEnabled": true,
+  "effortLevel": "max",
+  "statusLine": {
+    "type": "command",
+    "command": "jq -r '[if .context_window.remaining_percentage then \"ctx:\\(.context_window.remaining_percentage)%\" else empty end, if .rate_limits.five_hour.used_percentage then \"5h:\\(.rate_limits.five_hour.used_percentage | round)%\" else empty end, if .rate_limits.seven_day.used_percentage then \"7d:\\(.rate_limits.seven_day.used_percentage | round)%\" else empty end] | join(\" · \")'"
+  },
+  "outputStyle": "Explanatory"
+}
