@@ -4,10 +4,45 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-echo "[1/8] Shell syntax"
+echo "[1/9] Shell syntax"
 bash -n .claude/hooks/*.sh .claude/hooks/lib/*.sh references/*.sh scripts/audit-workflow.sh
+for gstack_bin in .claude/skills/gstack/*/bin/*.sh; do
+    [ -f "$gstack_bin" ] && bash -n "$gstack_bin"
+done
 
-echo "[2/8] JSON parse and skill inventory"
+echo "[2/9] Hook script path resolution"
+python3 - << "PY"
+import json, os, re
+from pathlib import Path
+
+root = Path(".")
+settings = json.loads((root / ".claude" / "settings.json").read_text())
+hooks = settings.get("hooks", {})
+
+missing = []
+for event, entries in hooks.items():
+    for entry in entries:
+        for hook in entry.get("hooks", []):
+            cmd = hook.get("command", "")
+            resolved = cmd.replace("$CLAUDE_PROJECT_DIR", str(root.resolve()))
+            scripts = re.findall(r'(/\S+\.sh|(?:^|\s)(\S+\.sh))', resolved)
+            for match in scripts:
+                script_path = match[0].strip() if match[0].strip().startswith("/") else match[1].strip()
+                if not script_path:
+                    continue
+                if not script_path.startswith("/"):
+                    script_path = str(root / script_path)
+                if not os.path.isfile(script_path):
+                    missing.append((event, script_path))
+
+if missing:
+    print("Hook commands reference missing scripts:")
+    for event, path in missing:
+        print(f"  [{event}] {path}")
+    raise SystemExit(1)
+PY
+
+echo "[3/9] JSON parse and skill inventory"
 python3 - << "PY"
 import json
 from pathlib import Path
@@ -28,7 +63,7 @@ skill_dirs = {
     if (path.is_dir() or path.is_symlink()) and (path / "SKILL.md").exists()
 }
 
-manual_only = {"gstack", "super-ralph"}
+manual_only = {"super-ralph"}
 missing_rules = sorted(skill_dirs - rule_skills - manual_only)
 missing_dirs = sorted(rule_skills - skill_dirs - manual_only)
 
@@ -59,15 +94,17 @@ reference_dirs = [
 ]
 missing_references = [path for path in reference_dirs if not path.exists()]
 if missing_references:
-    print("Note: reference clones are optional and currently absent:")
+    print("Missing required vendored reference directories:")
     for path in missing_references:
         print(f"  {path.as_posix()}")
-    print("Run bash references/setup.sh only if you want local upstream comparison copies.")
+    print("Run bash references/setup.sh to restore the tracked vendored workflow sources.")
+    raise SystemExit(1)
 PY
 
-echo "[3/8] Hook prompt classification and cache-key safety"
+echo "[4/9] Hook prompt classification and cache-key safety"
 source ".claude/hooks/lib/patterns.sh"
 source ".claude/hooks/lib/utils.sh"
+source ".claude/hooks/lib/plugin-state.sh"
 
 expect_match() {
     local text="$1"
@@ -118,6 +155,59 @@ run_skill_activation() {
         CLAUDE_PROJECT_DIR="$ROOT" bash "$ROOT/.claude/hooks/skill-activation-prompt.sh"
 }
 
+run_skill_activation_no_env() {
+    local prompt="$1"
+    jq -n --arg prompt "$prompt" --arg session_id "audit" '{prompt: $prompt, session_id: $session_id}' |
+        env -u CLAUDE_PROJECT_DIR bash "$ROOT/.claude/hooks/skill-activation-prompt.sh"
+}
+
+run_task_orchestrator() {
+    local prompt="$1"
+    jq -n --arg prompt "$prompt" --arg session_id "audit" '{prompt: $prompt, session_id: $session_id}' |
+        CLAUDE_PROJECT_DIR="$ROOT" bash "$ROOT/.claude/hooks/task-orchestrator-hook.sh"
+}
+
+run_auto_codex_trigger_with_stub() {
+    local prompt="$1"
+    local stub_dir
+    stub_dir="$(mktemp -d)"
+
+    cat > "$stub_dir/codex" <<'EOF'
+#!/bin/bash
+exit 0
+EOF
+
+    cat > "$stub_dir/ask_codex.sh" <<'EOF'
+#!/bin/bash
+set -e
+
+output_path=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -o|--output)
+            output_path="${2:-}"
+            shift 2
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
+if [[ -n "$output_path" ]]; then
+    printf "stub\n" > "$output_path"
+fi
+EOF
+
+    chmod +x "$stub_dir/codex" "$stub_dir/ask_codex.sh"
+
+    jq -n --arg prompt "$prompt" --arg session_id "audit" '{prompt: $prompt, session_id: $session_id}' |
+        PATH="$stub_dir:$PATH" \
+        CLAUDE_PROJECT_DIR="$ROOT" \
+        AUTO_CODEX_SCRIPT="$stub_dir/ask_codex.sh" \
+        bash "$ROOT/.claude/hooks/auto-codex-trigger.sh"
+}
+
 SKILL_OUTPUT="$(run_skill_activation "What is the relationship between the modules?")"
 if printf "%s\n" "$SKILL_OUTPUT" | grep -q "ship"; then
     echo "Unexpected ship activation for relationship prompt" >&2
@@ -137,7 +227,7 @@ if printf "%s\n" "$SKILL_OUTPUT" | grep -q "ui-styling"; then
 fi
 
 SKILL_OUTPUT="$(run_skill_activation "Audit the Claude workflow hooks, settings.json, gitignore, plugins, and secrets exposure.")"
-for expected_skill in skill-developer security-review security-scan; do
+for expected_skill in search-first skill-developer security-review security-scan; do
     if ! printf "%s\n" "$SKILL_OUTPUT" | grep -q "$expected_skill"; then
         echo "Missing expected skill activation: $expected_skill" >&2
         exit 1
@@ -156,13 +246,89 @@ if printf "%s\n" "$SKILL_OUTPUT" | grep -q "backend-dev-guidelines"; then
     exit 1
 fi
 
+SKILL_OUTPUT="$(run_skill_activation_no_env "Audit the Claude workflow hooks and settings.json.")"
+if ! printf "%s\n" "$SKILL_OUTPUT" | grep -q "skill-developer"; then
+    echo "skill-activation-prompt.sh should work without CLAUDE_PROJECT_DIR" >&2
+    exit 1
+fi
+
+SKILL_OUTPUT="$(run_skill_activation "Implement a secure full-stack feature with React frontend, API routes, database migration, Docker deployment, and browser verification.")"
+for expected_skill in frontend-dev-guidelines backend-dev-guidelines security-review verification-loop; do
+    if ! printf "%s\n" "$SKILL_OUTPUT" | grep -q "$expected_skill"; then
+        echo "Missing expected feature skill activation: $expected_skill" >&2
+        exit 1
+    fi
+done
+
+SKILL_OUTPUT="$(run_skill_activation "Debug the failing TypeScript route handler and find the root cause of the regression.")"
+if ! printf "%s\n" "$SKILL_OUTPUT" | grep -q "systematic-debugging"; then
+    echo "Missing expected debug skill activation: systematic-debugging" >&2
+    exit 1
+fi
+
+SKILL_OUTPUT="$(run_skill_activation "Implement this Figma-inspired landing page in React with polished UI styling and browser QA.")"
+for expected_skill in frontend-dev-guidelines ui-styling qa; do
+    if ! printf "%s\n" "$SKILL_OUTPUT" | grep -q "$expected_skill"; then
+        echo "Missing expected design skill activation: $expected_skill" >&2
+        exit 1
+    fi
+done
+
+SKILL_OUTPUT="$(run_skill_activation "Prepare a release-ready handoff, run verification, update the changelog, and get this ready to ship.")"
+for expected_skill in ship verification-loop; do
+    if ! printf "%s\n" "$SKILL_OUTPUT" | grep -q "$expected_skill"; then
+        echo "Missing expected release skill activation: $expected_skill" >&2
+        exit 1
+    fi
+done
+
+SKILL_OUTPUT="$(run_skill_activation "Test the local webapp with Playwright Python, verify the browser flow, and capture screenshots.")"
+for expected_skill in webapp-testing e2e-testing; do
+    if ! printf "%s\n" "$SKILL_OUTPUT" | grep -q "$expected_skill"; then
+        echo "Missing expected local webapp test skill activation: $expected_skill" >&2
+        exit 1
+    fi
+done
+
+TASK_OUTPUT="$(run_task_orchestrator "What is the current plan?")"
+if [[ -n "$TASK_OUTPUT" ]]; then
+    echo "Pure informational question should not trigger coding guidance" >&2
+    exit 1
+fi
+
+TASK_OUTPUT="$(run_task_orchestrator "Review the workflow and explain the problems without making changes.")"
+if ! printf "%s\n" "$TASK_OUTPUT" | grep -q "Analysis Mode"; then
+    echo "Analysis prompt should trigger analysis mode guidance" >&2
+    exit 1
+fi
+
+AUTO_OUTPUT_ONE="$(run_auto_codex_trigger_with_stub "Update the hook scripts and settings.json to harden the workflow.")"
+AUTO_OUTPUT_TWO="$(run_auto_codex_trigger_with_stub "Update the hook scripts and settings.json to harden the workflow.")"
+AUTO_PATH_ONE="$(printf "%s\n" "$AUTO_OUTPUT_ONE" | awk -F': ' '/Output will be at:/ {print $2}')"
+AUTO_PATH_TWO="$(printf "%s\n" "$AUTO_OUTPUT_TWO" | awk -F': ' '/Output will be at:/ {print $2}')"
+AUTO_DIR_ONE="$(dirname "$AUTO_PATH_ONE")"
+AUTO_DIR_TWO="$(dirname "$AUTO_PATH_TWO")"
+
+if [[ -z "$AUTO_PATH_ONE" ]] || [[ -z "$AUTO_PATH_TWO" ]] || [[ "$AUTO_DIR_ONE" == "$AUTO_DIR_TWO" ]]; then
+    echo "auto-codex-trigger.sh should create unique artifact directories" >&2
+    exit 1
+fi
+
+sleep 1
+for auto_dir in "$AUTO_DIR_ONE" "$AUTO_DIR_TWO"; do
+    if [[ ! -f "$auto_dir/run.log" ]] || [[ ! -f "$auto_dir/run.pid" ]]; then
+        echo "Missing expected auto-codex artifact files in $auto_dir" >&2
+        exit 1
+    fi
+done
+
 CACHE_KEY="$(repo_cache_key "packages/app")"
 if [[ -z "$CACHE_KEY" ]] || [[ "$CACHE_KEY" == *"/"* ]]; then
     echo "Unsafe repo cache key: $CACHE_KEY" >&2
     exit 1
 fi
 
-echo "[4/8] Local stale-reference scan"
+echo "[5/9] Local stale-reference scan"
 python3 - << "PY"
 from pathlib import Path
 import re
@@ -316,40 +482,47 @@ if broken_refs:
     raise SystemExit(1)
 PY
 
-echo "[5/8] Plugin alignment and public surface"
+echo "[6/9] Plugin alignment and public surface"
+TMP_PLUGIN_STATE_DIR="$(mktemp -d)"
+plugin_enabled_names > "$TMP_PLUGIN_STATE_DIR/enabled"
+plugin_available_names > "$TMP_PLUGIN_STATE_DIR/available"
+plugin_blocklisted_names > "$TMP_PLUGIN_STATE_DIR/blocklisted"
+
+if plugin_has_install_state; then
+    plugin_installed_names > "$TMP_PLUGIN_STATE_DIR/installed"
+    INSTALLED_BUT_DISABLED="$(comm -23 "$TMP_PLUGIN_STATE_DIR/installed" "$TMP_PLUGIN_STATE_DIR/enabled" || true)"
+    if [[ -n "$INSTALLED_BUT_DISABLED" ]]; then
+        echo "Note: installed but not enabled plugins:"
+        while IFS= read -r name; do
+            [[ -z "$name" ]] && continue
+            echo "  $name"
+        done <<< "$INSTALLED_BUT_DISABLED"
+    fi
+
+    ENABLED_BUT_UNAVAILABLE="$(comm -23 "$TMP_PLUGIN_STATE_DIR/enabled" "$TMP_PLUGIN_STATE_DIR/available" || true)"
+    if [[ -n "$ENABLED_BUT_UNAVAILABLE" ]]; then
+        echo "Note: enabled plugins not locally available:"
+        while IFS= read -r name; do
+            [[ -z "$name" ]] && continue
+            reason="not installed locally"
+            if grep -Fxq "$name" "$TMP_PLUGIN_STATE_DIR/blocklisted"; then
+                reason="blocklisted in ignored local state"
+            fi
+            echo "  $name ($reason)"
+        done <<< "$ENABLED_BUT_UNAVAILABLE"
+    fi
+else
+    echo "Note: local plugin install state is absent; enabled plugins are treated as declarative config only."
+fi
+
+rm -rf "$TMP_PLUGIN_STATE_DIR"
+
 python3 - << "PY"
 import json
 import subprocess
 from pathlib import Path
 
 root = Path(".")
-settings = json.loads((root / ".claude" / "settings.json").read_text())
-installed_path = root / "plugins" / "installed_plugins.json"
-
-if installed_path.exists():
-    installed = json.loads(installed_path.read_text()).get("plugins", {})
-    enabled = set(settings.get("enabledPlugins", {}))
-    installed_names = set(installed)
-    missing = sorted(installed_names - enabled)
-    if missing:
-        print("Installed but not enabled plugins:")
-        for name in missing:
-            print(f"  {name}")
-        raise SystemExit(1)
-
-    blocklist_path = root / "plugins" / "blocklist.json"
-    if blocklist_path.exists():
-        blocklisted = {
-            entry.get("plugin")
-            for entry in json.loads(blocklist_path.read_text()).get("plugins", [])
-            if entry.get("plugin")
-        }
-        blocked_enabled = sorted(enabled & blocklisted)
-        if blocked_enabled:
-            print("Enabled plugins appear in ignored local blocklist state:")
-            for name in blocked_enabled:
-                print(f"  {name}")
-            raise SystemExit(1)
 
 gitignore_check = subprocess.run(
     ["git", "-C", str(root), "check-ignore", ".superpowers/"],
@@ -362,8 +535,8 @@ if gitignore_check.returncode != 0:
     raise SystemExit(1)
 
 optional_build_artifacts = [
-    (root / ".claude" / "skills" / "gstack" / "browse" / "dist" / "browse",
-     "gstack browse binary not built. Run: cd .claude/skills/gstack/browse && npm run build"),
+    (root / "references" / "gstack" / "browse" / "dist" / "browse",
+     "vendored gstack browse binary not built. Run: cd references/gstack/browse && npm run build"),
     (root / ".claude" / "skills" / "chrome-devtools" / "scripts" / "node_modules",
      "chrome-devtools deps not installed. Run: cd .claude/skills/chrome-devtools/scripts && npm install"),
 ]
@@ -411,7 +584,7 @@ if bad:
     raise SystemExit(1)
 PY
 
-echo "[6/8] Secret-pattern scan on public surface"
+echo "[7/9] Secret-pattern scan on public surface"
 python3 - << "PY"
 import re
 import subprocess
@@ -432,25 +605,17 @@ patterns = [
     re.compile(r"mysql://[^@\s]+:[^@\s]+@"),
 ]
 
-allow_paths = {
-    ".claude/skills/gstack/ARCHITECTURE.md",
-    ".claude/skills/deployment-patterns/SKILL.md",
-    ".claude/skills/docker-patterns/SKILL.md",
-    "scripts/audit-workflow.sh",
-}
+allow_paths = {"scripts/audit-workflow.sh"}
 
 public_files = subprocess.check_output(
     ["git", "-C", str(root), "ls-files", "-co", "--exclude-standard"],
     text=True,
 ).splitlines()
 
-allow_prefixes = [
-    "references/",
-]
-
-hits = []
+first_party_hits = []
+vendored_hits = []
 for rel_path in public_files:
-    if rel_path in allow_paths or any(rel_path.startswith(p) for p in allow_prefixes):
+    if rel_path in allow_paths:
         continue
     if rel_path.startswith(".claude/skills/gstack/test/"):
         continue
@@ -465,17 +630,27 @@ for rel_path in public_files:
         continue
     for pattern in patterns:
         if pattern.search(text):
-            hits.append(rel_path)
+            if rel_path.startswith("references/"):
+                vendored_hits.append(rel_path)
+            else:
+                first_party_hits.append(rel_path)
             break
 
-if hits:
-    print("Secret-pattern hits:")
-    for rel_path in hits:
+if vendored_hits:
+    print("Note: vendored reference content contains credential-like example material:")
+    for rel_path in vendored_hits[:40]:
+        print(f"  {rel_path}")
+    if len(vendored_hits) > 40:
+        print(f"  ... and {len(vendored_hits) - 40} more")
+
+if first_party_hits:
+    print("Secret-pattern hits in first-party workflow files:")
+    for rel_path in first_party_hits:
         print(f"  {rel_path}")
     raise SystemExit(1)
 PY
 
-echo "[7/8] Ignored sensitive-state summary"
+echo "[8/9] Ignored sensitive-state summary"
 python3 - << "PY"
 import re
 import subprocess
@@ -527,7 +702,7 @@ else:
     print("No ignored sensitive-like files detected.")
 PY
 
-echo "[8/8] Public surface summary"
+echo "[9/9] Public surface summary"
 python3 - << "PY"
 import subprocess
 from collections import Counter

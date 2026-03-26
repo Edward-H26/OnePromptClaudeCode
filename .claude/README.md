@@ -20,7 +20,7 @@ This directory contains the maintained workflow source for this `agent/claude` e
 - Root-level `projects/`, `file-history/`, `history.jsonl`, `statsig/`, `debug/`, `shell-snapshots/`, `sessions/`, `tasks/`, `usage-data/`, `paste-cache/`, and `cache/` are runtime data.
 - Root-level `plugins/` is local plugin installation state and should not be published.
 - Root-level `social/` is optional promotional material and is gitignored for workflow-only publishing.
-- `references/gstack/`, `references/super-ralph/`, and `references/everything-claude-code/` are optional gitignored upstream comparison clones.
+- `references/gstack/`, `references/super-ralph/`, and `references/everything-claude-code/` are tracked vendored upstream sources. Repo-local wrapper skills and a smaller set of vendored passthrough skill entries use them as background material.
 - Runtime mirrors that appear under `.claude/` should be treated as disposable state unless explicitly documented as source.
 
 ## Current Inventory
@@ -31,7 +31,7 @@ This directory contains the maintained workflow source for this `agent/claude` e
 - `.claude/skills/` contains the maintained local skills and bundled workflow content used at runtime.
 - Project hooks are registered through [settings.json](./settings.json).
 - The published source intentionally includes the workflow code it needs at runtime, plus bundled `ui-styling` font assets.
-- Run `bash references/setup.sh` only if you want local upstream comparison clones under `references/`.
+- Run `bash references/setup.sh` only when you want to refresh the tracked vendored sources under `references/`.
 
 ## Working Principles
 

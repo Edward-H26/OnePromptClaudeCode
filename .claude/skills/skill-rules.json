@@ -93,6 +93,7 @@
                 ],
                 "intentPatterns": [
                     "(create|add|implement|build).*?(route|endpoint|API|controller|service|repository)",
+                    "(implement|build|update).*?(api|backend|route|database|migration)",
                     "(fix|handle|debug).*?(error|exception|backend)",
                     "(add|implement).*?(middleware|validation|error.*?handling)",
                     "(organize|structure|refactor).*?(backend|service|API)",
@@ -126,7 +127,11 @@
             "description": "React/TypeScript patterns, Suspense, TanStack Query/Router. For styling use ui-styling skill.",
             "promptTriggers": {
                 "keywords": [
+                    "react",
+                    "frontend",
                     "react component",
+                    "page",
+                    "landing page",
                     "suspense",
                     "lazy loading",
                     "tanstack query",
@@ -140,16 +145,14 @@
                     "file organization"
                 ],
                 "keywordExclusions": [
-                    "design",
-                    "styling",
                     "beautiful",
                     "aesthetic",
-                    "UI design",
                     "color",
                     "theme"
                 ],
                 "intentPatterns": [
                     "(create|add|make|build).*?(component|page|feature)",
+                    "(implement|update|build).*?(react|frontend|page|landing page|ui)",
                     "(how to|best practice).*?(react|suspense|data fetching)",
                     "(fetch|load).*?(data|api)",
                     "(organize|structure).*?(frontend|react|feature)"
@@ -361,6 +364,7 @@
             "description": "shadcn/ui components with Tailwind CSS styling and accessible design patterns",
             "promptTriggers": {
                 "keywords": [
+                    "figma",
                     "shadcn",
                     "shadcn/ui",
                     "tailwind",
@@ -372,6 +376,7 @@
                     "dark mode",
                     "theming",
                     "radix ui",
+                    "landing page",
                     "button component",
                     "dialog component",
                     "dropdown",
@@ -382,6 +387,7 @@
                     "utility classes"
                 ],
                 "intentPatterns": [
+                    "(implement|build|polish).*?(ui|landing page|design|figma)",
                     "(add|install|use|implement).*?(shadcn|tailwind|component)",
                     "(create|build|style).*?(button|dialog|form|card|table|dropdown)",
                     "(dark mode|theme|theming).*?(implement|add|toggle)",
@@ -585,7 +591,8 @@
                     "(review|check|audit|scan).*?security",
                     "(secure|harden|protect).*?(code|api|endpoint|app)",
                     "(scan|check|review).*?(secrets|credentials|sensitive|exposure)",
-                    "(audit|review|check).*?(gitignore|ignored files|sensitive files)"
+                    "(audit|review|check).*?(gitignore|ignored files|sensitive files)",
+                    "(audit|review|check).*?(workflow|public surface|what would be pushed)"
                 ]
             },
             "fileTriggers": {
@@ -630,7 +637,8 @@
                     "(implement|fix|update|harden|rewrite).*?(workflow|hooks|gitignore|plugins|settings|permissions)",
                     "(review|audit|check).*?(permissions|hooks|plugins|blocklist)",
                     "(audit|scan|check).*?(workflow|gitignore|sensitive|secrets|exposure)",
-                    "(review|check).*?(what would be pushed|public surface)"
+                    "(review|check).*?(what would be pushed|public surface)",
+                    "(audit|scan).*?(workflow|repo|codebase)"
                 ]
             },
             "fileTriggers": {
@@ -700,7 +708,8 @@
                     "(write|add|create).*e2e",
                     "(write|add|create).*end.to.end",
                     "playwright.*(test|spec)",
-                    "page.*object.*model"
+                    "page.*object.*model",
+                    "(test|verify).*local.*(webapp|app|browser flow)"
                 ]
             },
             "fileTriggers": {
@@ -758,6 +767,8 @@
                     "verification",
                     "quality check",
                     "pre-deploy check",
+                    "release-ready",
+                    "release handoff",
                     "full check",
                     "run all checks",
                     "typecheck",
@@ -767,6 +778,7 @@
                 ],
                 "intentPatterns": [
                     "(verify|check|validate).*?(everything|all|code|changes)",
+                    "(prepare|get).*?(release|ship).*ready",
                     "(run|execute).*?(all|full).*?(check|test|verification)",
                     "(run|check).*?(build|lint|type.?check|playwright|browser)"
                 ]
@@ -853,6 +865,16 @@
                     "ralph.*(build|execute|decompose|this)",
                     "break.*down.*build"
                 ]
+            }
+        },
+        "gstack": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "low",
+            "description": "Bundled gstack workflow entrypoint exposed through repo-local wrapper skills.",
+            "promptTriggers": {
+                "keywords": ["gstack"],
+                "intentPatterns": ["(use|run|open).*gstack"]
             }
         },
         "office-hours": {
@@ -949,7 +971,7 @@
             "type": "domain",
             "enforcement": "suggest",
             "priority": "high",
-            "description": "Release engineering: sync base, test, coverage audit, version bump, changelog, commit, push, create PR.",
+            "description": "Release engineering: sync base, test, coverage audit, version bump, changelog, and release-ready handoff without committing or pushing.",
             "promptTriggers": {
                 "keywords": ["ship", "release", "create pr", "ship it", "deploy", "push and pr"],
                 "intentPatterns": ["(ship|release|deploy).*?(it|this|code|branch)", "(create|open|make).*?(pr|pull request)"]
@@ -1111,8 +1133,8 @@
             "priority": "medium",
             "description": "Search-first development: explore existing code before writing new code.",
             "promptTriggers": {
-                "keywords": ["search first", "search before code", "codebase search", "find existing"],
-                "intentPatterns": ["search.*first", "(search|find|explore).*before.*(code|implement)", "(go through|scan|evaluate).*?(every file|codebase|workflow)"]
+                "keywords": ["search first", "search before code", "codebase search", "find existing", "workflow audit", "codebase audit"],
+                "intentPatterns": ["search.*first", "(search|find|explore).*before.*(code|implement)", "(go through|scan|evaluate).*?(every file|codebase|workflow)", "(audit|review|scan).*?(workflow|codebase|repo)"]
             }
         },
         "liquid-glass-design": {
@@ -1151,8 +1173,8 @@
             "priority": "medium",
             "description": "Test local web applications using Playwright in Python. Browser screenshots, UI debugging, server lifecycle.",
             "promptTriggers": {
-                "keywords": ["webapp test", "playwright python", "browser test python", "test local app", "ui test python"],
-                "intentPatterns": ["test.*webapp", "playwright.*python", "(test|verify).*local.*(app|server)"]
+                "keywords": ["webapp test", "local webapp", "playwright python", "browser test python", "test local app", "ui test python", "browser flow", "capture screenshots"],
+                "intentPatterns": ["test.*webapp", "playwright.*python", "(test|verify).*local.*(app|server|webapp)", "(capture|take).*screenshot"]
             }
         },
         "gstack-upgrade": {

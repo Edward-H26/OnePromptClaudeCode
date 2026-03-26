@@ -10,7 +10,7 @@ if [[ -z "$PROMPT" ]]; then
     exit 0
 fi
 
-CODEX_SCRIPT="${CLAUDE_PROJECT_DIR:-$PWD}/.claude/skills/codex/scripts/ask_codex.sh"
+CODEX_SCRIPT="${AUTO_CODEX_SCRIPT:-${CLAUDE_PROJECT_DIR:-$PWD}/.claude/skills/codex/scripts/ask_codex.sh}"
 if [[ ! -x "$CODEX_SCRIPT" ]]; then
     echo "WARNING: Codex script not found or not executable at $CODEX_SCRIPT" >&2
     exit 0
@@ -67,11 +67,14 @@ fi
 
 WORKSPACE="${CLAUDE_PROJECT_DIR:-$PWD}"
 TIMESTAMP=$(date -u +"%Y%m%d-%H%M%S")
-RUNTIME_DIR="${CLAUDE_PROJECT_DIR:-$PWD}/.claude/skills/codex/.runtime"
+RUNTIME_DIR="${AUTO_CODEX_RUNTIME_DIR:-${CLAUDE_PROJECT_DIR:-$PWD}/.claude/skills/codex/.runtime}"
 mkdir -p "$RUNTIME_DIR"
-OUTPUT_PATH="$RUNTIME_DIR/auto-${TIMESTAMP}.md"
+ARTIFACT_DIR="$(mktemp -d "$RUNTIME_DIR/auto-${TIMESTAMP}-XXXXXX")"
+OUTPUT_PATH="$ARTIFACT_DIR/output.md"
+CODEX_LOG="$ARTIFACT_DIR/run.log"
+PID_PATH="$ARTIFACT_DIR/run.pid"
 
-find "$RUNTIME_DIR" \( -name "*.md" -o -name "*.log" -o -name "*.pid" \) -mtime +7 -delete 2>/dev/null || true
+find "$RUNTIME_DIR" -mindepth 1 -maxdepth 1 -type d -mtime +7 -exec rm -rf {} + 2>/dev/null || true
 
 SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // empty')
 SESSION_ID="${SESSION_ID:-default}"
@@ -79,7 +82,6 @@ STEPS_DIR="$WORKSPACE/.claude/tsc-cache/$SESSION_ID/workflow-steps"
 mkdir -p "$STEPS_DIR"
 mkdir -p "$STEPS_DIR/codex-kickoff" 2>/dev/null || true
 
-CODEX_LOG="$RUNTIME_DIR/auto-${TIMESTAMP}.log"
 PROMPT_FILE="$(mktemp)"
 LAUNCH_SCRIPT="$(mktemp)"
 printf '%s' "$PROMPT" > "$PROMPT_FILE"
@@ -100,7 +102,7 @@ nohup /bin/bash -c '
     rm -f "$2" "$1"
 ' _ "$LAUNCH_SCRIPT" "$PROMPT_FILE" > "$CODEX_LOG" 2>&1 &
 CODEX_PID=$!
-echo "$CODEX_PID" > "$RUNTIME_DIR/auto-${TIMESTAMP}.pid"
+echo "$CODEX_PID" > "$PID_PATH"
 
 cat << EOF
 ================================================================================

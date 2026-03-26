@@ -141,6 +141,159 @@ When `[TARGET_URL]` is available and the task affects visible UI:
 
 This loop replaces manual "looks good" checks with evidence captured via browser tooling.
 
+## End-to-End Multi-Agent Workflow
+
+For large, complex, or high-stakes features that require deep analysis, multi-file implementation, requirements validation, and end-to-end testing, use this structured 8-agent workflow. It orchestrates two stages: analysis and planning (Agents 1-4), then implementation and validation (Agents 5-8).
+
+### Additional Placeholders
+
+```text
+[REQUIREMENTS]: Requirements document, rubric, or acceptance criteria.
+[REFERENCE_NOTEBOOK]: Optional reference notebook path for methodology or examples.
+[DATASET_URL]: Optional dataset or resource URL for domain-specific context.
+[DAYS_BACK]: Number of days of git history to analyze (default: 25).
+```
+
+### Stage 1: Analysis, Design, and Planning
+
+Run Agents 1 and 2 in parallel. Agent 3 depends on their output. Agent 4 depends on all three.
+
+#### Agent 1: Explorer (Deep Codebase Analysis)
+
+Launch an Explore subagent with thoroughness "very thorough" or use `feature-dev:code-explorer`.
+
+Responsibilities:
+- Read every documentation file and map the project architecture
+- Analyze each folder and file to understand how components connect
+- Identify all existing features, patterns, utilities, and conventions
+- Map the tech stack, dependencies, testing infrastructure, and build system
+- Apply `search-first` to catalog reusable functions and abstractions
+
+Output: a comprehensive codebase map including architecture, patterns, dependencies, and reusable utilities.
+
+#### Agent 2: Researcher (Recent Changes and Domain Context)
+
+Launch an Explore subagent or use `deep-research`.
+
+Responsibilities:
+- Analyze the git history from the past `[DAYS_BACK]` days on the main branch (`git log --since="[DAYS_BACK] days ago" --stat`)
+- Read each commit diff line by line to understand what changed and why
+- Trace how each new feature builds on the existing codebase
+- If `[REFERENCE_NOTEBOOK]` is provided, read it and extract methodology and patterns
+- If `[DATASET_URL]` is provided, use HuggingFace MCP or WebFetch to examine the data and find suitable examples
+- Use Context7 MCP (`resolve-library-id`, `query-docs`) for up-to-date documentation on key dependencies
+
+Output: a changelog analysis with feature evolution, dependency changes, and domain context.
+
+#### Agent 3: Critical Reviewer (Requirements Gap Analysis)
+
+Launch a Plan subagent or use `code-review:code-review` and `superpowers:requesting-code-review`.
+
+Responsibilities:
+- Receive the codebase map from Agent 1 and the changelog analysis from Agent 2
+- Check every requirement in `[REQUIREMENTS]` against the current codebase state
+- For quantitative requirements (e.g., "at least 3 examples"), verify the codebase exceeds them (e.g., provide 5)
+- Check all deliverables: screenshots, JSON outputs, forms, UI components, API endpoints
+- Verify each deliverable by reading the actual code, not assuming from file names
+- If any requirement is not met or could be improved, produce a detailed gap report with file paths and specific deficiencies
+
+Output: a gap report listing fulfilled requirements, unfulfilled requirements with specific file paths, and improvement opportunities.
+
+#### Agent 4: Architect (Task Decomposition and Design)
+
+Launch a Plan subagent or use `superpowers:writing-plans` and `feature-dev:code-architect`.
+
+Responsibilities:
+- Synthesize output from Agents 1, 2, and 3
+- Break the remaining work into detailed, ordered subtasks (2-5 minutes each)
+- For each subtask, specify: exact files to create or modify, the design rationale for each code change, and acceptance criteria
+- Reflect on the proposed changes to identify potential issues, edge cases, or imperfect design choices
+- Consider `/plan-eng-review` for architecturally complex decisions
+- Produce a visual outline using a Mermaid diagram or Figma MCP `generate_diagram` when the task involves multiple interacting components
+
+Output: a numbered implementation plan with file paths, code design rationale, risk flags, and a dependency graph.
+
+**Checkpoint**: After Stage 1, confirm the implementation plan and gap report with the user before proceeding. Use AskUserQuestion if any requirement is ambiguous.
+
+### Stage 2: Implementation, Validation, and Documentation
+
+Agent 5 runs first to establish the baseline. Agents 6 and 7 run iteratively until all checks pass. Agent 8 runs last.
+
+#### Agent 5: Validator (Feature Testing and Baseline)
+
+Launch a general-purpose subagent or use `verification-loop`, `webapp-testing`, and `e2e-testing`.
+
+Responsibilities:
+- Get the implementation plan from Agent 4 and the gap analysis from Agent 3
+- Test all existing features to establish a baseline (nothing is broken before changes)
+- Run the project's test suite, build, and typecheck
+- If `[TARGET_URL]` is available, use Playwright MCP to navigate every major page and verify functionality
+- After implementation changes are made, re-run all tests and compare against the baseline
+- Report any regressions introduced by the changes
+
+Output: a test report with baseline results, post-change results, and any regressions.
+
+#### Agent 6: Codex Reviewer (Cross-Model Review and Refinement)
+
+Use the `/codex` skill to invoke cross-model review.
+
+Responsibilities:
+- Run `/codex review` on all changed files to get an independent code review
+- Run `/codex challenge` to adversarially stress-test the implementation
+- Check code changes against `[REQUIREMENTS]` for completeness
+- Use `code-simplifier` to identify unnecessary complexity
+- If Codex identifies issues, iterate: fix the issue, re-run `/codex review`, repeat until clean
+
+Output: a Codex review report with all findings addressed.
+
+#### Agent 7: Orchestrator (End-to-End Testing Loop)
+
+Launch a general-purpose subagent or use `/orchestrate` with Chrome MCP and Playwright MCP.
+
+Responsibilities:
+- Use Chrome MCP (`navigate`, `read_page`, `javascript_tool`, `gif_creator`) or Playwright MCP (`browser_navigate`, `browser_click`, `browser_snapshot`, `browser_take_screenshot`) to test every feature end-to-end
+- Simulate real user workflows: navigate pages, fill forms, click buttons, verify outputs
+- If any feature fails or behaves incorrectly, dispatch a sub-agent to fix it (use `superpowers:dispatching-parallel-agents` for independent fixes)
+- After each fix, re-test the specific feature and all related features
+- Continue this loop until every feature works correctly
+- If stuck after 3 attempts on any issue, escalate with BLOCKED status for human intervention
+- Use `/qa` for structured browser QA testing when comprehensive coverage is needed
+
+Output: an end-to-end test report with evidence (screenshots, GIF recordings) showing all features working.
+
+#### Agent 8: Documenter (Documentation Update)
+
+Launch a general-purpose subagent or use the `documentation-system` agent and `/document-release`.
+
+Responsibilities:
+- Collect all changes from Agents 1 through 7
+- Update README, ARCHITECTURE, CONTRIBUTING, and any project-specific documentation to reflect the changes
+- Add setup instructions if new dependencies or configuration steps were introduced
+- Update any referenced screenshots or examples that changed
+- Ensure documentation is accurate and matches the current state of the code
+- Remove references to deleted features or outdated patterns
+
+Output: updated documentation files with a summary of what changed and why.
+
+### Agent Dispatch Pattern
+
+```
+Stage 1 (parallel where possible):
+  Agent 1 (Explorer)  ──┐
+  Agent 2 (Researcher) ─┤──> Agent 3 (Reviewer) ──> Agent 4 (Architect)
+                         │
+                    [user checkpoint]
+
+Stage 2 (sequential with iteration):
+  Agent 5 (Validator) ──> Agent 6 (Codex) ──> Agent 7 (Orchestrator) ──> Agent 8 (Documenter)
+                              │                      │
+                              └── fix loop ──────────┘
+```
+
+Use `superpowers:dispatching-parallel-agents` for Agents 1 and 2. Use `superpowers:subagent-driven-development` for the Stage 2 sequential pipeline. Use `superpowers:verification-before-completion` before declaring Stage 2 complete.
+
+---
+
 ## Expected Deliverable
 
 Return:

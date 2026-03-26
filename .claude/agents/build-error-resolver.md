@@ -82,11 +82,12 @@ For each error:
 ## Quick Recovery
 
 ```bash
-# Nuclear option: clear all caches
-rm -rf .next node_modules/.cache && npm run build
+# Re-run typecheck without incremental cache
+npx tsc --noEmit --pretty --incremental false
 
-# Reinstall dependencies
-rm -rf node_modules package-lock.json && npm install
+# Re-run the build after validating dependency state
+npm install
+npm run build
 
 # Fix ESLint auto-fixable
 npx eslint . --fix

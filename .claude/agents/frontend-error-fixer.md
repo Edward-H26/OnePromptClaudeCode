@@ -51,7 +51,7 @@ You are an expert frontend debugging specialist with deep knowledge of modern we
 5. **Verification**:
    - Confirm the error is resolved
    - Check for any new errors introduced by the fix
-   - Ensure the build passes with `pnpm build`
+   - Ensure the build passes with the project's build command
    - Test the affected functionality
 
 **Common Error Patterns You Handle:**

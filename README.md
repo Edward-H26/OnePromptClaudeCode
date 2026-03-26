@@ -30,7 +30,7 @@ cd OnePromptClaudeCode
 claude
 ```
 
-That is the full setup. `references/setup.sh` is optional and only clones local upstream comparison copies under `references/`.
+That is the full setup. `references/setup.sh` is optional, but it refreshes the tracked vendored upstream content under `references/` that some repo-local wrappers and vendored passthrough skills consult as background material.
 
 ---
 
@@ -45,7 +45,7 @@ The workflow watches what you do and activates the right tools automatically:
 | Touch auth code | `security-review` |
 | Open a Playwright spec | `e2e-testing` |
 | Ask about Docker | `docker-patterns` |
-| Type `/ship` | Full release pipeline |
+| Type `/ship` | Release-readiness handoff |
 
 Zero commands to memorize. Zero prompts to write. Zero configuration.
 
@@ -75,7 +75,7 @@ The workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Te
 | **Build** | Auto-skills for React, Node, Python, Docker, PostgreSQL | `/build-fix`, `/orchestrate` |
 | **Review** | Staff engineer code review, OWASP security scanning | `/review-staff`, `/codex review` |
 | **Test** | TDD, Playwright E2E, browser QA that fixes what it finds | `/qa`, `/quality-gate` |
-| **Ship** | One-command release pipeline with changelog | `/ship` |
+| **Ship** | Release-readiness handoff with changelog | `/ship` |
 | **Reflect** | Weekly retrospectives with shipping metrics | `/retro` |
 
 ### Safety
@@ -269,7 +269,7 @@ Ready-to-use templates at `.claude/prompt-templates/`:
     gstack/              # Bundled gstack workflow content
     super-ralph/         # Bundled Super Ralph wrapper and assets
     [local skills]       # Backend, frontend, testing, and utility skills
-references/              # Optional upstream comparison clones and setup scripts
+references/              # Tracked vendored upstream workflow sources and refresh scripts
 social/                  # Social media assets and demo video
 ```
 
@@ -277,13 +277,13 @@ social/                  # Social media assets and demo video
 
 ## Updating External References
 
-Use `references/` only when you want to refresh the local upstream comparison copies:
+Use `references/` when you want to refresh the tracked vendored upstream sources:
 
 ```bash
 bash references/update-references.sh
 ```
 
-This pulls the latest changes into `references/`. It does not rewrite the tracked workflow under `.claude/skills/`.
+This refreshes the tracked upstream snapshots in `references/`. Several bundled entries in `.claude/skills/` resolve through these vendored sources, so they are part of the published workflow surface.
 
 ---
 

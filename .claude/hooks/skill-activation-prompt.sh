@@ -11,7 +11,8 @@ fi
 
 PROMPT_LOWER=$(echo "$PROMPT" | tr '[:upper:]' '[:lower:]')
 
-RULES_PATH="${CLAUDE_PROJECT_DIR:?}/.claude/skills/skill-rules.json"
+CLAUDE_PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$PWD}"
+RULES_PATH="$CLAUDE_PROJECT_DIR/.claude/skills/skill-rules.json"
 if [[ ! -f "$RULES_PATH" ]]; then
     exit 0
 fi

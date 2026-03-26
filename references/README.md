@@ -1,6 +1,6 @@
 # References
 
-This directory holds upstream reference repositories whose content is tracked in git. Skills in `.claude/skills/` symlink to these directories, ensuring everything works on a fresh clone.
+This directory holds vendored upstream workflow repositories whose content is tracked in git. Repo-local wrapper skills and a smaller set of vendored passthrough skill entries may consult these snapshots as background material, so this content remains part of the published workflow surface and required on a fresh clone.
 
 ## Repositories
 
@@ -13,13 +13,13 @@ This directory holds upstream reference repositories whose content is tracked in
 
 ## Updating from Upstream
 
-To pull the latest changes from upstream repositories:
+To refresh the vendored snapshots from upstream repositories:
 
 ```bash
 bash references/setup.sh
 ```
 
-This clones each repo to a temp directory, syncs the content (excluding `.git/`), and updates the tracked files. After running, review the changes and commit them.
+This clones each repo to a temp directory, syncs the content (excluding `.git/`), and updates the tracked vendored files. After running, review the changes and commit them.
 
 ## Acknowledgments
 

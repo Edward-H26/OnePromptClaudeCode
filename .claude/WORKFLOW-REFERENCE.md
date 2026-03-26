@@ -8,7 +8,7 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 
 **Global config**: On some local setups, a user-scoped Claude home directory may be symlinked to this project directory. This is a machine-specific convention, not a requirement of the published repo.
 **Repo-local multi-model flow**: `/multi-plan` and `/multi-execute` use the bundled Codex bridge plus installed plugin agents. They no longer depend on personal wrapper tooling outside this repo.
-**Published surface**: This repo tracks the workflow content it runs, including bundled `gstack`, bundled `super-ralph`, and bundled `ui-styling` assets. `references/` is optional and only used for local upstream comparison copies.
+**Published surface**: This repo tracks the workflow content it runs, including bundled `super-ralph`, bundled `ui-styling` assets, repo-local wrapper skills, and the vendored upstream sources under `references/` that those wrappers and a smaller set of vendored passthrough skills may consult.
 
 ---
 
@@ -44,8 +44,8 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 
 | Skill | Trigger | What it does |
 |---|---|---|
-| `review` | `/review-staff` | Staff engineer code review. Finds production bugs passing CI, auto-fixes obvious issues. |
-| `design-review` | `/design-review` or ask for "design review fix" | Design audit with atomic commit fixes and before/after screenshots. |
+| `review` | `/review-staff` | Staff engineer code review with findings-first output for this repo. |
+| `design-review` | `/design-review` or ask for "design review fix" | Design audit with repo-local fixes and before/after screenshots when available. |
 | `security-review` | auto on security changes | OWASP patterns: secrets, input validation, SQL injection, XSS, CSRF, auth, rate limiting. |
 | `security-scan` | ask for "security scan" | Claude Code config audit using AgentShield or manual checklist. Severity grades A-F. |
 
@@ -56,7 +56,7 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 | `tdd-workflow` | auto on test writing | RED-GREEN-REFACTOR cycle, unit/integration/E2E patterns, 80%+ coverage target. |
 | `e2e-testing` | auto on E2E/Playwright | Playwright patterns, Page Object Model, flaky test strategies, CI/CD. |
 | `webapp-testing` | ask to test a local webapp | Python-driven Playwright workflow for local app lifecycle, screenshots, and browser verification. |
-| `qa` | `/qa` | Browser-based QA: test app, find bugs, fix them, auto-generate regression tests. |
+| `qa` | `/qa` | Browser-based QA: test app, find bugs, apply minimal fixes, and re-verify. |
 | `qa-only` | `/qa-only` | Same as qa but report-only, no code changes. |
 | `verification-loop` | auto on verification | 6-phase verification: build, type, lint, test, security, diff. |
 | `eval-harness` | ask about evals | Evaluation frameworks for testing agent and model quality. |
@@ -113,9 +113,9 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 | `strategic-compact` | at phase boundaries | Strategic context compaction. Decision guide for when to compact. |
 | `super-ralph` | `/super-ralph` | Local wrapper skill that dispatches into the bundled autonomous workflow under `.claude/skills/super-ralph/`. |
 | `chrome-devtools` | ask about Chrome DevTools | Node.js scripts for Chrome DevTools Protocol: navigate, screenshot, console, evaluate, network. |
-| `browse` | ask to "open browser" | Real Chromium browser with ~100ms command latency. Persistent state across calls. |
+| `browse` | ask to "open browser" | Repo-local browser workflow that uses the tooling available in this environment. |
 | `setup-browser-cookies` | ask about browser cookies | Import cookies from Chrome, Arc, Brave, Edge for authenticated testing. |
-| `gstack-upgrade` | ask to "upgrade gstack" | Self-updater for gstack skills. Detects installation type, shows changes. |
+| `gstack-upgrade` | ask to "upgrade gstack" | Refreshes the vendored gstack snapshot tracked in this repo. |
 
 ---
 
@@ -181,7 +181,7 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 
 ## MCP Tooling
 
-Availability depends on the local Claude installation, enabled plugins, and any user-scoped MCP setup outside this repo.
+Availability depends on the local Claude installation, enabled plugins, ignored local plugin state, and any user-scoped MCP setup outside this repo.
 
 | Server | Capabilities | Key tools |
 |---|---|---|
@@ -206,7 +206,7 @@ Availability depends on the local Claude installation, enabled plugins, and any 
 |---|---|
 | `superpowers` | Brainstorming, writing plans, TDD, debugging, dispatching agents, code review, verification |
 | `feature-dev` | Guided feature development with codebase exploration and architecture agents |
-| `code-review` | PR code review with confidence-based filtering |
+| `code-review` | PR-style code review with confidence-based filtering. Local blocklist state can make it unavailable even when enabled in tracked config. |
 | `code-simplifier` | Code simplification for clarity and maintainability |
 | `frontend-design` | Production-grade frontend interface generation |
 | `figma` | Figma design-to-code integration |

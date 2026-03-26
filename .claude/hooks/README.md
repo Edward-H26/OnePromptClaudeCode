@@ -57,6 +57,14 @@ Shared regex patterns sourced by auto-codex-trigger.sh and task-orchestrator-hoo
 - `CODING_CONTEXT_PATTERN` - Matches code-related file extensions and terminology
 - `EXPLICIT_IMPLEMENTATION_PATTERN` - Distinguishes concrete file or code edits from broad audit language
 
+### `lib/plugin-state.sh`
+Shared plugin state helpers sourced by task-orchestrator-hook.sh and audit tooling:
+- `plugin_enabled_names()` - Lists plugins enabled in `.claude/settings.json`
+- `plugin_installed_names()` - Lists locally installed plugins when `plugins/installed_plugins.json` exists
+- `plugin_blocklisted_names()` - Lists locally blocklisted plugins when `plugins/blocklist.json` exists
+- `plugin_available_names()` - Lists plugins both enabled and locally available
+- `plugin_is_available(name)` - Checks whether a plugin should be treated as available
+
 ---
 
 ## Hook Details
@@ -67,7 +75,9 @@ Shared regex patterns sourced by auto-codex-trigger.sh and task-orchestrator-hoo
 
 **Analysis mode:** If the prompt matches `ANALYSIS_PATTERN` without concrete edit intent, outputs a short analysis reminder.
 
-**Coding mode:** Outputs concise workflow guidance and points to the most relevant local skills.
+**Pure informational mode:** If the prompt is only a question and does not imply edits, exits quietly instead of injecting coding-task guidance.
+
+**Coding mode:** Outputs concise workflow guidance, points to the most relevant local skills, and only lists plugins that are locally available.
 
 ### auto-codex-trigger (UserPromptSubmit)
 
@@ -77,11 +87,13 @@ Shared regex patterns sourced by auto-codex-trigger.sh and task-orchestrator-hoo
 
 **Coding task detection:** A prompt is considered a coding task only when it clears the analysis guard and then matches `CODING_PATTERN` or code-related file extensions or terms (`CODING_CONTEXT_PATTERN`).
 
+**Artifact handling:** Each launch gets a unique runtime directory under `.claude/skills/codex/.runtime/` so concurrent launches cannot overwrite each other's output, log, or pid files.
+
 ### skill-activation-prompt (UserPromptSubmit)
 
 **Purpose:** Auto-suggests relevant skills based on prompt keywords and intent patterns.
 
-Reads `skill-rules.json`, matches prompt against each skill's `promptTriggers` (keywords + intentPatterns), respects `keywordExclusions`, and groups results by priority (critical, high, medium, low).
+Reads `skill-rules.json`, matches prompt against each skill's `promptTriggers` (keywords + intentPatterns), respects `keywordExclusions`, and groups results by priority (critical, high, medium, low). Falls back to `$PWD` when `CLAUDE_PROJECT_DIR` is not exported, so it can be dry-run directly from the repo root.
 
 ### post-tool-use-tracker (PostToolUse)
 
@@ -152,7 +164,7 @@ Also cleans up stale `tsc-cache` sessions older than 7 days.
 
 **Hook stalls or hangs:**
 - Check for stale lock files: `ls -la $CLAUDE_PROJECT_DIR/.claude/tsc-cache/**/*.lock`
-- Remove stale locks manually (locks older than 1 minute are auto-cleaned by `atomic_sort_unique`, but you can `rm -rf` any `.lock` directory)
+- Remove a stale empty lock directory manually with `rmdir` if needed after checking that no hook process is still running
 - Kill orphan background processes: `ps aux | grep 'tsc-check\|auto-codex-trigger' | grep -v grep`
 
 **Temporarily disable a specific hook:**
