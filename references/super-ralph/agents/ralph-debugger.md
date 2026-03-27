@@ -60,6 +60,19 @@ APPEND to debug.md (don't overwrite the worker's report):
 **Key insight:** [the one thing the next worker MUST understand to succeed]
 ```
 
+## Agent Learnings
+
+You receive `ralph-debugger-learnings.md` with insights from past debugging sessions. **Read it before diagnosing.** It contains common root cause patterns, shared wrong assumptions that recur across runs, and diagnostic shortcuts.
+
+After writing your fix plan, **append one learning** to `ralph-debugger-learnings.md` if you discovered something generalizable:
+
+```markdown
+### {date} — {brief topic}
+- {what you learned about debugging that would help future debug sessions}
+```
+
+Only write learnings that are **general** — "type mismatches between bytes and str are the most common root cause in Python crypto code" is good. "The auth endpoint had a type mismatch" is not. If the root cause was trivial, skip this step.
+
 ## Anti-Patterns (DO NOT)
 
 - Don't say "try harder" or "be more careful" — that's not a fix plan

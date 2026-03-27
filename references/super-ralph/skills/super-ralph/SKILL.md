@@ -12,6 +12,7 @@ Autonomous agentic loop: decompose → test → build → debug → learn → me
 ```
 User Query
   → Brainstorm: interactive Q&A to explore intent, scope, edge cases (AskUserQuestion loop)
+  → Intent Profile: 3 questions (priority, audience, lifespan) → JUDGE_RUBRIC
   → Tooling: scan available skills/agents, ask user about goals, assemble custom toolset
   → Pre-Flight: scope workspace + set MAX_RETRIES (AskUserQuestion)
   → Decompose: orchestrator breaks query into tasks directly (no separate manager/planner agent)
@@ -130,7 +131,7 @@ options:
 multiSelect: false
 ```
 
-If "Almost" → incorporate feedback, update summary, re-confirm. If "Yes" → store the summary as `BRAINSTORM_SUMMARY` and proceed to Phase 0.
+If "Almost" → incorporate feedback, update summary, re-confirm. If "Yes" → store the summary as `BRAINSTORM_SUMMARY` and proceed to Phase -0.75 (Intent Profile).
 
 ### Rules
 
@@ -146,7 +147,123 @@ The `BRAINSTORM_SUMMARY` is used by the orchestrator during task decomposition (
 
 ---
 
-## Phase -0.5: Tooling Discovery (BLOCKING — after brainstorm, before pre-flight)
+## Phase -0.75: Intent Profile (BLOCKING — after brainstorm, before tooling)
+
+After confirming the brainstorm summary, capture the user's **intent profile** through 3 direct questions. The answers determine how strictly the judge grades every agent's output — a prototype gets lenient judging on polish, a production system gets strict on everything.
+
+### How it works
+
+Ask these 3 questions using `AskUserQuestion` prehook gates. Each includes a "Chat about this" escape hatch.
+
+**Question 1 — Priority:**
+```
+question: "What matters most for this build?"
+header: "Priority"
+options:
+  - label: "Just get it working"
+    description: "Speed over polish — I need something functional fast"
+  - label: "Solid and correct"
+    description: "Take the time to handle errors and edge cases properly"
+  - label: "Ship-ready quality"
+    description: "Production-grade — clean code, full error handling, security"
+  - label: "Chat about this"
+    description: "Stop — I want to discuss this before deciding"
+multiSelect: false
+```
+
+**Question 2 — Audience:**
+```
+question: "Who will use what gets built?"
+header: "Audience"
+options:
+  - label: "Just me"
+    description: "Personal tool — I know the quirks, no need for polish"
+  - label: "My team"
+    description: "Others will read and maintain this code"
+  - label: "End users"
+    description: "Real people will interact with this — UX and reliability matter"
+  - label: "Chat about this"
+    description: "Stop — I want to discuss this before deciding"
+multiSelect: false
+```
+
+**Question 3 — Lifespan:**
+```
+question: "How long does this need to last?"
+header: "Lifespan"
+options:
+  - label: "Throwaway / experiment"
+    description: "Use it once or twice, then toss it"
+  - label: "Weeks to months"
+    description: "Needs to work reliably for a while"
+  - label: "Long-lived"
+    description: "This will be maintained and extended over time"
+  - label: "Chat about this"
+    description: "Stop — I want to discuss this before deciding"
+multiSelect: false
+```
+
+### Building the INTENT_PROFILE
+
+Store the answers as `INTENT_PROFILE`:
+
+```markdown
+## Intent Profile
+
+**Priority:** [just working | solid and correct | ship-ready]
+**Audience:** [just me | my team | end users]
+**Lifespan:** [throwaway | weeks to months | long-lived]
+```
+
+### Generating the JUDGE_RUBRIC
+
+Map the intent profile to a `JUDGE_RUBRIC` — a per-dimension strictness matrix that tells the judge how hard to grade each quality dimension. Use this mapping:
+
+| Dimension | Just working + Just me + Throwaway | Solid + Team + Weeks | Ship-ready + End users + Long-lived |
+|-----------|-------------------------------------|----------------------|--------------------------------------|
+| Core functionality | **strict** | **strict** | **strict** |
+| Error handling | skip | moderate | **strict** |
+| Edge cases | skip | moderate | **strict** |
+| Code readability | lenient | moderate | **strict** |
+| Security | lenient | moderate | **strict** |
+| Test coverage | happy path only | happy + edges | comprehensive |
+| Documentation | skip | inline comments | full docs |
+
+**Strictness levels:**
+- **strict** — judge FAILS output that doesn't meet this dimension
+- **moderate** — judge NOTES issues but passes if core functionality is solid
+- **lenient** — judge ignores this dimension unless it's egregiously bad
+- **skip** — judge does not evaluate this dimension at all
+
+**Blended profiles:** When the 3 answers don't all point to the same tier (e.g., "just get it working" + "end users" + "long-lived"), use the **highest tier that any answer maps to** for each dimension. User-facing and long-lived code gets strict security even if the user wants speed — that's a safety floor.
+
+Store the result as `JUDGE_RUBRIC`:
+
+```markdown
+## Judge Rubric
+
+| Dimension | Strictness |
+|-----------|------------|
+| Core functionality | strict |
+| Error handling | [strict/moderate/lenient/skip] |
+| Edge cases | [strict/moderate/lenient/skip] |
+| Code readability | [strict/moderate/lenient/skip] |
+| Security | [strict/moderate/lenient/skip] |
+| Test coverage | [comprehensive/happy + edges/happy path only] |
+| Documentation | [full docs/inline comments/skip] |
+```
+
+### Passing forward
+
+The `JUDGE_RUBRIC` is injected into every ralph-judge dispatch alongside the task definition and WORKSPACE_RULES. It tells the judge what to care about and how much — adapted to this specific user's intent.
+
+### Skip condition
+
+If brainstorming was skipped (dead simple query), default to the middle tier: **solid and correct + my team + weeks to months**.
+
+---
+
+## Phase -0.5: Tooling Discovery (BLOCKING — after intent profile, before pre-flight)
 
 After understanding *what* the user wants to build, figure out *what tools will help build it*. Scan available skills and agents, match them to the user's goals, and let the user confirm or adjust the toolset.
 
@@ -351,11 +468,11 @@ WORKSPACE RULES:
 
 ## Phase 1: Plan & Decompose (orchestrator does this directly)
 
-The orchestrator decomposes the query itself — no separate manager/planner agent needed. It already has everything: BRAINSTORM_SUMMARY, TOOLING_CONFIG, learnings, codebase context, and WORKSPACE_RULES.
+The orchestrator decomposes the query itself — no separate manager/planner agent needed. It already has everything: BRAINSTORM_SUMMARY, INTENT_PROFILE, TOOLING_CONFIG, learnings, codebase context, and WORKSPACE_RULES.
 
 ### Step 1: Gather context
 
-1. Read `learnings.md` — extract relevant past insights. If a pattern failed before, don't repeat it.
+1. Read `learnings.md` — extract relevant past insights (per-task entries + run summaries). If a pattern failed before, don't repeat it.
 2. Read the scoped codebase files to understand existing patterns and conventions.
 
 ### Step 2: Decompose into tasks
@@ -431,12 +548,13 @@ For each task from the orchestrator. **Parallelize independent tasks** by dispat
 ```
 while true:
     Dispatch ralph-tester with: task definition + WORKSPACE_RULES
+      + ralph-tester-learnings.md (agent-specific learnings from past runs)
 
     Tester writes tests to workspace/task-{id}/tests/ and reports the test command.
 
     Dispatch ralph-judge with:
       agent_type: "tester"
-      task definition + output location (workspace/task-{id}/tests/) + WORKSPACE_RULES
+      task definition + output location (workspace/task-{id}/tests/) + JUDGE_RUBRIC + WORKSPACE_RULES
 
     if judge passes:
         break → proceed to Step 2b
@@ -465,12 +583,14 @@ while true:
 
     Dispatch fresh ralph-worker with:
       task definition + test locations + failure_context + TOOLING_CONFIG + WORKSPACE_RULES
+      + ralph-worker-learnings.md (agent-specific learnings from past runs)
+      + PREREQUISITE_LEARNINGS (if task has dependencies — from completed prerequisite tasks)
 
     # ── Judge gate (runs BEFORE tests) ──────────────────────────
     while true:
         Dispatch ralph-judge with:
           agent_type: "worker"
-          task definition + output location (workspace/task-{id}/output/) + WORKSPACE_RULES
+          task definition + output location (workspace/task-{id}/output/) + JUDGE_RUBRIC + WORKSPACE_RULES
 
         if judge passes:
             break → proceed to test validation
@@ -495,8 +615,44 @@ while true:
 ### Step 2c: Test Validator
 
 Run tests via Bash after each worker attempt (only reached if judge already passed):
-- **Pass** → clear debug.md, continue to next task
+- **Pass** → clear debug.md, proceed to Step 2d
 - **Fail** → increment attempt counter, retry worker with failure output
+
+### Step 2d: Per-Task Learnings (after task passes)
+
+Immediately after a task passes all tests, the orchestrator writes a learnings entry to `learnings.md`:
+
+```markdown
+### {date} — Task {id}: {title}
+- **Attempts:** {attempt_count}
+- **Learnings:**
+  - {generalizable insight from this task — NOT task-specific details}
+  - {library gotcha, pattern that worked, or assumption that was wrong}
+- **Debug insights:** {root cause if debug mode was used, otherwise "N/A"}
+```
+
+**Rules for per-task learnings:**
+- Only write **general insights** that would help future runs — not "I implemented X using Y"
+- If the task passed on attempt 1 with no issues, write: "Clean pass — no notable learnings."
+- If debug mode was used, always include the root cause as a learning
+- Keep each entry to 2-5 bullet points max
+
+**Store the per-task learnings in memory** for passing to dependent tasks.
+
+### Step 2e: Inject Learnings into Dependent Tasks
+
+When dispatching a task that has dependencies, include the learnings from completed prerequisite tasks in the prompt:
+
+```
+Dispatch ralph-tester/worker with:
+  task definition + WORKSPACE_RULES + ...
+  + PREREQUISITE_LEARNINGS:
+    "Task 1 (Auth endpoint) learned:
+     - bcrypt.hashpw() returns bytes, must decode to UTF-8 before storing
+     - Always use constant-time comparison for password verification"
+```
+
+This gives dependent tasks context from the work that came before them — without polluting independent parallel tasks with irrelevant information.
 
 ---
 
@@ -509,11 +665,13 @@ The worker at attempt `MAX_RETRIES/2` writes `debug.md` with all attempts so far
 
 ```
 while true:
-    Dispatch ralph-debugger — reads debug.md cold, identifies root cause, appends fix plan.
+    Dispatch ralph-debugger with: debug.md + task definition + WORKSPACE_RULES
+      + ralph-debugger-learnings.md (agent-specific learnings from past runs)
+    Debugger reads debug.md cold, identifies root cause, appends fix plan.
 
     Dispatch ralph-judge with:
       agent_type: "debugger"
-      task definition + debug.md + WORKSPACE_RULES
+      task definition + debug.md + JUDGE_RUBRIC + WORKSPACE_RULES
 
     if judge passes:
         break → proceed to Step 3
@@ -537,8 +695,9 @@ Run tests again:
 **Do NOT ask the user.** The loop is fully autonomous after pre-flight.
 
 1. Mark the task as **FAILED**
-2. Keep the task's failure trail (attempts, debug analysis) in memory for the merger
-3. Continue with remaining tasks — do not stop the loop
+2. Write a per-task learnings entry to `learnings.md` (include the root cause from debug.md if available)
+3. Keep the task's failure trail (attempts, debug analysis) in memory for the merger
+4. Continue with remaining tasks — do not stop the loop
 
 ---
 
@@ -559,7 +718,7 @@ while true:
 
     Dispatch ralph-judge with:
       agent_type: "merger"
-      task definitions + output location (workspace/final/) + WORKSPACE_RULES
+      task definitions + output location (workspace/final/) + JUDGE_RUBRIC + WORKSPACE_RULES
 
     if judge passes:
         break → proceed to Step 3b
@@ -569,33 +728,36 @@ while true:
         (loop until judge passes — no retry limit)
 ```
 
-### Step 3b: Write ONE consolidated learnings entry
+### Step 3b: Write Run Summary to learnings.md
 
-The merger synthesizes all per-task insights into **a single entry** appended to `learnings.md`:
+Per-task learnings were already written during Phase 2 (Step 2d). The merger now appends a **run summary** that ties them together:
 
 ```markdown
 ## {date} — {original user query (shortened)}
 
-**Result:** {passed}/{total} tasks passed ({total_attempts} total attempts)
+**Result:** {passed}/{total} tasks passed | **Attempts:** {total_attempts} | **Time:** {elapsed}
 
-### Key Learnings
-- {insight that transfers to future runs — from any task}
-- {another generalizable insight}
-- {root cause from debug sessions, if any}
+### Run Summary
+- {1-2 sentence overview of what was built and how it went}
 
-### Patterns to Reuse
-- {architectural pattern that worked well}
-- {library/tool choice that proved effective}
+### Cross-Task Patterns
+- {pattern that emerged across multiple tasks — e.g., "all 3 tasks hit the same bcrypt gotcha"}
+- {architectural insight from how the pieces fit together}
 
 ### Anti-Patterns to Avoid
-- {approach that failed and why — only if it's a trap others would fall into}
+- {approach that failed across tasks — only if it's a trap others would fall into}
 ```
 
-**Rules for this entry:**
-- Only include insights that would help a **different future query** — skip task-specific noise
-- If debug mode was used, extract the root cause as a learning (the shared wrong assumption)
-- Keep it concise — aim for 5-15 bullet points total, not a wall of text
-- Task-specific details (individual attempt logs, test output) stay in the summary report only
+**Rules for the run summary:**
+- This is a **summary**, not a repeat of per-task learnings — add cross-cutting insights only
+- Include timing so future runs can estimate duration for similar queries
+- If all tasks passed cleanly on first attempt, keep it minimal:
+  ```markdown
+  ## {date} — {query}
+  **Result:** {N}/{N} passed | **Attempts:** {N} | **Time:** {elapsed}
+  Clean run — no cross-task patterns to note.
+  ```
+- The per-task entries (written in Step 2d) provide the detail; this provides the big picture
 
 ### Step 3c: Clear debug.md
 

@@ -3,27 +3,27 @@
 # and should not be committed to version control
 
 # AdditionalChecks folder (organized runtime directories)
-AdditionalChecks/
+/AdditionalChecks/
 
-# Runtime directories (Claude Code may recreate these in root)
-shell-snapshots/
-session-env/
-.superpowers/
-debug/
-file-history/
-history.jsonl
-plans/
-projects/
-sessions/
-usage-data/
-paste-cache/
-telemetry/
-todos/
-statsig/
-plugins/
-chrome/
-.claude/plugins
-social/
+# Runtime directories (Claude Code may recreate these in repo root)
+/shell-snapshots/
+/session-env/
+/.superpowers/
+/debug/
+/file-history/
+/history.jsonl
+/plans/
+/projects/
+/sessions/
+/usage-data/
+/paste-cache/
+/telemetry/
+/todos/
+/statsig/
+/plugins/
+/chrome/
+/.claude/plugins/
+/social/
 
 # macOS system files
 .DS_Store
@@ -45,35 +45,46 @@ social/
 *.webm
 
 # Runtime cache directories (recreated by hooks during sessions)
-tsc-cache/
-.claude/tsc-cache/
-.claude/skills/codex/.runtime/
-.claude/skills/super-ralph/.git/
-.claude/skills/chrome-devtools/scripts/node_modules/
-.claude/skills/chrome-devtools/scripts/docs/
-.claude/projects/
-.claude/file-history/
-.claude/history.jsonl
-.claude/statsig/
-.claude/debug/
-.claude/shell-snapshots/
-.claude/ide/
-.claude/plugins/
-.claude/todos/
-tasks/
-cache/
+/tsc-cache/
+/.claude/tsc-cache/
+/.claude/skills/codex/.runtime/
+/.claude/skills/super-ralph/.git/
+/.claude/skills/chrome-devtools/scripts/node_modules/
+/.claude/skills/chrome-devtools/scripts/docs/
+/.claude/projects/
+/.claude/file-history/
+/.claude/history.jsonl
+/.claude/statsig/
+/.claude/debug/
+/.claude/shell-snapshots/
+/.claude/ide/
+/.claude/plugins/
+/.claude/todos/
+
+# Session runtime state (machine-specific, contains paths and session IDs)
+/.claude/homunculus/
+/.claude/metrics/
+/.claude/session-aliases.json
+/.claude/session-data/
+
+/tasks/
+/cache/
 
 # Cache and state files
-mcp-needs-auth-cache.json
-stats-cache.json
-plugins/install-counts-cache.json
-plugins/installed_plugins.json
-plugins/known_marketplaces.json
-plugins/blocklist.json
-settings.local.json
-.claude/settings.local.json
-.env
-.env.*
+/mcp-needs-auth-cache.json
+/stats-cache.json
+/plugins/install-counts-cache.json
+/plugins/installed_plugins.json
+/plugins/known_marketplaces.json
+/plugins/blocklist.json
+/settings.local.json
+/.claude/settings.local.json
+/.env
+/.env.*
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
 *.local
 **/__pycache__/
 **/*.pyc
@@ -87,12 +98,12 @@ settings.local.json
 .claude/skills/gstack/bin/browse
 .claude/skills/gstack/browse/test/fixtures/
 .claude/skills/gstack/.github/
-.gstack/
+/.gstack/
 
 # Claude runtime state (session data, not user config)
-.claude.json
-.claude.json.backup*
-backups/
+/.claude.json
+/.claude.json.backup*
+/backups/
 *.bak
 
 # Generated lock files for local helper installs
@@ -102,34 +113,43 @@ backups/
 .claude/skills/gstack/.env*
 
 # Settings file (contains machine-specific data)
-settings.json
+/settings.json
 !.claude/settings.json
 
 # Local command/runtime artifacts
-.claude/checkpoints.log
-.claude/checkpoints/
-.claude/plan/
+/.claude/checkpoints.log
+/.claude/checkpoints/
+/.claude/plan/
 
 # Node modules and lock files anywhere
 **/node_modules/
 **/bun.lock
 **/bun.lockb
 
-# Reference repository build artifacts and runtime state (content is tracked, artifacts are not)
-references/gstack/node_modules/
-references/gstack/browse/dist/
-references/gstack/.env
-references/gstack/.env.*
-references/super-ralph/node_modules/
-references/codex/node_modules/
-references/codex/.runtime/
-references/everything-claude-code/node_modules/
-references/everything-claude-code/assets/images/
-references/gstack/docs/images/
-references/*/.git/
+# Curated vendored reference exclusions (the repo publishes only the wired surface it uses)
+/references/gstack/.agents/
+/references/gstack/browse/dist/
+/references/gstack/bin/gstack-global-discover
+/references/gstack/bun.lock
+/references/gstack/docs/images/
+/references/gstack/node_modules/
+/references/gstack/.env
+/references/gstack/.env.*
+/references/super-ralph/learnings.md
+/references/super-ralph/node_modules/
+/references/codex/node_modules/
+/references/codex/.runtime/
+/references/everything-claude-code/.env.example
+/references/everything-claude-code/.opencode/package-lock.json
+/references/everything-claude-code/.opencode/plugins/
+/references/everything-claude-code/assets/
+/references/everything-claude-code/docs/*/plugins/
+/references/everything-claude-code/node_modules/
+/references/everything-claude-code/plugins/
+/references/*/.git/
 
 # Memory system (auto-generated per user)
-memory/
+/memory/
 **/MEMORY.md
 
 # Additional runtime artifacts

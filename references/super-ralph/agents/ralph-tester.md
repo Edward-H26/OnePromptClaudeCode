@@ -56,6 +56,19 @@ Report back:
 - What each test group covers
 - The exact command to run all tests (e.g., `pytest workspace/task-1/tests/ -v`)
 
+## Agent Learnings
+
+You receive `ralph-tester-learnings.md` with insights from past runs. **Read it before writing tests.** It contains patterns like which test frameworks work best for this codebase, common pitfalls in test setup, and edge cases that are easy to miss.
+
+After completing your tests, **append one learning** to `ralph-tester-learnings.md` if you discovered something generalizable:
+
+```markdown
+### {date} — {brief topic}
+- {what you learned about writing tests that would help future test runs}
+```
+
+Only write learnings that are **general** — "pytest-asyncio requires event_loop fixture for async tests" is good. "I wrote 5 tests for the auth endpoint" is not. If nothing notable was learned, skip this step.
+
 ## Anti-Patterns (DO NOT)
 
 - Don't write tests that pass with `return True` or hardcoded values

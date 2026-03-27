@@ -71,10 +71,13 @@ append_plugin_line() {
 append_plugin_line "context7@claude-plugins-official" "context7 for live documentation lookup"
 append_plugin_line "code-review@claude-plugins-official" "code-review for targeted review passes"
 append_plugin_line "code-simplifier@claude-plugins-official" "code-simplifier for cleanup passes"
+append_plugin_line "feature-dev@claude-plugins-official" "feature-dev for code exploration and architecture agents"
 append_plugin_line "frontend-design@claude-plugins-official" "frontend-design for stronger UI implementation guidance"
+append_plugin_line "github@claude-plugins-official" "github for repository and pull request workflows"
 append_plugin_line "playwright@claude-plugins-official" "playwright for browser workflows"
 append_plugin_line "figma@claude-plugins-official" "figma for design workflows"
 append_plugin_line "mongodb@mongodb-plugins" "mongodb for MongoDB-specific MCP and skill flows"
+append_plugin_line "superpowers@claude-plugins-official" "superpowers for additional agent and review workflows"
 
 if [[ -n "$PLUGIN_LINES" ]]; then
     PLUGIN_SECTION="Installed plugins worth using when relevant:\n${PLUGIN_LINES}"

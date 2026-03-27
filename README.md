@@ -30,7 +30,7 @@ cd OnePromptClaudeCode
 claude
 ```
 
-That is the full setup. `references/setup.sh` is optional, but it refreshes the tracked vendored upstream content under `references/` that some repo-local wrappers and vendored passthrough skills consult as background material.
+That is the full setup. `references/setup.sh` is optional, but it refreshes the curated vendored upstream content under `references/` that some repo-local wrappers and vendored passthrough skills consult as background material. After workflow changes, run `bash scripts/audit-workflow.sh`.
 
 ---
 
@@ -283,7 +283,7 @@ Use `references/` when you want to refresh the tracked vendored upstream sources
 bash references/update-references.sh
 ```
 
-This refreshes the tracked upstream snapshots in `references/`. Several bundled entries in `.claude/skills/` resolve through these vendored sources, so they are part of the published workflow surface.
+This refreshes the tracked upstream snapshots in `references/`. Several bundled entries in `.claude/skills/` resolve through these vendored sources, so they are part of the published workflow surface. The refresh is curated, not a raw mirror: runtime-only and irrelevant upstream artifacts are pruned so the published surface stays deterministic.
 
 ---
 

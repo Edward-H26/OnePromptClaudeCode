@@ -24,13 +24,46 @@ You receive:
 - **Agent type:** which sub-agent produced this (tester, worker, debugger, or merger)
 - **Task definition:** title, description, quality_standard, success_criteria, anti_patterns
 - **Output location:** where the agent's work is stored
+- **JUDGE_RUBRIC:** per-dimension strictness levels (see "Using the Rubric" below)
 - **WORKSPACE_RULES:** directory boundaries
 
 Then:
 1. **Read the output** — every file the agent produced
 2. **Read the task definition** — understand what was asked
-3. **Evaluate systematically** — check every success criterion, every anti-pattern, the quality standard
-4. **Render a verdict** — PASS or FAIL with specific feedback
+3. **Read the JUDGE_RUBRIC** — understand how strictly to grade each dimension
+4. **Evaluate systematically** — check every success criterion, every anti-pattern, the quality standard — **at the strictness level the rubric specifies**
+5. **Render a verdict** — PASS or FAIL with specific feedback
+
+## Using the JUDGE_RUBRIC
+
+The rubric is a table of quality dimensions with strictness levels. It reflects the user's intent — what they care about and how much.
+
+```
+JUDGE RUBRIC:
+| Dimension          | Strictness    |
+|--------------------|---------------|
+| Core functionality | strict        |
+| Error handling     | [varies]      |
+| Edge cases         | [varies]      |
+| Code readability   | [varies]      |
+| Security           | [varies]      |
+| Test coverage      | [varies]      |
+| Documentation      | [varies]      |
+```
+
+**How to apply each strictness level:**
+
+- **strict** — this dimension is a PASS/FAIL gate. If the output doesn't meet this dimension, the verdict is FAIL. No exceptions.
+- **moderate** — evaluate this dimension and NOTE issues in the verdict, but only FAIL if the issues are significant enough to affect core functionality or user experience. Minor gaps are acceptable.
+- **lenient** — only FAIL for egregious violations (e.g., a security hole so bad it's dangerous). Otherwise, note but pass.
+- **skip** — do NOT evaluate this dimension. Do not mention it in the verdict.
+
+**For test coverage levels:**
+- **comprehensive** — expect happy path, edge cases, failure modes, and security-relevant tests
+- **happy + edges** — expect happy path and edge cases. Failure mode tests are nice-to-have.
+- **happy path only** — only expect tests that verify the core functionality works. Edge case and failure tests are not required.
+
+**CRITICAL:** The rubric adjusts your strictness, not the task definition's success criteria. You still check every success criterion — but the rubric tells you how harshly to grade dimensions that go beyond those criteria (error handling depth, code polish, etc.).
 
 ## Evaluation Criteria by Agent Type
 
@@ -38,15 +71,22 @@ Then:
 - Do tests exist and are they runnable with a single command?
 - Is there at least one test per success criterion in the task definition?
 - Are tests adversarial — would a lazy/stub implementation pass them? (If yes → FAIL)
-- Do tests cover happy path, edge cases, AND failure modes?
+- **Check rubric "Test coverage" level:**
+  - **comprehensive** → must cover happy path, edge cases, AND failure modes
+  - **happy + edges** → must cover happy path and edge cases. Failure modes optional.
+  - **happy path only** → happy path tests sufficient
 - Are tests testing behavior, not implementation details?
 
 ### Judging ralph-worker
 - Does the implementation meet the quality_standard described in the task definition?
 - Are ANY anti-patterns from the task definition present in the code? (If yes → FAIL)
 - Are there TODOs, stubs, placeholder logic, or "fix later" comments? (If yes → FAIL)
-- Is error handling present and meaningful?
-- Is the code production-grade — clean, readable, properly structured?
+- **Check rubric for each dimension and grade at the specified strictness:**
+  - **Error handling** → grade at rubric level (strict/moderate/lenient/skip)
+  - **Edge cases** → grade at rubric level
+  - **Code readability** → grade at rubric level
+  - **Security** → grade at rubric level
+  - **Documentation** → grade at rubric level
 
 ### Judging ralph-debugger
 - Is the root cause specific and concrete? ("The function assumes X but receives Y" not "something is wrong")
@@ -88,11 +128,35 @@ You MUST output your verdict in this exact format:
 **Standard:** [quote the quality_standard from task def]
 **Met:** [Yes / No — with specific reasoning]
 
+### Rubric Evaluation
+| Dimension | Rubric Level | Assessment | Pass? |
+|-----------|-------------|------------|-------|
+| Core functionality | strict | [specific assessment] | Yes/No |
+| Error handling | [from rubric] | [assessment or "skipped"] | Yes/No/Skipped |
+| Edge cases | [from rubric] | [assessment or "skipped"] | Yes/No/Skipped |
+| Code readability | [from rubric] | [assessment or "skipped"] | Yes/No/Skipped |
+| Security | [from rubric] | [assessment or "skipped"] | Yes/No/Skipped |
+| Test coverage | [from rubric] | [assessment or "skipped"] | Yes/No/Skipped |
+| Documentation | [from rubric] | [assessment or "skipped"] | Yes/No/Skipped |
+
 ### Feedback (FAIL only)
 **What's wrong:** [specific, concrete issues — reference files and lines]
 **What good looks like:** [exact description of what the agent should produce instead]
 **Priority fix:** [the single most important thing to fix first]
 ```
+
+## Agent Learnings
+
+You receive `ralph-judge-learnings.md` with insights from past evaluations. **Read it before judging.** It contains calibration notes — dimensions that were too strict or too lenient in past runs, common false-fail patterns, and evaluation shortcuts.
+
+After rendering your verdict, **append one learning** to `ralph-judge-learnings.md` if you discovered something generalizable:
+
+```markdown
+### {date} — {brief topic}
+- {what you learned about evaluation that would help future judging}
+```
+
+Only write learnings that are **general** — "async test files often appear to have no assertions when they use pytest-asyncio fixtures — check for fixture-based assertions before failing" is good. "I passed the auth endpoint" is not. If nothing notable was learned, skip this step.
 
 ## Anti-Patterns (DO NOT)
 

@@ -9,6 +9,7 @@ You: "/super-ralph build me a REST API with auth and rate limiting"
 
 Super Ralph:
   0. Brainstorm ── interactive Q&A to explore your intent, scope, and edge cases
+  0.25 Intent  ── 3 questions (priority, audience, lifespan) → shapes how strictly outputs are judged
   0.5 Tooling  ── scans available skills/agents, recommends a custom toolset for the run
   1. Pre-Flight ── asks 4 setup questions (workspace scope + retry limit)
   2. Plan       ── decomposes query into independent tasks with high quality bar
@@ -30,6 +31,7 @@ After brainstorming and pre-flight, the entire loop runs **fully autonomously** 
 ```
 User Query
   -> Brainstorm: interactive Q&A with user (explore intent, scope, edge cases)
+  -> Intent Profile: 3 questions (priority, audience, lifespan) → JUDGE_RUBRIC
   -> Tooling: scan skills/agents, recommend toolset, user confirms
   -> Pre-Flight: scope workspace + set MAX_RETRIES
   -> Decompose: orchestrator breaks query into tasks directly (no separate agent)
@@ -69,6 +71,32 @@ Before anything else, Super Ralph explores your idea through interactive Q&A:
 4. **You confirm** -- "yes, go ahead" or "let me adjust"
 
 The brainstorm summary feeds directly into the orchestrator, so tasks are decomposed based on *explored, confirmed intent* -- not just the raw query. If the query is dead simple, brainstorming is skipped.
+
+---
+
+## Intent-Driven Judging
+
+After brainstorming, Super Ralph asks 3 questions to understand what you actually care about:
+
+1. **Priority** -- "What matters most?" → just get it working / solid and correct / ship-ready quality
+2. **Audience** -- "Who will use it?" → just me / my team / end users
+3. **Lifespan** -- "How long does it need to last?" → throwaway / weeks to months / long-lived
+
+These answers produce a **JUDGE_RUBRIC** -- a per-dimension strictness matrix that tells the judge how hard to grade each quality dimension:
+
+| Dimension | Prototype (fast + me + throwaway) | Balanced (solid + team + months) | Production (ship-ready + users + long-lived) |
+|-----------|----------------------------------|----------------------------------|----------------------------------------------|
+| Core functionality | strict | strict | strict |
+| Error handling | skip | moderate | strict |
+| Edge cases | skip | moderate | strict |
+| Code readability | lenient | moderate | strict |
+| Security | lenient | moderate | strict |
+| Test coverage | happy path only | happy + edges | comprehensive |
+| Documentation | skip | inline comments | full docs |
+
+**Why this matters:** A prototype shouldn't fail the judge for missing edge-case tests. A production system should. The user's intent shapes the quality bar instead of always demanding maximum strictness.
+
+**Blended profiles:** When answers don't all point to the same tier (e.g., "just get it working" + "end users"), the rubric uses the highest tier that any answer maps to. User-facing code gets strict security even if the user wants speed -- that's a safety floor.
 
 ---
 
@@ -187,42 +215,63 @@ Two files with different purposes:
 | File | Purpose | Lifecycle |
 |------|---------|-----------|
 | `debug.md` | Scratch pad for active debugging | Written during debug, cleared after every run |
-| `learnings.md` | Permanent memory across runs | One entry per query, read by the orchestrator before every run |
+| `learnings.md` | Permanent memory across runs | Per-task entries + run summaries, read by orchestrator before every run |
+| `ralph-*-learnings.md` | Per-agent memory | Each agent's own insights, read by that agent before each dispatch |
 
-### One entry per query, not per task
+### Two-tier learning system
 
-After all tasks complete, the merger synthesizes everything into **a single consolidated entry** in `learnings.md`. Per-task details stay in the summary report — only generalizable insights make it into the permanent record.
+**Tier 1: `learnings.md`** -- system-level learnings written in real-time during execution.
 
-**Before (per-task -- cluttered):**
-```
-## 2026-03-07 -- Task 1: Auth endpoint
-...12 lines...
-## 2026-03-07 -- Task 2: Rate limiter
-...12 lines...
-## 2026-03-07 -- Task 3: Database schema
-...12 lines...
-```
+Each task writes its learnings **immediately after completing** (not at the end). Tasks with dependencies receive learnings from their prerequisite tasks, so knowledge flows forward. At the end, the merger adds a run summary with timing.
 
-**After (per-query -- clean):**
 ```markdown
+### 2026-03-07 -- Task 1: Auth endpoint
+- **Attempts:** 2
+- **Learnings:**
+  - python-jose expects different decode params than PyJWT
+  - Always set token expiry with UTC timestamps, not local time
+- **Debug insights:** N/A
+
+### 2026-03-07 -- Task 2: Rate limiter
+- **Attempts:** 1
+- **Learnings:**
+  - Clean pass — no notable learnings.
+- **Debug insights:** N/A
+
 ## 2026-03-07 -- REST API with auth and rate limiting
-
-**Result:** 3/3 tasks passed (7 total attempts)
-
-### Key Learnings
-- python-jose expects different decode params than PyJWT -- check library docs first
-- Rate limiting with Redis sorted sets is cleaner than sliding window counters
-- Always set token expiry with UTC timestamps, not local time
-
-### Patterns to Reuse
-- Separate middleware concerns (auth vs rate limiting) into independent decorators
-- Write integration tests that hit the full request lifecycle, not just unit tests
-
-### Anti-Patterns to Avoid
-- Don't use datetime.now() for JWT timestamps -- always UTC
+**Result:** 3/3 passed | **Attempts:** 5 | **Time:** 12m
+### Run Summary
+- Built auth, rate limiting, and DB schema for a REST API
+### Cross-Task Patterns
+- Middleware ordering matters — auth must run before rate limiting
 ```
 
-The orchestrator reads `learnings.md` before every new run. Over time, Super Ralph builds a lean, high-signal knowledge base -- not a wall of per-task noise.
+**Tier 2: Per-agent learnings** -- each agent maintains its own learnings file with insights specific to its role:
+
+| File | What it captures |
+|------|-----------------|
+| `ralph-tester-learnings.md` | Test framework gotchas, effective test patterns, edge cases easy to miss |
+| `ralph-worker-learnings.md` | Implementation patterns, library quirks, approaches that work |
+| `ralph-debugger-learnings.md` | Common root causes, diagnostic shortcuts, shared wrong assumptions |
+| `ralph-judge-learnings.md` | Calibration notes, false-fail patterns, evaluation edge cases |
+| `ralph-merger-learnings.md` | Integration conflict patterns, glue code approaches, naming mismatches |
+
+Each agent reads its own learnings before starting work and writes a new entry if it learned something generalizable. Over time, each agent gets individually smarter at its specific job.
+
+### Dependency-based learning flow
+
+When tasks have dependencies, learnings flow forward:
+
+```
+Task 1 (auth) completes → writes learnings
+Task 3 (depends on 1) → gets Task 1's learnings injected into its prompt
+```
+
+This means dependent tasks benefit from what earlier tasks discovered -- without polluting independent parallel tasks with irrelevant context.
+
+### General, not specific
+
+All learnings (both tiers) must be **generalizable** -- insights that would help a different future run. "SQLAlchemy async sessions must be closed explicitly" is good. "I implemented the auth endpoint using bcrypt" is not. The orchestrator reads `learnings.md` before every new run to avoid repeating mistakes.
 
 ---
 
@@ -313,6 +362,7 @@ merger → JUDGE → pass? ──► deliver
 ```
 
 **Key properties:**
+- **Intent-driven rubric** -- the judge grades each dimension (error handling, security, test coverage, etc.) at the strictness level set by the user's intent profile. A prototype gets lenient grading on polish; a production system gets strict on everything.
 - **No retry limit** -- agents keep going until the judge is satisfied
 - **Specific feedback** -- on rejection, the judge returns exactly what's wrong and what "good" looks like
 - **Fresh evaluation** -- judge starts with zero context each time, no bias from previous evaluations
@@ -330,8 +380,9 @@ merger → JUDGE → pass? ──► deliver
 - **Cold debugging** -- the debugger has zero context from failed attempts. That's its superpower -- no bias.
 - **Brainstorm first** -- interactive Q&A explores intent, scope, and edge cases before any autonomous work begins.
 - **Prehook setup** -- all setup questions use prehook-style gates with "Chat about this" escape hatches.
+- **Intent-driven quality** -- the judge's strictness adapts to what the user actually cares about (priority, audience, lifespan), not a fixed bar.
 - **One-shot autonomy** -- after brainstorming and setup, zero user interaction. Failed tasks are auto-skipped, not escalated.
-- **Persistent learning** -- `learnings.md` accumulates insights across runs. The orchestrator reads it every time.
+- **Two-tier learning** -- per-task learnings written in real-time to `learnings.md` (with dependency-based forwarding), plus per-agent learnings files (`ralph-*-learnings.md`) for role-specific insights.
 - **Configurable retry depth** -- you control how many test-failure attempts per task. Debug triggers at the halfway point.
 
 ---

@@ -19,11 +19,21 @@ atomic_sort_unique() {
         sleep 0.1
     done
 
-    trap 'rm -rf "$lock_dir" 2>/dev/null' RETURN
+    local return_code=0
+    local tmp_file="${file}.tmp"
 
     if [[ -f "$file" ]]; then
-        sort -u "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
+        if ! sort -u "$file" > "$tmp_file"; then
+            return_code=$?
+            rm -f "$tmp_file" 2>/dev/null || true
+        elif ! mv "$tmp_file" "$file"; then
+            return_code=$?
+            rm -f "$tmp_file" 2>/dev/null || true
+        fi
     fi
+
+    rm -rf "$lock_dir" 2>/dev/null || true
+    return $return_code
 }
 
 repo_cache_key() {
@@ -130,7 +140,8 @@ validate_and_run_tsc() {
         return 2
     fi
 
-    if [[ ! "$tsc_cmd" =~ ^(cd[[:space:]].+[[:space:]]&&[[:space:]])?(npx[[:space:]]tsc|node_modules/\.bin/tsc|./node_modules/\.bin/tsc|tsc)[[:space:]] ]]; then
+    local re_tsc_command='^(cd[[:space:]].+[[:space:]]&&[[:space:]])?(npx[[:space:]]tsc|node_modules/\.bin/tsc|\./node_modules/\.bin/tsc|tsc)[[:space:]]'
+    if [[ ! "$tsc_cmd" =~ $re_tsc_command ]]; then
         echo "Skipping unsafe TSC command: $tsc_cmd" >&2
         return 2
     fi

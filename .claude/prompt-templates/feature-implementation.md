@@ -7,290 +7,475 @@ Copy this into Claude Code and replace the placeholders.
 ```text
 [TASK]: What to build, fix, or change.
 [DIRECTORY]: Project root to work in.
+[REQUIREMENTS]: Requirements document, rubric, or acceptance criteria.
 [API]: Optional external API or service.
 [AUTH_METHOD]: Optional auth method if the task touches auth.
 [FIGMA_URL]: Optional Figma link for UI work.
 [TARGET_URL]: Optional local or deployed URL for browser verification.
+[REFERENCE_NOTEBOOK]: Optional reference notebook path for methodology or examples.
+[DATASET_URL]: Optional dataset or resource URL for domain-specific context.
+[DAYS_BACK]: Number of days of git history to analyze (default: 25).
 ```
 
 ## Execution Prompt
 
 ultrathink
 
-You are working in `[DIRECTORY]`.
+You are working in `[DIRECTORY]`: `[DIRECTORY]`
 
 All file reads, searches, edits, tests, and browser checks must stay scoped to `[DIRECTORY]`.
 
-Task: [TASK]
+`[TASK]`: [TASK]
 
-Optional context:
+Context:
+- Requirements: [REQUIREMENTS]
 - API: [API]
 - Auth method: [AUTH_METHOD]
 - Figma: [FIGMA_URL]
 - Browser target: [TARGET_URL]
+- Reference notebook: [REFERENCE_NOTEBOOK]
+- Dataset URL: [DATASET_URL]
+- Git history window: [DAYS_BACK]
 
-## Required Workflow
+---
 
-1. Explore before editing.
-   - Read the relevant code, docs, tests, and local workflow instructions first.
-   - Apply `search-first`.
-   - If the task touches hooks, skills, templates, commands, agents, plugins, or `.claude/settings.json`, apply `skill-developer`.
+## Phase 0: Interactive Setup
 
-2. Build a concrete implementation plan before code.
-   - Name the exact files you expect to touch.
-   - Explain why each file is needed.
-   - Keep the plan minimal and consistent with the existing codebase.
-   - For architecturally complex tasks, generate a visual outline of the implementation plan using Figma MCP `generate_diagram` or a Mermaid/ASCII diagram in the plan itself.
-   - Ask clarifying questions only if the request is genuinely ambiguous or blocked on missing requirements.
+This phase is interactive. Use `AskUserQuestion` prehook gates, one question at a time, each with a "Chat about this" escape hatch. After this phase completes, the pipeline runs autonomously with zero user interaction until the Phase 1 checkpoint.
 
-3. Activate only the skills that fit the task.
+### Step 0.1: Brainstorm (superpowers:brainstorming)
+
+Explore the user's intent through Socratic conversation before scoping any work.
+
+1. Restate the query in 2-3 sentences to surface misunderstandings early.
+2. Ask 2-5 clarifying questions using `AskUserQuestion` covering intent, scope, edge cases, users, constraints, and existing work.
+3. Produce a `BRAINSTORM_SUMMARY` capturing confirmed intent, scope, key decisions, edge cases, and constraints.
+4. Confirm the summary with the user. If "Almost," incorporate feedback and re-confirm. If "Yes," proceed.
+
+If the query is dead simple and unambiguous (e.g., "add a .gitignore"), skip brainstorming.
+
+### Step 0.2: Intent Profile
+
+Capture the user's quality expectations through 3 direct questions:
+
+1. **Priority**: "What matters most?" (just get it working / solid and correct / ship-ready quality)
+2. **Audience**: "Who will use it?" (just me / my team / end users)
+3. **Lifespan**: "How long does it need to last?" (throwaway / weeks to months / long-lived)
+
+Map the answers to a `JUDGE_RUBRIC`, a per-dimension strictness matrix. This rubric is the judge's grading contract for the run, so every Ralph quality decision should follow the user's stated intent profile rather than a fixed maximum-strictness default:
+
+| Dimension | Prototype | Balanced | Production |
+|-----------|-----------|----------|------------|
+| Core functionality | strict | strict | strict |
+| Error handling | skip | moderate | strict |
+| Edge cases | skip | moderate | strict |
+| Code readability | lenient | moderate | strict |
+| Security | lenient | moderate | strict |
+| Test coverage | happy path only | happy + edges | comprehensive |
+| Documentation | skip | inline comments | full docs |
+
+For blended profiles (e.g., "just working" + "end users"), use the highest tier that any answer maps to. User-facing code gets strict security even if the user wants speed.
+
+### Step 0.3: Tooling Discovery
+
+Scan the environment for available skills and agents, match them to the brainstorm summary, and present recommendations.
+
+1. Scan `.claude/skills/` and `.claude/agents/` for all available capabilities.
+2. Match available tools to the task domain:
    - Backend work: `backend-dev-guidelines`
    - Frontend work: `frontend-dev-guidelines`
-   - UI styling: `ui-styling`
-   - shadcn/ui component work: `shadcn-ui`
+   - UI styling: `ui-styling`, `shadcn-ui`
    - Refactors: `code-refactor`
-   - Bugs and regressions: `systematic-debugging`
-   - Security, secrets, auth, permissions, gitignore, workflow hardening: `security-review` and `security-scan`
-   - External research: `deep-research`
+   - Bugs: `systematic-debugging`
+   - Security: `security-review`, `security-scan`
+   - Research: `deep-research`
    - Verification: `verification-loop`
-   - Browser or E2E work: `e2e-testing` or `webapp-testing`
-   - Self-contained HTML deliverables: `web-artifacts-builder`
-   - Claude API work: `claude-api`
-   - Postgres work: `postgres-patterns`
-   - Docker or deploy work: `docker-patterns` or `deployment-patterns`
-   - Superpowers plugin (when installed):
-     - Design exploration: `superpowers:brainstorming`
-     - Task decomposition: `superpowers:writing-plans`
-     - Test-first implementation: `superpowers:test-driven-development`
-     - Plan execution with review checkpoints: `superpowers:executing-plans`
-     - Per-task subagent dispatch with 2-stage review: `superpowers:subagent-driven-development`
-     - Concurrent independent subtasks: `superpowers:dispatching-parallel-agents`
-     - Workspace isolation for parallel branches: `superpowers:using-git-worktrees`
-     - 4-phase root cause investigation: `superpowers:systematic-debugging`
-     - Pre-merge review checklist: `superpowers:requesting-code-review`
-     - Technical evaluation of received feedback: `superpowers:receiving-code-review`
-     - Evidence-based completion verification: `superpowers:verification-before-completion`
-     - Branch finalization and merge/PR decision: `superpowers:finishing-a-development-branch`
+   - Browser/E2E: `e2e-testing`, `webapp-testing`
+   - HTML deliverables: `web-artifacts-builder`
+   - Claude API: `claude-api`
+   - Postgres: `postgres-patterns`
+   - Docker/deploy: `docker-patterns`, `deployment-patterns`
+   - Superpowers plugin skills:
+     - `superpowers:brainstorming`, `superpowers:writing-plans`, `superpowers:test-driven-development`
+     - `superpowers:executing-plans`, `superpowers:subagent-driven-development`
+     - `superpowers:dispatching-parallel-agents`, `superpowers:using-git-worktrees`
+     - `superpowers:systematic-debugging`, `superpowers:requesting-code-review`
+     - `superpowers:receiving-code-review`, `superpowers:verification-before-completion`
+     - `superpowers:finishing-a-development-branch`
+3. Present 2-4 recommended tools. Let the user select: recommended set, all available, or just defaults.
+4. Store the result as `TOOLING_CONFIG` with active skills, active agents, and skill integration rules.
 
-4. Use installed plugins and MCP tools only when they are relevant and available.
-   - `context7` for current library documentation
-   - `playwright` for browser verification
-   - `figma` for design context if `[FIGMA_URL]` is provided
-   - `frontend-design` for stronger UI direction when the task is design-heavy
-   - `github`, `mongodb`, `pyright-lsp`, and `typescript-lsp` only when the task benefits from them
-   - Do not assume plugin sub-skills or MCP methods that are not present in the current environment
+### Step 0.4: Pre-Flight Scoping
 
-5. Implement with minimal, contained changes.
-   - Match existing patterns and naming exactly.
-   - Do not create speculative abstractions.
-   - Do not add logs, TODOs, or extra cleanup unless they are directly required.
-   - Do not commit or push.
+Ask 4 scoping questions to establish `WORKSPACE_RULES`:
 
-6. Verify with the smallest useful checks.
-   - Run targeted tests first.
-   - Use `verification-loop` thinking for build, typecheck, lint, test, security, and diff review.
-   - If `[TARGET_URL]` is available and the task affects visible behavior, run browser verification with Playwright.
-   - If browser tooling or auth is unavailable, say so clearly and verify what you can.
+1. **Writable directories**: Where to create and modify files.
+2. **Read-only context**: Files to read but never modify.
+3. **Off-limits**: Files and folders that must never be touched.
+4. **Retry limit**: How many retries per task before auto-skipping (default: 6, debug trigger at halfway).
 
-## Advanced Workflow (Optional)
+Store as `WORKSPACE_RULES` and inject into every sub-agent prompt.
 
-Use these techniques for complex, multi-step, or high-stakes features.
+---
 
-### Superpowers Pipeline
+## Phase 1: Analysis, Design, and Planning
 
-When the superpowers plugin is installed, use its skills via the Skill tool with prefix `superpowers:`. The recommended pipeline for non-trivial features:
+Activate `search-first`. If the task touches hooks, skills, templates, commands, agents, plugins, or `.claude/settings.json`, also activate `skill-developer`.
 
-1. **Design phase:** `superpowers:brainstorming` for Socratic design exploration. Produces a spec document. Do not skip this for features that touch multiple files or introduce new patterns.
-2. **Planning phase:** `superpowers:writing-plans` to decompose into bite-sized tasks (2-5 min each) with exact file paths and acceptance criteria.
-3. **Implementation phase:** Choose one:
-   - `superpowers:subagent-driven-development` dispatches a fresh subagent per task with 2-stage review (spec compliance, then code quality). Best for same-session execution.
-   - `superpowers:executing-plans` executes the written plan with human review checkpoints. Best for separate-session execution.
-   - `superpowers:dispatching-parallel-agents` for 2+ independent subtasks that share no state.
-4. **Debugging (if needed):** `superpowers:systematic-debugging` for 4-phase root cause investigation before proposing fixes.
-5. **Review phase:** `superpowers:requesting-code-review` runs a pre-review checklist. `superpowers:receiving-code-review` evaluates any feedback received with technical rigor.
-6. **Completion phase:** `superpowers:verification-before-completion` requires evidence (test output, build output) before any success claims. `superpowers:finishing-a-development-branch` handles merge/PR decisions and cleanup.
+Run Agents 1 and 2 in parallel using `superpowers:dispatching-parallel-agents`. Agent 3 depends on their output. Agent 4 depends on all three.
 
-Priority hierarchy: process skills first (brainstorming, debugging), then implementation skills (TDD, subagent dev).
-
-### Iterative Refinement with Super Ralph
-
-For features requiring autonomous iteration until quality is proven:
-
-1. After initial implementation, invoke `/super-ralph` with remaining polish, integration, or complex subtasks.
-2. Super Ralph decomposes remaining work, spawns specialized agents (ralph-worker, ralph-tester, ralph-debugger, ralph-judge, ralph-merger), and self-debugs until all tests pass.
-3. If Ralph gets stuck (3 failed attempts on any subtask), it escalates with BLOCKED status for human intervention.
-4. After Ralph completes, run `superpowers:verification-before-completion` to confirm evidence-based quality.
-5. Use `/quality-gate` and `/codex review` for independent cross-model verification of Ralph's output.
-
-### Visual Verification Loop
-
-When `[TARGET_URL]` is available and the task affects visible UI:
-
-1. After implementation, use Playwright MCP to capture the current state:
-   - `browser_navigate` to load the page
-   - `browser_snapshot` to get the accessibility tree
-   - `browser_take_screenshot` to capture the visual output
-2. Compare the screenshot against the design intent or expected behavior.
-3. If the visual output does not match the specification:
-   - Diagnose the specific gap (layout, spacing, color, interaction)
-   - Make targeted CSS/component fixes
-   - Re-navigate and re-screenshot to verify the fix
-4. Repeat steps 2-3 until the visual output matches the specification.
-5. For Chrome-specific testing, use Chrome MCP (`navigate`, `read_page`, `upload_image`) as an alternative.
-6. For responsive testing, use `browser_resize` to check multiple viewport sizes.
-
-This loop replaces manual "looks good" checks with evidence captured via browser tooling.
-
-## End-to-End Multi-Agent Workflow
-
-For large, complex, or high-stakes features that require deep analysis, multi-file implementation, requirements validation, and end-to-end testing, use this structured 8-agent workflow. It orchestrates two stages: analysis and planning (Agents 1-4), then implementation and validation (Agents 5-8).
-
-### Additional Placeholders
-
-```text
-[REQUIREMENTS]: Requirements document, rubric, or acceptance criteria.
-[REFERENCE_NOTEBOOK]: Optional reference notebook path for methodology or examples.
-[DATASET_URL]: Optional dataset or resource URL for domain-specific context.
-[DAYS_BACK]: Number of days of git history to analyze (default: 25).
-```
-
-### Stage 1: Analysis, Design, and Planning
-
-Run Agents 1 and 2 in parallel. Agent 3 depends on their output. Agent 4 depends on all three.
-
-#### Agent 1: Explorer (Deep Codebase Analysis)
+### Agent 1: Explorer (Deep Codebase Analysis)
 
 Launch an Explore subagent with thoroughness "very thorough" or use `feature-dev:code-explorer`.
 
-Responsibilities:
-- Read every documentation file and map the project architecture
-- Analyze each folder and file to understand how components connect
-- Identify all existing features, patterns, utilities, and conventions
-- Map the tech stack, dependencies, testing infrastructure, and build system
-- Apply `search-first` to catalog reusable functions and abstractions
+- Read every documentation file and map the project architecture.
+- Analyze each folder and file to understand how components connect.
+- Identify all existing features, patterns, utilities, and conventions.
+- Map the tech stack, dependencies, testing infrastructure, and build system.
+- Catalog reusable functions and abstractions.
 
 Output: a comprehensive codebase map including architecture, patterns, dependencies, and reusable utilities.
 
-#### Agent 2: Researcher (Recent Changes and Domain Context)
+### Agent 2: Researcher (Recent Changes and Domain Context)
 
 Launch an Explore subagent or use `deep-research`.
 
-Responsibilities:
-- Analyze the git history from the past `[DAYS_BACK]` days on the main branch (`git log --since="[DAYS_BACK] days ago" --stat`)
-- Read each commit diff line by line to understand what changed and why
-- Trace how each new feature builds on the existing codebase
-- If `[REFERENCE_NOTEBOOK]` is provided, read it and extract methodology and patterns
-- If `[DATASET_URL]` is provided, use HuggingFace MCP or WebFetch to examine the data and find suitable examples
-- Use Context7 MCP (`resolve-library-id`, `query-docs`) for up-to-date documentation on key dependencies
+- Analyze the git history from the past `[DAYS_BACK]` days (`git log --since="[DAYS_BACK] days ago" --stat`).
+- Read each commit diff to understand what changed and why.
+- Trace how each new feature builds on the existing codebase.
+- If `[REFERENCE_NOTEBOOK]` is provided, read it and extract methodology and patterns.
+- If `[DATASET_URL]` is provided, use HuggingFace MCP or WebFetch to examine the data.
+- Use Context7 MCP (`resolve-library-id`, `query-docs`) for up-to-date documentation on key dependencies.
 
 Output: a changelog analysis with feature evolution, dependency changes, and domain context.
 
-#### Agent 3: Critical Reviewer (Requirements Gap Analysis)
+### Agent 3: Critical Reviewer (Requirements Gap Analysis)
 
 Launch a Plan subagent or use `code-review:code-review` and `superpowers:requesting-code-review`.
 
-Responsibilities:
-- Receive the codebase map from Agent 1 and the changelog analysis from Agent 2
-- Check every requirement in `[REQUIREMENTS]` against the current codebase state
-- For quantitative requirements (e.g., "at least 3 examples"), verify the codebase exceeds them (e.g., provide 5)
-- Check all deliverables: screenshots, JSON outputs, forms, UI components, API endpoints
-- Verify each deliverable by reading the actual code, not assuming from file names
-- If any requirement is not met or could be improved, produce a detailed gap report with file paths and specific deficiencies
+- Receive the codebase map from Agent 1 and the changelog analysis from Agent 2.
+- Check every requirement in `[REQUIREMENTS]` against the current codebase state.
+- For quantitative requirements (e.g., "at least 3 examples"), verify the codebase exceeds them.
+- Verify each deliverable by reading actual code, not assuming from file names.
+- Produce a detailed gap report with file paths and specific deficiencies.
 
-Output: a gap report listing fulfilled requirements, unfulfilled requirements with specific file paths, and improvement opportunities.
+Output: a gap report listing fulfilled requirements, unfulfilled requirements with file paths, and improvement opportunities.
 
-#### Agent 4: Architect (Task Decomposition and Design)
+### Agent 4: Architect (Task Decomposition and Design)
 
 Launch a Plan subagent or use `superpowers:writing-plans` and `feature-dev:code-architect`.
 
-Responsibilities:
-- Synthesize output from Agents 1, 2, and 3
-- Break the remaining work into detailed, ordered subtasks (2-5 minutes each)
-- For each subtask, specify: exact files to create or modify, the design rationale for each code change, and acceptance criteria
-- Reflect on the proposed changes to identify potential issues, edge cases, or imperfect design choices
-- Consider `/plan-eng-review` for architecturally complex decisions
-- Produce a visual outline using a Mermaid diagram or Figma MCP `generate_diagram` when the task involves multiple interacting components
+- Synthesize output from Agents 1, 2, and 3.
+- Break the remaining work into detailed, ordered subtasks (2-5 minutes each).
+- For each subtask, specify: exact files to create or modify, design rationale, acceptance criteria, anti-patterns to avoid, and test strategy.
+- Reference `TOOLING_CONFIG` to tag tasks with `skills_to_use`.
+- Produce a visual outline using Figma MCP `generate_diagram` or a Mermaid diagram when the task involves multiple interacting components.
+- Consider `/plan-eng-review` for architecturally complex decisions.
 
-Output: a numbered implementation plan with file paths, code design rationale, risk flags, and a dependency graph.
+Output: a numbered implementation plan with file paths, code design rationale, risk flags, skill integration points, and a dependency graph.
 
-**Checkpoint**: After Stage 1, confirm the implementation plan and gap report with the user before proceeding. Use AskUserQuestion if any requirement is ambiguous.
+**Checkpoint**: Confirm the implementation plan and gap report with the user before proceeding. Use `AskUserQuestion` if any requirement is ambiguous. After confirmation, the pipeline runs fully autonomously.
 
-### Stage 2: Implementation, Validation, and Documentation
+---
 
-Agent 5 runs first to establish the baseline. Agents 6 and 7 run iteratively until all checks pass. Agent 8 runs last.
+## Phase 2: Eval Definition
 
-#### Agent 5: Validator (Feature Testing and Baseline)
+Before any implementation, define what "done" looks like using eval-driven development.
+
+### Step 2.1: Define Capability Evals
+
+From Agent 4's implementation plan, extract testable success criteria:
+
+```markdown
+[CAPABILITY EVAL: feature-name]
+Task: Description of what should be accomplished
+Success Criteria:
+  - [ ] Criterion 1 (specific, testable assertion)
+  - [ ] Criterion 2
+  - [ ] Criterion 3
+Expected Output: Description of expected result
+```
+
+### Step 2.2: Define Regression Evals
+
+From Agent 3's gap report and the existing codebase, identify what must not break:
+
+```markdown
+[REGRESSION EVAL: feature-name]
+Baseline: current state before changes
+Tests:
+  - existing-test-1: expected PASS
+  - existing-test-2: expected PASS
+```
+
+### Step 2.3: Set Quality Targets
+
+Based on the `JUDGE_RUBRIC` from Phase 0:
+
+- Capability evals: pass@3 >= 0.90
+- Regression evals: pass^3 = 1.00 for release-critical paths
+- Use code-based graders for deterministic checks, model-based graders for open-ended outputs.
+
+---
+
+## Phase 3: Implementation (Super Ralph Loop)
+
+The orchestrator decomposes Agent 4's plan into independent tasks using the Super Ralph format. It already has `BRAINSTORM_SUMMARY`, `INTENT_PROFILE`, `JUDGE_RUBRIC`, `TOOLING_CONFIG`, `learnings.md`, codebase context, and `WORKSPACE_RULES`.
+
+### Step 3.1: Initialize Progress File and Read Learnings
+
+Create `claude-progress.txt` in the workspace root as a cross-session state bridge. This file persists across context window resets and ensures no work is lost or repeated if the session compacts.
+
+```markdown
+## Progress: [TASK]
+Started: {timestamp}
+Phase: 3 (Implementation)
+
+### Completed Tasks
+(none yet)
+
+### In Progress
+(task being worked on)
+
+### Blocked
+(auto-skipped tasks with reasons)
+
+### Key Decisions
+(architectural choices made during implementation)
+```
+
+Update `claude-progress.txt` after every task completes, every debug cycle, and every phase transition.
+
+Read `learnings.md` to extract relevant past insights. If a pattern failed before, do not repeat it.
+
+### Step 3.2: Decompose into Tasks
+
+Break the plan into the smallest independent tasks possible. Each task includes:
+
+```json
+{
+  "task_id": 1,
+  "title": "Short descriptive title",
+  "description": "Detailed description with behavior, inputs, outputs, and constraints.",
+  "quality_standard": "What excellent looks like. No shortcuts, no TODOs, no stubs.",
+  "success_criteria": ["Specific testable assertion 1", "Specific testable assertion 2"],
+  "anti_patterns": ["Do not stub the hard parts", "Do not skip error handling"],
+  "dependencies": [],
+  "dependency_learnings_needed": "What should be extracted from prerequisite tasks before this task starts",
+  "test_strategy": "What tests to write, what to assert, what framework to use",
+  "skills_to_use": ["skill-name: when and why to invoke"]
+}
+```
+
+### Step 3.3: Per-Task Execution Loop
+
+Dispatch independent tasks in parallel using multiple foreground Agent tool calls in a single message. Never use `run_in_background`. Tasks with dependencies wait for their dependencies to complete. Before any dependent task starts, extract the relevant learnings from its prerequisite tasks into a concise `PREREQUISITE_LEARNINGS` brief so the fresh sub-agent inherits concrete lessons instead of raw transcript noise.
+
+For each task:
+
+**A. Test Agent + Judge Gate**
+
+```
+Loop:
+  Dispatch ralph-tester with: task definition + WORKSPACE_RULES + ralph-tester-learnings.md + PREREQUISITE_LEARNINGS (if task has dependencies)
+  Tester writes tests to workspace/task-{id}/tests/
+
+  Dispatch ralph-judge with: agent_type "tester", task definition, output location, JUDGE_RUBRIC, WORKSPACE_RULES, BRAINSTORM_SUMMARY
+  If judge passes: break to Step B
+  If judge fails: dispatch fresh ralph-tester with judge feedback (no retry limit)
+```
+
+**B. Worker Agent + Judge Gate + Test Validation**
+
+```
+attempt = 0
+debug_trigger = MAX_RETRIES / 2
+
+Loop:
+  attempt += 1
+  Dispatch fresh ralph-worker with: task + tests + failure_context + TOOLING_CONFIG + WORKSPACE_RULES + BRAINSTORM_SUMMARY
+    + ralph-worker-learnings.md + PREREQUISITE_LEARNINGS (if task has dependencies)
+
+  Judge gate:
+    Dispatch ralph-judge with: agent_type "worker", task, output, JUDGE_RUBRIC, WORKSPACE_RULES, BRAINSTORM_SUMMARY
+    If judge fails: dispatch fresh ralph-worker with judge feedback (no retry limit on judge)
+
+  Test validation (after judge passes):
+    Run tests via Bash
+    If tests pass: clear debug.md, write per-task learnings, proceed
+    If tests fail and attempt == debug_trigger: enter self-debugging
+    If tests fail and attempt >= MAX_RETRIES: auto-skip, log to learnings, continue
+```
+
+**C. Self-Debugging (at MAX_RETRIES/2)**
+
+```
+Worker at the debug trigger writes debug.md with full reasoning trail.
+
+Loop:
+  Dispatch ralph-debugger with: debug.md + task + WORKSPACE_RULES + ralph-debugger-learnings.md + BRAINSTORM_SUMMARY + PREREQUISITE_LEARNINGS (if task has dependencies)
+  Debugger identifies root cause, writes fix plan.
+
+  Dispatch ralph-judge with: agent_type "debugger", task, debug.md, JUDGE_RUBRIC, WORKSPACE_RULES, BRAINSTORM_SUMMARY
+  If judge fails: dispatch fresh ralph-debugger with feedback (no retry limit)
+
+Fresh ralph-worker follows the fix plan for remaining attempts.
+Still failing at MAX_RETRIES? Auto-skip, log to learnings.
+```
+
+**D. Per-Task Learnings**
+
+Immediately after each task completes, write a learnings entry to `learnings.md`:
+- Attempt count
+- Generalizable insights (not task-specific details)
+- Debug insights if debug mode was used
+
+Store per-task learnings for injection into dependent tasks via `PREREQUISITE_LEARNINGS`. Extract only the parts that matter for downstream dependencies, such as interface contracts, integration quirks, shared utility behavior, and failed approaches to avoid.
+
+---
+
+## Phase 4: Validation and Review
+
+### Agent 5: Validator (Baseline and Regression Testing)
 
 Launch a general-purpose subagent or use `verification-loop`, `webapp-testing`, and `e2e-testing`.
 
-Responsibilities:
-- Get the implementation plan from Agent 4 and the gap analysis from Agent 3
-- Test all existing features to establish a baseline (nothing is broken before changes)
-- Run the project's test suite, build, and typecheck
-- If `[TARGET_URL]` is available, use Playwright MCP to navigate every major page and verify functionality
-- After implementation changes are made, re-run all tests and compare against the baseline
-- Report any regressions introduced by the changes
+- Run the project's test suite, build, and typecheck to establish a post-implementation baseline.
+- Re-run all regression evals defined in Phase 2.
+- If `[TARGET_URL]` is available, use Playwright MCP to navigate every major page and verify functionality.
+- Report any regressions introduced by the changes.
+- Run `superpowers:verification-before-completion` to require evidence before any success claims.
 
-Output: a test report with baseline results, post-change results, and any regressions.
+Output: a test report with post-change results, eval results, and any regressions.
 
-#### Agent 6: Codex Reviewer (Cross-Model Review and Refinement)
+### Agent 6: Codex Reviewer (Cross-Model Review)
 
 Use the `/codex` skill to invoke cross-model review.
 
-Responsibilities:
-- Run `/codex review` on all changed files to get an independent code review
-- Run `/codex challenge` to adversarially stress-test the implementation
-- Check code changes against `[REQUIREMENTS]` for completeness
-- Use `code-simplifier` to identify unnecessary complexity
-- If Codex identifies issues, iterate: fix the issue, re-run `/codex review`, repeat until clean
+- Run `/codex review` on all changed files for an independent code review.
+- Run `/codex challenge` to adversarially stress-test the implementation.
+- Check changes against `[REQUIREMENTS]` for completeness.
+- Use `code-simplifier` to identify unnecessary complexity.
+- If Codex identifies issues, iterate: fix, re-review, repeat until clean.
 
 Output: a Codex review report with all findings addressed.
 
-#### Agent 7: Orchestrator (End-to-End Testing Loop)
+### Agent 7: Visual Verifier (Browser Testing Loop)
 
 Launch a general-purpose subagent or use `/orchestrate` with Chrome MCP and Playwright MCP.
 
-Responsibilities:
-- Use Chrome MCP (`navigate`, `read_page`, `javascript_tool`, `gif_creator`) or Playwright MCP (`browser_navigate`, `browser_click`, `browser_snapshot`, `browser_take_screenshot`) to test every feature end-to-end
-- Simulate real user workflows: navigate pages, fill forms, click buttons, verify outputs
-- If any feature fails or behaves incorrectly, dispatch a sub-agent to fix it (use `superpowers:dispatching-parallel-agents` for independent fixes)
-- After each fix, re-test the specific feature and all related features
-- Continue this loop until every feature works correctly
-- If stuck after 3 attempts on any issue, escalate with BLOCKED status for human intervention
-- Use `/qa` for structured browser QA testing when comprehensive coverage is needed
+When `[TARGET_URL]` is available and the task affects visible UI:
+
+- Use Playwright MCP (`browser_navigate`, `browser_snapshot`, `browser_take_screenshot`) or Chrome MCP (`navigate`, `read_page`, `javascript_tool`, `gif_creator`) to test every feature end-to-end.
+- Simulate real user workflows: navigate pages, fill forms, click buttons, verify outputs.
+- Compare screenshots against the design intent or expected behavior.
+- If the visual output does not match the specification:
+  - Diagnose the specific gap (layout, spacing, color, interaction).
+  - Make targeted CSS/component fixes.
+  - Re-navigate and re-screenshot to verify the fix.
+- For responsive testing, use `browser_resize` to check multiple viewport sizes.
+- If any feature fails, dispatch a sub-agent to fix it using `superpowers:dispatching-parallel-agents` for independent fixes.
+- If stuck after 3 attempts on any issue, auto-skip and log.
+- Use `/qa` for structured browser QA testing when comprehensive coverage is needed.
 
 Output: an end-to-end test report with evidence (screenshots, GIF recordings) showing all features working.
 
-#### Agent 8: Documenter (Documentation Update)
+---
 
-Launch a general-purpose subagent or use the `documentation-system` agent and `/document-release`.
+## Phase 5: Merge, Learn, and Deliver
 
-Responsibilities:
-- Collect all changes from Agents 1 through 7
-- Update README, ARCHITECTURE, CONTRIBUTING, and any project-specific documentation to reflect the changes
-- Add setup instructions if new dependencies or configuration steps were introduced
-- Update any referenced screenshots or examples that changed
-- Ensure documentation is accurate and matches the current state of the code
-- Remove references to deleted features or outdated patterns
-
-Output: updated documentation files with a summary of what changed and why.
-
-### Agent Dispatch Pattern
+### Step 5.1: Merge Outputs + Judge Gate
 
 ```
-Stage 1 (parallel where possible):
-  Agent 1 (Explorer)  ──┐
-  Agent 2 (Researcher) ─┤──> Agent 3 (Reviewer) ──> Agent 4 (Architect)
-                         │
+Loop:
+  Dispatch ralph-merger with: all task outputs + notes + WORKSPACE_RULES + BRAINSTORM_SUMMARY + JUDGE_RUBRIC
+  Merger combines outputs into workspace/final/, resolves integration issues.
+
+  Dispatch ralph-judge with: agent_type "merger", task definitions, output, JUDGE_RUBRIC, WORKSPACE_RULES, BRAINSTORM_SUMMARY
+  If judge passes: break to Step 5.2
+  If judge fails: dispatch fresh ralph-merger with judge feedback (no retry limit)
+```
+
+### Step 5.2: Run Summary to learnings.md
+
+Append a run summary to `learnings.md`:
+
+```markdown
+## {date} -- {original user query (shortened)}
+
+**Result:** {passed}/{total} tasks passed | **Attempts:** {total_attempts} | **Time:** {elapsed}
+
+### Run Summary
+- {1-2 sentence overview of what was built and how it went}
+
+### Cross-Task Patterns
+- {pattern that emerged across multiple tasks}
+- {architectural insight from how the pieces fit together}
+
+### Anti-Patterns to Avoid
+- {approach that failed, only if it is a trap others would fall into}
+```
+
+### Step 5.3: Final Eval Report
+
+Run all capability and regression evals from Phase 2 against the final merged output:
+
+```markdown
+EVAL REPORT: [TASK]
+========================
+Capability Evals: X/Y passed (pass@k: Z%)
+Regression Evals: X/Y passed (pass^3: Z%)
+Status: SHIP IT / NEEDS WORK
+```
+
+### Step 5.4: Documentation Update
+
+Launch the `documentation-system` agent or use `/document-release`.
+
+- Update README, ARCHITECTURE, CONTRIBUTING, and project-specific documentation.
+- Add setup instructions for new dependencies or configuration.
+- Update referenced screenshots or examples that changed.
+- Remove references to deleted features or outdated patterns.
+
+### Step 5.5: Branch Finalization
+
+Use `superpowers:finishing-a-development-branch` to handle merge/PR decisions and cleanup.
+
+---
+
+## Pipeline Dispatch Pattern
+
+```
+Phase 0 (interactive setup):
+  Brainstorm -> Intent Profile -> Tooling Discovery -> Pre-Flight
+  [user confirms -> fully autonomous from here]
+
+Phase 1 (parallel analysis):
+  Agent 1 (Explorer)  --+
+  Agent 2 (Researcher) -+---> Agent 3 (Reviewer) ---> Agent 4 (Architect)
+                         |
                     [user checkpoint]
 
-Stage 2 (sequential with iteration):
-  Agent 5 (Validator) ──> Agent 6 (Codex) ──> Agent 7 (Orchestrator) ──> Agent 8 (Documenter)
-                              │                      │
-                              └── fix loop ──────────┘
+Phase 2 (eval definition):
+  Capability Evals + Regression Evals + Quality Targets
+
+Phase 3 (Super Ralph autonomous loop):
+  Per Task (parallel if independent):
+    ralph-tester -> JUDGE -> ralph-worker -> JUDGE -> tests
+                                |                    |
+                                +--- debug loop -----+
+    Per-task learnings -> dependency injection for dependent tasks
+
+Phase 4 (validation):
+  Agent 5 (Validator) ---> Agent 6 (Codex) ---> Agent 7 (Visual Verifier)
+                              |                      |
+                              +--- fix loop ---------+
+
+Phase 5 (merge and deliver):
+  ralph-merger -> JUDGE -> Eval Report -> Documenter -> Branch Finalization
 ```
 
-Use `superpowers:dispatching-parallel-agents` for Agents 1 and 2. Use `superpowers:subagent-driven-development` for the Stage 2 sequential pipeline. Use `superpowers:verification-before-completion` before declaring Stage 2 complete.
+Use `superpowers:dispatching-parallel-agents` for Agents 1 and 2. Use `superpowers:subagent-driven-development` for the Phase 4 sequential pipeline. Use `superpowers:verification-before-completion` before declaring Phase 4 complete.
 
 ---
 
@@ -299,12 +484,32 @@ Use `superpowers:dispatching-parallel-agents` for Agents 1 and 2. Use `superpowe
 Return:
 - The plan you followed
 - Files changed and why
-- Checks you ran and whether they passed
+- Eval report with pass@k and regression results
+- Evidence from browser verification (screenshots, GIFs) if applicable
+- Learnings summary from the run
 - Risks, assumptions, or follow-up items
+
+## Harness Engineering Principles
+
+These principles govern how the pipeline operates as an agent harness, the infrastructure layer that wraps around AI models to manage long-running tasks reliably.
+
+1. **Generator/Judge separation**: Never trust the builder to grade its own work. Every sub-agent's output passes through ralph-judge before the loop continues. The judge operates with zero context from the generator, eliminating bias and sunk-cost reasoning.
+
+2. **Automate verification, not review**: Wherever a property can be verified automatically (tests, typechecks, evals, screenshots), delegate more responsibility to the agent. Invest in automated checks rather than reading every line of agent-generated code. Human review focuses on invariants, edge cases, security assumptions, and hidden coupling.
+
+3. **Progress file bridging**: `claude-progress.txt` carries state across context window resets. Update it after every task, debug cycle, and phase transition. If the session compacts, the progress file is the recovery point, not conversation history.
+
+4. **Two-tier learning**: Per-task learnings in `learnings.md` flow forward to dependent tasks in real-time. Per-agent learnings (`ralph-*-learnings.md`) make each agent type individually smarter across runs. Both tiers persist only generalizable insights, not task-specific details.
+
+5. **Cost-aware routing**: Track per task: model tier, token estimate, retries, wall-clock time, success/failure. Escalate model tier only when a lower tier fails with a clear reasoning gap. Use Haiku for classification and narrow edits, Sonnet for implementation, Opus for architecture and root-cause analysis.
+
+6. **Eval-first execution**: Define capability evals and regression evals before implementation (Phase 2). Run them continuously during validation (Phase 4). Track pass@k metrics for reliability measurement. Evals are the unit tests of agent development.
 
 ## Guardrails
 
-- Stay inside `[DIRECTORY]`
-- Prefer repo-local scripts, docs, and config over home-directory conventions
-- Keep the user as the sole author of any future commit
-- Do not invent mandatory phases, agents, plugin actions, or MCP methods
+- Stay inside `[DIRECTORY]`.
+- Prefer repo-local scripts, docs, and config over home-directory conventions.
+- Keep the user as the sole author of any future commit. Do not commit or push.
+- Do not invent mandatory phases, agents, plugin actions, or MCP methods that are not present in the current environment.
+- After Phase 0 completes, the pipeline runs without user interaction. Failed tasks are auto-skipped and logged. No escalations, no confirmations, no interruptions.
+- Never use `run_in_background: true` when dispatching agents. Dispatch multiple foreground agents in a single message to parallelize.

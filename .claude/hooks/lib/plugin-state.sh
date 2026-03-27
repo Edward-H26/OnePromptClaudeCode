@@ -57,34 +57,59 @@ plugin_blocklisted_names() {
 
 plugin_available_names() {
     local tmp_dir
-    tmp_dir="$(mktemp -d)"
-    trap 'rm -rf "$tmp_dir" 2>/dev/null' RETURN
+    tmp_dir="$(mktemp -d)" || return 1
+    local return_code=0
 
-    plugin_enabled_names > "$tmp_dir/enabled"
-
-    if plugin_has_install_state; then
-        plugin_installed_names > "$tmp_dir/installed"
-        comm -12 "$tmp_dir/enabled" "$tmp_dir/installed" > "$tmp_dir/candidates"
-    else
-        cp "$tmp_dir/enabled" "$tmp_dir/candidates"
+    if ! plugin_enabled_names > "$tmp_dir/enabled"; then
+        return_code=$?
     fi
 
-    if [[ -f "$(plugin_blocklist_path)" ]]; then
-        plugin_blocklisted_names > "$tmp_dir/blocklisted"
-        comm -23 "$tmp_dir/candidates" "$tmp_dir/blocklisted"
-    else
-        cat "$tmp_dir/candidates"
+    if [[ $return_code -eq 0 ]]; then
+        if plugin_has_install_state; then
+            if ! plugin_installed_names > "$tmp_dir/installed"; then
+                return_code=$?
+            elif ! comm -12 "$tmp_dir/enabled" "$tmp_dir/installed" > "$tmp_dir/candidates"; then
+                return_code=$?
+            fi
+        elif ! cp "$tmp_dir/enabled" "$tmp_dir/candidates"; then
+            return_code=$?
+        fi
     fi
+
+    if [[ $return_code -eq 0 ]]; then
+        if [[ -f "$(plugin_blocklist_path)" ]]; then
+            if ! plugin_blocklisted_names > "$tmp_dir/blocklisted"; then
+                return_code=$?
+            else
+                comm -23 "$tmp_dir/candidates" "$tmp_dir/blocklisted"
+                return_code=$?
+            fi
+        else
+            cat "$tmp_dir/candidates"
+            return_code=$?
+        fi
+    fi
+
+    rm -rf "$tmp_dir" 2>/dev/null || true
+    return $return_code
 }
 
 plugin_unavailable_enabled_names() {
     local tmp_dir
-    tmp_dir="$(mktemp -d)"
-    trap 'rm -rf "$tmp_dir" 2>/dev/null' RETURN
+    tmp_dir="$(mktemp -d)" || return 1
+    local return_code=0
 
-    plugin_enabled_names > "$tmp_dir/enabled"
-    plugin_available_names > "$tmp_dir/available"
-    comm -23 "$tmp_dir/enabled" "$tmp_dir/available"
+    if ! plugin_enabled_names > "$tmp_dir/enabled"; then
+        return_code=$?
+    elif ! plugin_available_names > "$tmp_dir/available"; then
+        return_code=$?
+    else
+        comm -23 "$tmp_dir/enabled" "$tmp_dir/available"
+        return_code=$?
+    fi
+
+    rm -rf "$tmp_dir" 2>/dev/null || true
+    return $return_code
 }
 
 plugin_is_available() {

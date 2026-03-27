@@ -31,27 +31,27 @@ Before launching, use available tools to set up the context:
 
 Super Ralph will then autonomously:
 
-**Phase 1: Brainstorm** — Explore alternatives, evaluate tradeoffs, select the best approach. Ralph may use `office-hours` or `plan-eng-review` internally for complex features.
+**Phase 1: Brainstorm** — Restate the request, ask clarifying questions, and confirm a `BRAINSTORM_SUMMARY` so task decomposition reflects explored user intent instead of the raw query.
 
-**Phase 2: Pre-flight** — Verify the repo builds, tests pass, and the starting state is clean.
+**Phase 2: Intent + Tooling + Pre-flight** — Capture the intent profile, derive a `JUDGE_RUBRIC`, scan available skills and agents, and lock workspace boundaries plus retry limits.
 
-**Phase 3: Decompose** — Break the task into independent subtasks with clear boundaries. Each subtask gets assigned to a specialized Ralph agent:
+**Phase 3: Decompose** — Break the task into independent subtasks with clear boundaries, explicit dependencies, success criteria, anti-patterns, and test strategy. Each subtask gets assigned to a specialized Ralph agent:
 - `ralph-worker` for implementation
 - `ralph-tester` for test writing and coverage
 - `ralph-debugger` for fixing failures
-- `ralph-judge` for quality evaluation
+- `ralph-judge` for intent-aware quality evaluation
 - `ralph-merger` for combining results
 
-**Phase 4: Execute** — Agents work in parallel where possible. Each agent has access to the full tool ecosystem:
+**Phase 4: Execute** — Agents work in parallel where possible. The judge evaluates each output against the task definition and the `JUDGE_RUBRIC`, so grading matches the user's stated priority, audience, and lifespan. Tasks with dependencies receive extracted prerequisite learnings from completed upstream tasks before implementation retries continue. Each agent has access to the full tool ecosystem:
 - Backend work uses `backend-dev-guidelines`, `docker-patterns`, `postgres-patterns`, `deployment-patterns`
 - Frontend work uses `frontend-dev-guidelines`, `ui-styling`, `liquid-glass-design`, `e2e-testing`
 - All agents can use Context7 MCP, MongoDB MCP, Chrome MCP, Playwright MCP, Figma MCP as needed
 - Testing uses `tdd-workflow`, `verification-loop`, `/qa` for browser testing
 - Security checks use `security-review` and `security-scan`
 
-**Phase 5: Merge** — Combine all agent outputs, resolve conflicts, run the full verification suite.
+**Phase 5: Merge** — Combine all agent outputs, resolve conflicts, run the full verification suite, and keep the merged result aligned with the same intent-aware quality bar.
 
-**Phase 6: Learn** — Record what worked and what did not for future sessions.
+**Phase 6: Learn** — Write per-task and per-agent learnings. Dependency learnings are summarized and passed forward to downstream tasks instead of leaving each fresh sub-agent to rediscover prior mistakes.
 
 After Ralph completes, run these additional verification steps:
 
@@ -65,7 +65,8 @@ After Ralph completes, run these additional verification steps:
 Rules:
 
 - Do not git commit or push. The user owns all commits.
-- If Ralph gets stuck (3 failed attempts on any subtask), it escalates with BLOCKED status.
+- After the interactive setup, Ralph runs autonomously without asking more questions.
+- If a task still fails after the configured retry limit, auto-skip it and log the reason plus learnings.
 - All work stays within [DIRECTORY].
 - Respect [CONSTRAINTS] throughout the entire process.
 - After completion, suggest `/retro` to the user if the task was significant.

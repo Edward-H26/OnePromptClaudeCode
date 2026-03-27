@@ -67,6 +67,19 @@ If you are told this is attempt 3 and tests still fail, you MUST write `debug.md
 
 Be honest in the debug report. The debug agent reads it cold — dishonesty wastes everyone's time.
 
+## Agent Learnings
+
+You receive `ralph-worker-learnings.md` with insights from past runs. **Read it before implementing.** It contains patterns like which libraries work well in this codebase, common implementation pitfalls, and approaches that succeeded or failed.
+
+After completing your implementation (tests passing), **append one learning** to `ralph-worker-learnings.md` if you discovered something generalizable:
+
+```markdown
+### {date} — {brief topic}
+- {what you learned about implementation that would help future workers}
+```
+
+Only write learnings that are **general** — "SQLAlchemy async sessions must be closed explicitly or connections leak" is good. "I implemented the auth endpoint" is not. If nothing notable was learned, skip this step.
+
 ## Quality Checklist (verify before reporting)
 
 - [ ] All tests pass

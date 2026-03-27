@@ -9,6 +9,9 @@ bash -n .claude/hooks/*.sh .claude/hooks/lib/*.sh references/*.sh scripts/audit-
 for gstack_bin in .claude/skills/gstack/*/bin/*.sh; do
     [ -f "$gstack_bin" ] && bash -n "$gstack_bin"
 done
+while IFS= read -r skill_script; do
+    bash -n "$skill_script"
+done < <(find .claude/skills -path "*/scripts/*.sh" -type f | sort)
 
 echo "[2/9] Hook script path resolution"
 python3 - << "PY"
@@ -82,6 +85,8 @@ if missing_dirs:
 for required in [
     skills_dir / "gstack" / "SKILL.md",
     skills_dir / "super-ralph" / "SKILL.md",
+    skills_dir / "codex" / "scripts" / "ask_codex.sh",
+    skills_dir / "codex" / "scripts" / "ask_codex.ps1",
 ]:
     if not required.exists():
         print(f"Missing required local skill entry: {required.as_posix()}")
@@ -302,6 +307,26 @@ if ! printf "%s\n" "$TASK_OUTPUT" | grep -q "Analysis Mode"; then
     exit 1
 fi
 
+if command -v zsh >/dev/null 2>&1; then
+    zsh -lc '
+        source ".claude/hooks/lib/plugin-state.sh"
+        plugin_enabled_names >/dev/null
+        plugin_available_names >/dev/null
+
+        source ".claude/hooks/lib/utils.sh"
+        tmp_file="$(mktemp)"
+        printf "b\na\n" > "$tmp_file"
+        atomic_sort_unique "$tmp_file"
+        expected=$(printf "a\nb")
+        actual=$(cat "$tmp_file")
+        rm -f "$tmp_file"
+        [[ "$actual" == "$expected" ]]
+    ' || {
+        echo "zsh helper smoke test failed" >&2
+        exit 1
+    }
+fi
+
 AUTO_OUTPUT_ONE="$(run_auto_codex_trigger_with_stub "Update the hook scripts and settings.json to harden the workflow.")"
 AUTO_OUTPUT_TWO="$(run_auto_codex_trigger_with_stub "Update the hook scripts and settings.json to harden the workflow.")"
 AUTO_PATH_ONE="$(printf "%s\n" "$AUTO_OUTPUT_ONE" | awk -F': ' '/Output will be at:/ {print $2}')"
@@ -332,8 +357,15 @@ echo "[5/9] Local stale-reference scan"
 python3 - << "PY"
 from pathlib import Path
 import re
+import subprocess
 
 root = Path(".")
+public_paths = set(
+    subprocess.check_output(
+        ["git", "-C", str(root), "ls-files", "-co", "--exclude-standard"],
+        text=True,
+    ).splitlines()
+)
 paths = []
 external_prefixes = [
     ".claude/skills/gstack/",
@@ -396,6 +428,8 @@ for scan_root in scan_roots:
         continue
     for path in scan_root.rglob("*.md"):
         text_path = path.as_posix()
+        if text_path not in public_paths:
+            continue
         if any(text_path.startswith(prefix) for prefix in external_prefixes):
             continue
         paths.append(path)
@@ -515,6 +549,36 @@ else
     echo "Note: local plugin install state is absent; enabled plugins are treated as declarative config only."
 fi
 
+python3 - << "PY"
+import json
+from pathlib import Path
+
+root = Path(".")
+settings = json.loads((root / ".claude" / "settings.json").read_text())
+enabled = {
+    name
+    for name, value in (settings.get("enabledPlugins") or {}).items()
+    if value is True
+}
+
+blocklist_path = root / "plugins" / "blocklist.json"
+if blocklist_path.exists():
+    blocklist = json.loads(blocklist_path.read_text())
+    stale_test_entries = []
+    for entry in blocklist.get("plugins", []):
+        plugin = entry.get("plugin")
+        reason = (entry.get("reason") or "").strip().lower()
+        text = (entry.get("text") or "").strip().lower()
+        if plugin in enabled and ("test" in reason or "test" in text):
+            stale_test_entries.append(plugin)
+
+    if stale_test_entries:
+        print("Enabled plugins are blocklisted by local test entries:")
+        for plugin in sorted(set(stale_test_entries)):
+            print(f"  {plugin}")
+        raise SystemExit(1)
+PY
+
 rm -rf "$TMP_PLUGIN_STATE_DIR"
 
 python3 - << "PY"
@@ -533,6 +597,31 @@ gitignore_check = subprocess.run(
 if gitignore_check.returncode != 0:
     print("Missing gitignore coverage for .superpowers/")
     raise SystemExit(1)
+
+intentional_reference_ignores = {
+    "references/everything-claude-code/.env.example": ["/references/everything-claude-code/.env.example"],
+    "references/everything-claude-code/.opencode/plugins/index.ts": ["/references/everything-claude-code/.opencode/plugins/"],
+    "references/everything-claude-code/docs/ja-JP/plugins/README.md": ["/references/everything-claude-code/docs/*/plugins/"],
+    "references/everything-claude-code/plugins/README.md": ["/references/everything-claude-code/plugins/"],
+    "references/gstack/.agents": ["/references/gstack/.agents/", ".agents/"],
+    "references/gstack/bin/gstack-global-discover": ["/references/gstack/bin/gstack-global-discover", "bin/gstack-global-discover"],
+    "references/gstack/browse/dist": ["/references/gstack/browse/dist/", "browse/dist/"],
+    "references/super-ralph/learnings.md": ["/references/super-ralph/learnings.md", "learnings.md"],
+}
+
+for rel_path, expected_patterns in intentional_reference_ignores.items():
+    check = subprocess.run(
+        ["git", "-C", str(root), "check-ignore", "-v", rel_path],
+        text=True,
+        capture_output=True,
+    )
+    if check.returncode != 0:
+        print(f"Missing explicit curated ignore for {rel_path}")
+        raise SystemExit(1)
+    if not any(pattern in check.stdout for pattern in expected_patterns):
+        print(f"Curated ignore for {rel_path} is being matched by the wrong rule:")
+        print(check.stdout.strip())
+        raise SystemExit(1)
 
 optional_build_artifacts = [
     (root / "references" / "gstack" / "browse" / "dist" / "browse",

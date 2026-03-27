@@ -46,6 +46,8 @@ Every message gets classified into exactly one tier, applied in priority order:
 
 ### Step 1: Parallel Fetch
 
+**Availability check**: Before fetching, verify which channels are reachable in the current environment. Report any unavailable channels to the user and proceed with only the available ones. Do not retry unavailable channels.
+
 Fetch all channels simultaneously:
 
 ```bash

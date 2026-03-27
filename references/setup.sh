@@ -9,6 +9,35 @@ REPOS=(
     "https://github.com/oil-oil/codex.git"
 )
 
+prune_curated_reference_artifacts() {
+    local repo_name="$1"
+    local target_dir="$2"
+    local rel_path
+
+    case "$repo_name" in
+        gstack)
+            for rel_path in ".agents" "bin/gstack-global-discover" "browse/dist" "bun.lock" "docs/images" "node_modules"; do
+                rm -rf "$target_dir/$rel_path"
+            done
+            ;;
+        super-ralph)
+            for rel_path in "learnings.md" "node_modules"; do
+                rm -rf "$target_dir/$rel_path"
+            done
+            ;;
+        everything-claude-code)
+            for rel_path in ".env.example" ".opencode/package-lock.json" ".opencode/plugins" "assets" "docs/ja-JP/plugins" "docs/zh-CN/plugins" "node_modules" "plugins"; do
+                rm -rf "$target_dir/$rel_path"
+            done
+            ;;
+        codex)
+            for rel_path in "node_modules" ".runtime"; do
+                rm -rf "$target_dir/$rel_path"
+            done
+            ;;
+    esac
+}
+
 for url in "${REPOS[@]}"; do
     name="$(basename "$url" .git)"
     target="$SCRIPT_DIR/$name"
@@ -19,6 +48,7 @@ for url in "${REPOS[@]}"; do
 
     echo "Syncing $name to references/$name..." >&2
     rsync -a --delete --exclude='.git/' "$tmpdir/" "$target/"
+    prune_curated_reference_artifacts "$name" "$target"
 
     rm -rf "$tmpdir"
     echo "Done: $name" >&2
