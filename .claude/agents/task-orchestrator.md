@@ -1,6 +1,7 @@
 ---
 name: task-orchestrator
 description: Lightweight task coordination agent for breaking work into concrete subtasks, choosing relevant local skills, and identifying when specialist agents would help.
+tools: ["Read", "Grep", "Glob"]
 ---
 
 # Task Orchestrator Agent

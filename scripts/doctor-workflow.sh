@@ -126,6 +126,47 @@ PY
         print_file_head "$plugin_log"
     fi
 
+    local_settings_warnings="$(
+        python3 - "$ROOT/.claude/settings.local.json" "$ROOT/plugins/installed_plugins.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+settings_local_path = Path(sys.argv[1])
+installed_path = Path(sys.argv[2])
+optional_plugins = {
+    "context7@claude-plugins-official",
+    "figma@claude-plugins-official",
+    "github@claude-plugins-official",
+    "playwright@claude-plugins-official",
+}
+
+enabled_local = set()
+if settings_local_path.exists():
+    settings_local = json.loads(settings_local_path.read_text())
+    enabled_local = {
+        name
+        for name, value in (settings_local.get("enabledPlugins") or {}).items()
+        if value is True
+    }
+    if "permissions" in settings_local:
+        print("WARN: .claude/settings.local.json contains a permissions block. Keep machine-local overrides focused on plugin enablement unless you intentionally need extra local policy.")
+
+if installed_path.exists():
+    installed = set((json.loads(installed_path.read_text()).get("plugins") or {}).keys())
+    missing_local = sorted(optional_plugins & installed - enabled_local)
+    if missing_local:
+        print(
+            "WARN: optional plugins are installed locally but not enabled in .claude/settings.local.json: "
+            + ", ".join(missing_local)
+        )
+PY
+    )"
+    if [[ -n "$local_settings_warnings" ]]; then
+        printf "%s\n" "$local_settings_warnings"
+        warnings=$((warnings + $(printf "%s\n" "$local_settings_warnings" | grep -c '^WARN:' || true)))
+    fi
+
     marketplace_log="$(mktemp)"
     if claude plugin marketplace list >"$marketplace_log" 2>&1; then
         if grep -qE 'Source: Directory \(/tmp/' "$marketplace_log"; then

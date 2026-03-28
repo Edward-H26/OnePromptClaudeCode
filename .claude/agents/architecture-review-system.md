@@ -1,6 +1,7 @@
 ---
 name: architecture-review-system
 description: Unified architecture review system combining backend architecture, code review, and expert advisory capabilities. Use this agent for comprehensive architecture analysis, code review, system design validation, and technical decision-making. Covers full-stack architecture including backend services, frontend architecture, microservices patterns, database design, and API design.
+tools: ["Read", "Grep", "Glob"]
 
 <example>
 Context: The user has implemented a new microservice and wants comprehensive architecture review.

@@ -1,19 +1,18 @@
 ---
 name: web-artifacts-builder
 description: Suite of tools for creating elaborate, multi-component claude.ai HTML artifacts using modern frontend web technologies (React, Tailwind CSS, shadcn/ui). Use for complex artifacts requiring state management, routing, or shadcn/ui components - not for simple single-file HTML/JSX artifacts.
-license: Complete terms in LICENSE.txt
 ---
 
 # Web Artifacts Builder
 
 To build powerful frontend claude.ai artifacts, follow these steps:
-1. Initialize the frontend repo using `scripts/init-artifact.sh`
+1. Initialize the frontend repo using `.claude/skills/web-artifacts-builder/scripts/init.sh`
 2. Develop your artifact by editing the generated code
-3. Bundle all code into a single HTML file using `scripts/bundle-artifact.sh`
+3. Bundle all code into a single HTML file using `.claude/skills/web-artifacts-builder/scripts/bundle.sh`
 4. Display artifact to user
 5. (Optional) Test the artifact
 
-**Stack**: React 18 + TypeScript + Vite + Parcel (bundling) + Tailwind CSS + shadcn/ui
+**Stack**: React 18 + TypeScript + Vite + Tailwind-ready starter styling
 
 ## Design & Style Guidelines
 
@@ -25,18 +24,18 @@ VERY IMPORTANT: To avoid what is often referred to as "AI slop", avoid using exc
 
 Run the initialization script to create a new React project:
 ```bash
-bash scripts/init-artifact.sh <project-name>
+bash .claude/skills/web-artifacts-builder/scripts/init.sh <project-name>
 cd <project-name>
 ```
 
 This creates a fully configured project with:
 - ✅ React + TypeScript (via Vite)
-- ✅ Tailwind CSS 3.4.1 with shadcn/ui theming system
+- ✅ Tailwind-ready starter styling via `@tailwindcss/vite`
 - ✅ Path aliases (`@/`) configured
-- ✅ 40+ shadcn/ui components pre-installed
-- ✅ All Radix UI dependencies included
-- ✅ Parcel configured for bundling (via .parcelrc)
-- ✅ Node 18+ compatibility (auto-detects and pins Vite version)
+- ✅ Minimal artifact starter layout you can replace
+- ✅ Node 18+ compatibility
+
+Use `--skip-install` if you only want the files generated.
 
 ### Step 2: Develop Your Artifact
 
@@ -46,18 +45,17 @@ To build the artifact, edit the generated files. See **Common Development Tasks*
 
 To bundle the React app into a single HTML artifact:
 ```bash
-bash scripts/bundle-artifact.sh
+bash .claude/skills/web-artifacts-builder/scripts/bundle.sh
 ```
 
-This creates `bundle.html` - a self-contained artifact with all JavaScript, CSS, and dependencies inlined. This file can be directly shared in Claude conversations as an artifact.
+This creates `bundle.html`, a self-contained artifact with the built JavaScript and CSS inlined. This file can be directly shared in Claude conversations as an artifact.
 
 **Requirements**: Your project must have an `index.html` in the root directory.
 
 **What the script does**:
-- Installs bundling dependencies (parcel, @parcel/config-default, parcel-resolver-tspaths, html-inline)
-- Creates `.parcelrc` config with path alias support
-- Builds with Parcel (no source maps)
-- Inlines all assets into single HTML using html-inline
+- Installs project dependencies if needed
+- Builds with Vite
+- Inlines the generated JavaScript and CSS assets into `bundle.html`
 
 ### Step 4: Share Artifact with User
 

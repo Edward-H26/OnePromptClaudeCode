@@ -9,7 +9,6 @@ These are the maintained local agent prompts in this directory:
 - `architecture-review-system`
 - `auto-error-resolver`
 - `build-error-resolver`
-- `chief-of-staff`
 - `code-refactor-master`
 - `context-manager`
 - `database-reviewer`

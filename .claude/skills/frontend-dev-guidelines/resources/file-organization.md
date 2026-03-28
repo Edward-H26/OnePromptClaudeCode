@@ -1,6 +1,6 @@
 # File Organization
 
-Proper file and directory structure for maintainable, scalable frontend code in the the application.
+Proper file and directory structure for maintainable, scalable frontend code in an application.
 
 ---
 
@@ -194,7 +194,7 @@ hooks/
 helpers/
   myFeatureHelpers.ts           # General utilities
   validation.ts                 # Validation logic
-  transblogers.ts               # Data transblogations
+      transformers.ts               # Data transformations
   constants.ts                  # Constants
 ```
 
@@ -215,7 +215,7 @@ types/
 
 ### Available Aliases
 
-From `vite.config.ts` lines 180-185:
+Example Vite alias configuration:
 
 | Alias | Resolves To | Use For |
 |-------|-------------|---------|
@@ -312,7 +312,7 @@ userApi.ts
 ```
 myFeatureHelpers.ts
 validation.ts
-transblogers.ts
+transformers.ts
 constants.ts
 ```
 

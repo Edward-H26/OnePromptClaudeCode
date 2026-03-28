@@ -13,6 +13,18 @@ while IFS= read -r skill_script; do
     bash -n "$skill_script"
 done < <(find .claude/skills -path "*/scripts/*.sh" -type f | sort)
 
+for direct_exec in \
+    .claude/skills/chrome-devtools/scripts/install.sh \
+    .claude/skills/chrome-devtools/scripts/install-deps.sh \
+    .claude/skills/web-artifacts-builder/scripts/init.sh \
+    .claude/skills/web-artifacts-builder/scripts/bundle.sh
+do
+    if [[ ! -x "$direct_exec" ]]; then
+        echo "Expected executable script: $direct_exec" >&2
+        exit 1
+    fi
+done
+
 echo "[2/9] Hook script path resolution"
 python3 - << "PY"
 import json, os, re
@@ -48,6 +60,8 @@ PY
 echo "[3/9] JSON parse and skill inventory"
 python3 - << "PY"
 import json
+import re
+import subprocess
 from pathlib import Path
 
 root = Path(".")
@@ -87,6 +101,10 @@ for required in [
     skills_dir / "super-ralph" / "SKILL.md",
     skills_dir / "codex" / "scripts" / "ask_codex.sh",
     skills_dir / "codex" / "scripts" / "ask_codex.ps1",
+    skills_dir / "web-artifacts-builder" / "scripts" / "init.sh",
+    skills_dir / "web-artifacts-builder" / "scripts" / "bundle.sh",
+    skills_dir / "webapp-testing" / "scripts" / "browser_navigate.py",
+    skills_dir / "webapp-testing" / "scripts" / "with_server.py",
 ]:
     if not required.exists():
         print(f"Missing required local skill entry: {required.as_posix()}")
@@ -114,6 +132,7 @@ skill_count = len(skill_dirs)
 
 expected_fragments = [
     f"{skill_count} skill entries. {command_count} commands. {agent_count} agents. {hook_count} local hooks. {template_count} templates.",
+    f"| **Agents** | {agent_count} |",
     f"| **Commands** | {command_count} |",
     f"commands/              # {command_count} slash commands",
 ]
@@ -122,9 +141,58 @@ for fragment in expected_fragments:
     if fragment not in readme:
         print(f"README.md is missing expected inventory text: {fragment}")
         raise SystemExit(1)
+
+tracked_files = subprocess.check_output(["git", "ls-files"], text=True).splitlines()
+placeholder_hits = []
+for rel_path in tracked_files:
+    path = root / rel_path
+    if not path.is_file():
+        continue
+    try:
+        text = path.read_text()
+    except (UnicodeDecodeError, OSError):
+        continue
+    if text.strip() == "404: Not Found":
+        placeholder_hits.append(rel_path)
+
+if placeholder_hits:
+    print("Tracked files contain placeholder 404 content:")
+    for rel_path in placeholder_hits:
+        print(f"  {rel_path}")
+    raise SystemExit(1)
+
+link_pattern = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
+broken_links = []
+for rel_path in tracked_files:
+    if not rel_path.endswith(".md") or rel_path.startswith("references/"):
+        continue
+    path = root / rel_path
+    if not path.exists():
+        continue
+    text = path.read_text(errors="ignore")
+    for link in link_pattern.findall(text):
+        if link.startswith(("http://", "https://", "#", "mailto:")):
+            continue
+        target = link.split("#", 1)[0]
+        if not target:
+            continue
+        resolved = (path.parent / target).resolve()
+        try:
+            resolved.relative_to(root.resolve())
+        except ValueError:
+            broken_links.append((rel_path, link, "escapes repo root"))
+            continue
+        if not resolved.exists():
+            broken_links.append((rel_path, link, "missing target"))
+
+if broken_links:
+    print("Broken first-party markdown links:")
+    for rel_path, link, reason in broken_links:
+        print(f"  {rel_path}: {link} ({reason})")
+    raise SystemExit(1)
 PY
 
-echo "[4/9] Hook prompt classification and cache-key safety"
+echo "[4/9] Hook prompt classification, cache-key safety, and helper smokes"
 source ".claude/hooks/lib/patterns.sh"
 source ".claude/hooks/lib/utils.sh"
 source ".claude/hooks/lib/plugin-state.sh"
@@ -250,6 +318,77 @@ run_check_freeze() {
         CLAUDE_PROJECT_DIR="$ROOT" \
         CLAUDE_PLUGIN_DATA="$state_dir" \
         bash "$ROOT/.claude/skills/gstack/freeze/bin/check-freeze.sh"
+}
+
+run_tsc_hook_regression() {
+    local tmp_dir
+    tmp_dir="$(mktemp -d)"
+
+    mkdir -p "$tmp_dir/.claude/hooks/lib" "$tmp_dir/.claude/tsc-cache/test" "$tmp_dir/app" "$tmp_dir/pkg"
+    cp "$ROOT/.claude/hooks/tsc-check.sh" "$tmp_dir/.claude/hooks/"
+    cp "$ROOT/.claude/hooks/lib/utils.sh" "$tmp_dir/.claude/hooks/lib/"
+
+    cat > "$tmp_dir/jq" <<'EOF'
+#!/bin/sh
+exec /usr/bin/jq "$@"
+EOF
+
+    cat > "$tmp_dir/npx" <<'EOF'
+#!/bin/sh
+printf 'src/example.ts:1:1 - error TS1000: simulated failure\n' >&2
+exit 1
+EOF
+
+    chmod +x "$tmp_dir/jq" "$tmp_dir/npx"
+
+    for repo in "$tmp_dir" "$tmp_dir/app" "$tmp_dir/pkg"; do
+        cat > "$repo/package.json" <<'EOF'
+{}
+EOF
+        cat > "$repo/tsconfig.json" <<'EOF'
+{}
+EOF
+    done
+
+    local hook_input
+    hook_input="$(jq -n \
+        --arg app "$tmp_dir/app/example.ts" \
+        --arg pkg "$tmp_dir/pkg/example.ts" \
+        '{tool_name:"MultiEdit", session_id:"test", tool_input:{edits:[{file_path:$app},{file_path:$pkg}]}}'
+    )"
+
+    set +e
+    PATH="$tmp_dir:$PATH" \
+        CLAUDE_PROJECT_DIR="$tmp_dir" \
+        bash "$tmp_dir/.claude/hooks/tsc-check.sh" <<< "$hook_input" >/dev/null 2>"$tmp_dir/stderr.log"
+    local hook_status=$?
+    set -e
+
+    if [[ "$hook_status" -eq 0 ]]; then
+        echo "tsc-check regression hook should fail when stubbed tsc reports errors" >&2
+        rm -rf "$tmp_dir"
+        exit 1
+    fi
+
+    local affected_path="$tmp_dir/.claude/tsc-cache/test/affected-repos.txt"
+    if [[ ! -f "$affected_path" ]]; then
+        echo "tsc-check regression hook did not write affected-repos.txt" >&2
+        rm -rf "$tmp_dir"
+        exit 1
+    fi
+
+    local affected_contents
+    affected_contents="$(cat "$affected_path")"
+    local expected
+    expected="$(printf "app\npkg")"
+    if [[ "$affected_contents" != "$expected" ]]; then
+        echo "tsc-check should persist one repo per line in affected-repos.txt" >&2
+        printf 'Expected:\n%s\nActual:\n%s\n' "$expected" "$affected_contents" >&2
+        rm -rf "$tmp_dir"
+        exit 1
+    fi
+
+    rm -rf "$tmp_dir"
 }
 
 run_ask_codex_with_stub() {
@@ -425,6 +564,28 @@ fi
 rm -rf "$TMP_SPACE_DIR"
 
 rm -rf "$TMP_GSTACK_STATE"
+
+run_tsc_hook_regression
+
+if ! bash "$ROOT/.claude/skills/web-artifacts-builder/scripts/init.sh" --help >/dev/null; then
+    echo "web-artifacts init helper should support --help" >&2
+    exit 1
+fi
+
+if ! bash "$ROOT/.claude/skills/web-artifacts-builder/scripts/bundle.sh" --help >/dev/null; then
+    echo "web-artifacts bundle helper should support --help" >&2
+    exit 1
+fi
+
+if ! python3 "$ROOT/.claude/skills/webapp-testing/scripts/browser_navigate.py" --help >/dev/null; then
+    echo "browser_navigate.py should support --help" >&2
+    exit 1
+fi
+
+if ! python3 "$ROOT/.claude/skills/webapp-testing/scripts/with_server.py" --help >/dev/null; then
+    echo "with_server.py should support --help" >&2
+    exit 1
+fi
 
 TASK_OUTPUT="$(run_task_orchestrator "What is the current plan?")"
 if [[ -n "$TASK_OUTPUT" ]]; then
@@ -715,35 +876,6 @@ if plugin_has_install_state; then
 else
     echo "Note: local plugin install state is absent; enabled plugins are treated as declarative config only."
 fi
-
-python3 - << "PY"
-import json
-from pathlib import Path
-
-root = Path(".")
-settings = json.loads((root / ".claude" / "settings.json").read_text())
-enabled = {
-    name
-    for name, value in (settings.get("enabledPlugins") or {}).items()
-    if value is True
-}
-
-blocklist_path = root / "plugins" / "blocklist.json"
-if blocklist_path.exists():
-    blocklist = json.loads(blocklist_path.read_text())
-    stale_test_entries = []
-    for entry in blocklist.get("plugins", []):
-        plugin = entry.get("plugin")
-        reason = (entry.get("reason") or "").strip().lower()
-        text = (entry.get("text") or "").strip().lower()
-        if plugin in enabled and ("test" in reason or "test" in text):
-            stale_test_entries.append(plugin)
-
-    if stale_test_entries:
-        print("Note: enabled plugins are blocklisted by ignored local test entries:")
-        for plugin in sorted(set(stale_test_entries)):
-            print(f"  {plugin}")
-PY
 
 rm -rf "$TMP_PLUGIN_STATE_DIR"
 

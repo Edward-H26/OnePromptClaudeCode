@@ -4,7 +4,7 @@
 
 A complete Claude Code workflow that covers the entire software development lifecycle. Clone it, start coding, and never write a prompt from scratch again.
 
-54 skill entries. 30 commands. 15 agents. 8 local hooks. 6 templates. 11+ shared MCP servers. 400+ auto-triggers.
+54 skill entries. 30 commands. 14 agents. 8 local hooks. 6 templates. 11+ shared MCP servers. 400+ auto-triggers.
 
 Built for beginners. Scales for power users.
 
@@ -31,7 +31,7 @@ bash scripts/doctor-workflow.sh
 claude
 ```
 
-That is the repo setup. The tracked baseline enables only the repo-stable plugin set; auth-sensitive or duplicate integrations such as GitHub, context7, Figma plugin MCP, and extra browser plugins should be added in `.claude/settings.local.json` only when the local machine is actually configured for them. Start from `.claude/settings.local.example.json` when you want those optional local plugins. Run `bash scripts/doctor-workflow.sh` on a fresh clone to confirm the live workflow is ready. `references/setup.sh` is optional, but it refreshes the curated vendored upstream content under `references/` that some repo-local wrappers and vendored passthrough skills consult as background material. After workflow changes, run `bash scripts/audit-workflow.sh`.
+That is the repo setup. The tracked baseline enables only the repo-stable plugin set; auth-sensitive or duplicate integrations such as GitHub, context7, Figma plugin MCP, and extra browser plugins should be added in `.claude/settings.local.json` only when the local machine is actually configured for them. Start from `.claude/settings.local.example.json` when you want those optional local plugins. Run `bash scripts/doctor-workflow.sh` on a fresh clone to confirm the live workflow is ready, and clear any stale local plugin blocklist test entries if the doctor warns about them. `references/setup.sh` is optional, but it refreshes the curated vendored upstream content under `references/` that some repo-local wrappers and vendored passthrough skills consult as background material. After workflow changes, run `bash scripts/audit-workflow.sh`.
 
 ---
 
@@ -71,7 +71,7 @@ Zero prompts to write. Minimal repo setup. Machine-local plugin installs and aut
 |---|---|---|
 | **Skills** | 54 | Bundled workflow skill entries available directly from the tracked repo |
 | **Commands** | 30 | Slash commands for planning, implementation, review, QA, and release handoff |
-| **Agents** | 15 | Specialized local agents for complex tasks |
+| **Agents** | 14 | Specialized local agents for complex tasks |
 | **Hooks** | 8 | Automated local safety, tracking, and validation hooks |
 | **Templates** | 6 | Reusable prompt templates for common workflows |
 | **MCP Servers** | 11+ | Figma, GitHub, Playwright, HuggingFace, and other shared or user-scoped connectors |
@@ -192,13 +192,12 @@ The repo tracks 30 slash commands. Common entry points are listed below.
 
 ## Agents
 
-15 specialized agents handle complex tasks:
+14 specialized agents handle complex tasks:
 
 | Agent | Purpose |
 |---|---|
 | `architect` | Architecture design |
 | `build-error-resolver` | Automated build error resolution |
-| `chief-of-staff` | Project management and coordination |
 | `code-refactor-master` | Large-scale code transformations |
 | `database-reviewer` | Schema, query, migration review |
 | `documentation-system` | Documentation generation |
@@ -275,7 +274,7 @@ Ready-to-use templates at `.claude/prompt-templates/`:
   WORKFLOW-REFERENCE.md  # Complete reference (single source of truth)
   settings.json          # Permissions, hooks, plugins, env
   runtime/               # Repo-local ignored runtime state for safety and Codex
-  agents/                # 15 local agent definitions
+  agents/                # 14 local agent definitions
   commands/              # 30 slash commands
   hooks/                 # 8 automated hook scripts
   prompt-templates/      # 6 reusable templates
@@ -295,7 +294,7 @@ social/                  # Social media assets and demo video
 Use `references/` when you want to refresh the tracked vendored upstream sources:
 
 ```bash
-bash references/update-references.sh
+bash references/setup.sh
 ```
 
 This refreshes the tracked upstream snapshots in `references/`. Several bundled entries in `.claude/skills/` resolve through these vendored sources, so they are part of the published workflow surface. The refresh is curated, not a raw mirror: runtime-only and irrelevant upstream artifacts are pruned so the published surface stays deterministic.

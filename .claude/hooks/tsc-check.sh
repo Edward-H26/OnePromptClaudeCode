@@ -105,8 +105,11 @@ $CHECK_OUTPUT"
             if [ $ERROR_COUNT -gt 0 ]; then
                 # Save error information for the agent
                 echo "$ERROR_OUTPUT" > "$CACHE_DIR/last-errors.txt"
-                printf "%s\n" "$FAILED_REPOS" >> "$CACHE_DIR/affected-repos.txt"
-                source "$SCRIPT_DIR/lib/utils.sh" && atomic_sort_unique "$CACHE_DIR/affected-repos.txt"
+                for repo in $FAILED_REPOS; do
+                    [[ -z "$repo" ]] && continue
+                    printf "%s\n" "$repo" >> "$CACHE_DIR/affected-repos.txt"
+                done
+                atomic_sort_unique "$CACHE_DIR/affected-repos.txt"
                 
                 # Save the TSC commands used for each repo
                 echo "# TSC Commands by Repo" > "$CACHE_DIR/tsc-commands.txt"

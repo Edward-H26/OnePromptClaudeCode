@@ -10,7 +10,7 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 **Repo-local multi-model flow**: `/multi-plan` and `/multi-execute` use the bundled Codex bridge plus installed plugin agents. The Codex bridge now writes repo-local runtime state under `.claude/runtime/codex/`.
 **Published surface**: This repo tracks the workflow content it runs, including bundled `super-ralph`, bundled `ui-styling` assets, repo-local wrapper skills, and the vendored upstream sources under `references/` that those wrappers and a smaller set of vendored passthrough skills may consult. Reference refreshes are curated and prune upstream runtime-only artifacts that are not part of this repo's published workflow surface.
 **Live readiness**: Use `bash scripts/doctor-workflow.sh` for plugin, MCP, and Codex runtime checks. Use `bash scripts/audit-workflow.sh` for static repo-surface validation.
-**Plugin split**: The tracked shared config enables only the repo-stable baseline. Auth-sensitive or duplicate integrations such as GitHub, context7, or plugin-provided Figma/Playwright MCP servers belong in `.claude/settings.local.json`. Use `.claude/settings.local.example.json` as the tracked starting point for those local overrides.
+**Plugin split**: The tracked shared config enables only the repo-stable baseline. Auth-sensitive or duplicate integrations such as GitHub, context7, or plugin-provided Figma/Playwright MCP servers belong in `.claude/settings.local.json`. Use `.claude/settings.local.example.json` as the tracked starting point for those local overrides. If `bash scripts/doctor-workflow.sh` warns about enabled plugins that are also blocklisted in ignored local state, clear the stale local blocklist entry before relying on that plugin.
 
 ---
 
@@ -166,7 +166,6 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 | `architecture-review-system` | Architecture review | Reviewing existing architecture for issues |
 | `build-error-resolver` | Fix build errors | Automated build error resolution |
 | `auto-error-resolver` | Fix errors post-hook | Auto-triggered by tsc-check when errors exceed threshold |
-| `chief-of-staff` | Project management | Coordinating tasks, tracking progress, managing scope |
 | `code-refactor-master` | Bulk refactoring | Large-scale code transformations |
 | `context-manager` | Context management | Managing conversation context and state |
 | `database-reviewer` | Database review | Reviewing schemas, queries, migrations, indexes |

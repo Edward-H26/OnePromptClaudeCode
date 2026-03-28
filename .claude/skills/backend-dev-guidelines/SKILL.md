@@ -7,7 +7,7 @@ description: Comprehensive backend development guide for Node.js/Express/TypeScr
 
 ## Purpose
 
-Establish consistency and best practices across backend microservices (blog-api, auth-service, notifications-service) using modern Node.js/Express/TypeScript patterns.
+Establish consistency and best practices across backend services using modern Node.js/Express/TypeScript patterns. Service names in the examples are illustrative, not required project structure.
 
 ## When to Use This Skill
 

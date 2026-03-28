@@ -1,6 +1,7 @@
 ---
 name: frontend-developer
 description: Full-stack frontend development agent specializing in React, TypeScript, modern UI frameworks, state management, routing, and performance optimization. Use this agent for building components, implementing features, setting up routing, managing state, and creating complete frontend applications.
+tools: ["Read", "Grep", "Glob", "Edit", "Write"]
 
 <example>
 Context: The user needs to build a new React component with complex state management.

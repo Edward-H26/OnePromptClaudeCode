@@ -1,7 +1,6 @@
 ---
 name: webapp-testing
 description: Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend functionality, debugging UI behavior, capturing browser screenshots, and viewing browser logs.
-license: Complete terms in LICENSE.txt
 ---
 
 # Web Application Testing
@@ -9,9 +8,10 @@ license: Complete terms in LICENSE.txt
 To test local web applications, write native Python Playwright scripts.
 
 **Helper Scripts Available**:
-- `scripts/with_server.py` - Manages server lifecycle (supports multiple servers)
+- `python .claude/skills/webapp-testing/scripts/with_server.py --help` - Manages server lifecycle
+- `python .claude/skills/webapp-testing/scripts/browser_navigate.py --help` - Quick navigation and screenshot smoke helper
 
-**Always run scripts with `--help` first** to see usage. DO NOT read the source until you try running the script first and find that a customized solution is abslutely necessary. These scripts can be very large and thus pollute your context window. They exist to be called directly as black-box scripts rather than ingested into your context window.
+**Always run scripts with `--help` first** to see usage. DO NOT read the source until you try running the script first and find that a customized solution is absolutely necessary. These scripts can be very large and thus pollute your context window. They exist to be called directly as black-box scripts rather than ingested into your context window.
 
 ## Decision Tree: Choosing Your Approach
 
@@ -22,7 +22,7 @@ User task → Is it static HTML?
     │         └─ Fails/Incomplete → Treat as dynamic (below)
     │
     └─ No (dynamic webapp) → Is the server already running?
-        ├─ No → Run: python scripts/with_server.py --help
+        ├─ No → Run: python .claude/skills/webapp-testing/scripts/with_server.py --help
         │        Then use the helper + write simplified Playwright script
         │
         └─ Yes → Reconnaissance-then-action:
@@ -38,12 +38,12 @@ To start a server, run `--help` first, then use the helper:
 
 **Single server:**
 ```bash
-python scripts/with_server.py --server "npm run dev" --port 5173 -- python your_automation.py
+python .claude/skills/webapp-testing/scripts/with_server.py --server "npm run dev" --port 5173 -- python your_automation.py
 ```
 
 **Multiple servers (e.g., backend + frontend):**
 ```bash
-python scripts/with_server.py \
+python .claude/skills/webapp-testing/scripts/with_server.py \
   --server "cd backend && python server.py" --port 3000 \
   --server "cd frontend && npm run dev" --port 5173 \
   -- python your_automation.py
@@ -87,10 +87,3 @@ with sync_playwright() as p:
 - Always close the browser when done
 - Use descriptive selectors: `text=`, `role=`, CSS selectors, or IDs
 - Add appropriate waits: `page.wait_for_selector()` or `page.wait_for_timeout()`
-
-## Reference Files
-
-- **examples/** - Examples showing common patterns:
-  - `element_discovery.py` - Discovering buttons, links, and inputs on a page
-  - `static_html_automation.py` - Using file:// URLs for local HTML
-  - `console_logging.py` - Capturing console logs during automation

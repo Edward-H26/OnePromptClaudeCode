@@ -5,6 +5,11 @@ plugin_settings_path() {
     echo "$project_dir/.claude/settings.json"
 }
 
+plugin_local_settings_path() {
+    local project_dir="${CLAUDE_PROJECT_DIR:-$PWD}"
+    echo "$project_dir/.claude/settings.local.json"
+}
+
 plugin_installed_path() {
     local project_dir="${CLAUDE_PROJECT_DIR:-$PWD}"
     echo "$project_dir/plugins/installed_plugins.json"
@@ -20,16 +25,33 @@ plugin_has_install_state() {
 }
 
 plugin_enabled_names() {
-    local settings_path
+    local settings_path local_settings_path tmp_dir
     settings_path="$(plugin_settings_path)"
-    [[ -f "$settings_path" ]] || return 0
+    local_settings_path="$(plugin_local_settings_path)"
+    tmp_dir="$(mktemp -d)" || return 1
 
-    jq -r '
-        .enabledPlugins // {} |
-        to_entries[] |
-        select(.value == true) |
-        .key
-    ' "$settings_path" 2>/dev/null | sort -u
+    if [[ -f "$settings_path" ]]; then
+        jq -r '
+            .enabledPlugins // {} |
+            to_entries[] |
+            select(.value == true) |
+            .key
+        ' "$settings_path" 2>/dev/null > "$tmp_dir/enabled"
+    else
+        : > "$tmp_dir/enabled"
+    fi
+
+    if [[ -f "$local_settings_path" ]]; then
+        jq -r '
+            .enabledPlugins // {} |
+            to_entries[] |
+            select(.value == true) |
+            .key
+        ' "$local_settings_path" 2>/dev/null >> "$tmp_dir/enabled"
+    fi
+
+    sort -u "$tmp_dir/enabled"
+    rm -rf "$tmp_dir" 2>/dev/null || true
 }
 
 plugin_installed_names() {
@@ -51,6 +73,7 @@ plugin_blocklisted_names() {
     jq -r '
         .plugins // [] |
         .[] |
+        select((((.reason // "") + " " + (.text // "")) | ascii_downcase | contains("test")) | not) |
         .plugin // empty
     ' "$blocklist_path" 2>/dev/null | sort -u
 }

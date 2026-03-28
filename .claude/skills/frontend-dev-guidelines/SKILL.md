@@ -23,6 +23,8 @@ Comprehensive guide for modern React development, emphasizing Suspense-based dat
 
 ## Quick Start
 
+The component names and aliases below are examples, not required repo-local primitives. Reuse existing equivalents in the target project when they already exist.
+
 ### New Component Checklist
 
 Creating a component? Follow this checklist:
@@ -62,7 +64,7 @@ Creating a feature? Set up this structure:
 | `~components` | `src/components` | `import { SuspenseLoader } from '~components/SuspenseLoader'` |
 | `~features` | `src/features` | `import { authApi } from '~features/auth'` |
 
-Defined in: [vite.config.ts](../../vite.config.ts) lines 180-185
+Define these aliases in the frontend build config used by the target project, usually `vite.config.ts` or the equivalent bundler config.
 
 ---
 
