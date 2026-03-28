@@ -67,7 +67,8 @@ fi
 
 WORKSPACE="${CLAUDE_PROJECT_DIR:-$PWD}"
 TIMESTAMP=$(date -u +"%Y%m%d-%H%M%S")
-RUNTIME_DIR="${AUTO_CODEX_RUNTIME_DIR:-${CLAUDE_PROJECT_DIR:-$PWD}/.claude/skills/codex/.runtime}"
+AUTO_CODEX_HOME="${AUTO_CODEX_HOME:-$WORKSPACE/.claude/runtime/codex/home}"
+RUNTIME_DIR="${AUTO_CODEX_RUNTIME_DIR:-$WORKSPACE/.claude/runtime/codex/runs}"
 mkdir -p "$RUNTIME_DIR"
 ARTIFACT_DIR="$(mktemp -d "$RUNTIME_DIR/auto-${TIMESTAMP}-XXXXXX")"
 OUTPUT_PATH="$ARTIFACT_DIR/output.md"
@@ -87,6 +88,9 @@ LAUNCH_SCRIPT="$(mktemp)"
 printf '%s' "$PROMPT" > "$PROMPT_FILE"
 cat > "$LAUNCH_SCRIPT" <<LAUNCH
 #!/bin/bash
+export CLAUDE_PROJECT_DIR="$WORKSPACE"
+export AUTO_CODEX_HOME="$AUTO_CODEX_HOME"
+export AUTO_CODEX_RUNTIME_DIR="$RUNTIME_DIR"
 "$CODEX_SCRIPT" -t "\$(cat '$PROMPT_FILE')" -w "$WORKSPACE" -o "$OUTPUT_PATH"
 LAUNCH
 chmod +x "$LAUNCH_SCRIPT"

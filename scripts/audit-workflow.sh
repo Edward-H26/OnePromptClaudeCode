@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 echo "[1/9] Shell syntax"
-bash -n .claude/hooks/*.sh .claude/hooks/lib/*.sh references/*.sh scripts/audit-workflow.sh
+bash -n .claude/hooks/*.sh .claude/hooks/lib/*.sh references/*.sh scripts/*.sh
 for gstack_bin in .claude/skills/gstack/*/bin/*.sh; do
     [ -f "$gstack_bin" ] && bash -n "$gstack_bin"
 done
@@ -54,7 +54,7 @@ root = Path(".")
 skills_dir = root / ".claude" / "skills"
 skill_rules_path = skills_dir / "skill-rules.json"
 
-for path in [root / ".claude" / "settings.json", skill_rules_path]:
+for path in [root / ".claude" / "settings.json", root / ".claude" / "settings.local.example.json", skill_rules_path]:
     with path.open() as handle:
         json.load(handle)
 
@@ -104,12 +104,31 @@ if missing_references:
         print(f"  {path.as_posix()}")
     print("Run bash references/setup.sh to restore the tracked vendored workflow sources.")
     raise SystemExit(1)
+
+readme = (root / "README.md").read_text()
+command_count = len([path for path in (root / ".claude" / "commands").glob("*.md") if path.name != "README.md"])
+agent_count = len([path for path in (root / ".claude" / "agents").glob("*.md") if path.name != "README.md"])
+hook_count = len(list((root / ".claude" / "hooks").glob("*.sh")))
+template_count = len(list((root / ".claude" / "prompt-templates").glob("*.md")))
+skill_count = len(skill_dirs)
+
+expected_fragments = [
+    f"{skill_count} skill entries. {command_count} commands. {agent_count} agents. {hook_count} local hooks. {template_count} templates.",
+    f"| **Commands** | {command_count} |",
+    f"commands/              # {command_count} slash commands",
+]
+
+for fragment in expected_fragments:
+    if fragment not in readme:
+        print(f"README.md is missing expected inventory text: {fragment}")
+        raise SystemExit(1)
 PY
 
 echo "[4/9] Hook prompt classification and cache-key safety"
 source ".claude/hooks/lib/patterns.sh"
 source ".claude/hooks/lib/utils.sh"
 source ".claude/hooks/lib/plugin-state.sh"
+source ".claude/hooks/lib/runtime-state.sh"
 
 expect_match() {
     local text="$1"
@@ -213,6 +232,60 @@ EOF
         bash "$ROOT/.claude/hooks/auto-codex-trigger.sh"
 }
 
+run_check_careful() {
+    local input="$1"
+    local state_dir="$2"
+
+    printf "%s" "$input" |
+        CLAUDE_PROJECT_DIR="$ROOT" \
+        CLAUDE_PLUGIN_DATA="$state_dir" \
+        bash "$ROOT/.claude/skills/gstack/careful/bin/check-careful.sh"
+}
+
+run_check_freeze() {
+    local input="$1"
+    local state_dir="$2"
+
+    printf "%s" "$input" |
+        CLAUDE_PROJECT_DIR="$ROOT" \
+        CLAUDE_PLUGIN_DATA="$state_dir" \
+        bash "$ROOT/.claude/skills/gstack/freeze/bin/check-freeze.sh"
+}
+
+run_ask_codex_with_stub() {
+    local stub_dir
+    stub_dir="$(mktemp -d)"
+    mkdir -p "$stub_dir/source-home"
+
+    cat > "$stub_dir/codex" <<'EOF'
+#!/bin/bash
+set -e
+printf '%s\n' "$*" > "${STUB_ARGS_FILE:?}"
+if [[ "${1:-}" == "exec" && "${2:-}" == "resume" ]]; then
+    printf "resume response\n"
+    exit 0
+fi
+cat <<'JSON'
+{"type":"thread.started","thread_id":"stub-thread"}
+{"type":"item.completed","item":{"type":"agent_message","text":"stub response"}}
+JSON
+EOF
+    chmod +x "$stub_dir/codex"
+
+    local output
+    output="$(
+        PATH="$stub_dir:$PATH" \
+        STUB_ARGS_FILE="$stub_dir/args.txt" \
+        CLAUDE_PROJECT_DIR="$ROOT" \
+        AUTO_CODEX_HOME="$stub_dir/codex-home" \
+        AUTO_CODEX_RUNTIME_DIR="$stub_dir/runs" \
+        AUTO_CODEX_SOURCE_HOME="$stub_dir/source-home" \
+        bash "$ROOT/.claude/skills/codex/scripts/ask_codex.sh" "$@"
+    )"
+
+    printf '%s\nARGS_FILE=%s/args.txt\n' "$output" "$stub_dir"
+}
+
 SKILL_OUTPUT="$(run_skill_activation "What is the relationship between the modules?")"
 if printf "%s\n" "$SKILL_OUTPUT" | grep -q "ship"; then
     echo "Unexpected ship activation for relationship prompt" >&2
@@ -295,6 +368,64 @@ for expected_skill in webapp-testing e2e-testing; do
     fi
 done
 
+TMP_GSTACK_STATE="$(mktemp -d)"
+
+CAREFUL_OUTPUT="$(run_check_careful '{"tool_input":{"command":"rm -rf tmp"}}' "$TMP_GSTACK_STATE")"
+if [[ "$CAREFUL_OUTPUT" != "{}" ]]; then
+    echo "careful hook should be inert until activated" >&2
+    exit 1
+fi
+
+printf "active\n" > "$TMP_GSTACK_STATE/careful-mode.txt"
+CAREFUL_OUTPUT="$(run_check_careful '{"tool_input":{"command":"rm -rf tmp"}}' "$TMP_GSTACK_STATE")"
+if ! printf "%s\n" "$CAREFUL_OUTPUT" | grep -q '"permissionDecision":"ask"'; then
+    echo "careful hook should warn when activated" >&2
+    exit 1
+fi
+
+CAREFUL_OUTPUT="$(run_check_careful '{"tool_input":{"command":"rm -rf node_modules"}}' "$TMP_GSTACK_STATE")"
+if [[ "$CAREFUL_OUTPUT" != "{}" ]]; then
+    echo "careful hook should allow safe cache cleanup targets" >&2
+    exit 1
+fi
+
+printf "%s/\n" "$ROOT/.claude" > "$TMP_GSTACK_STATE/freeze-dir.txt"
+FREEZE_OUTPUT="$(run_check_freeze "{\"tool_input\":{\"file_path\":\"$ROOT/.claude/settings.json\"}}" "$TMP_GSTACK_STATE")"
+if [[ "$FREEZE_OUTPUT" != "{}" ]]; then
+    echo "freeze hook should allow edits inside the boundary" >&2
+    exit 1
+fi
+
+FREEZE_OUTPUT="$(run_check_freeze "{\"tool_input\":{\"edits\":[{\"file_path\":\"$ROOT/.claude/settings.json\"},{\"file_path\":\"$ROOT/.claude/hooks/README.md\"}]}}" "$TMP_GSTACK_STATE")"
+if [[ "$FREEZE_OUTPUT" != "{}" ]]; then
+    echo "freeze hook should allow MultiEdit paths inside the boundary" >&2
+    exit 1
+fi
+
+FREEZE_OUTPUT="$(run_check_freeze "{\"tool_input\":{\"file_path\":\"$ROOT/README.md\"}}" "$TMP_GSTACK_STATE")"
+if ! printf "%s\n" "$FREEZE_OUTPUT" | grep -q '"permissionDecision":"deny"'; then
+    echo "freeze hook should block edits outside the boundary" >&2
+    exit 1
+fi
+
+FREEZE_OUTPUT="$(run_check_freeze "{\"tool_input\":{\"edits\":[{\"file_path\":\"$ROOT/.claude/settings.json\"},{\"file_path\":\"$ROOT/README.md\"}]}}" "$TMP_GSTACK_STATE")"
+if ! printf "%s\n" "$FREEZE_OUTPUT" | grep -q '"permissionDecision":"deny"'; then
+    echo "freeze hook should block MultiEdit paths outside the boundary" >&2
+    exit 1
+fi
+
+TMP_SPACE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/freeze test.XXXXXX")"
+printf "%s/\n" "$TMP_SPACE_DIR" > "$TMP_GSTACK_STATE/freeze-dir.txt"
+FREEZE_OUTPUT="$(run_check_freeze "{\"tool_input\":{\"file_path\":\"$TMP_SPACE_DIR/example.ts\"}}" "$TMP_GSTACK_STATE")"
+if [[ "$FREEZE_OUTPUT" != "{}" ]]; then
+    echo "freeze hook should preserve boundaries that contain spaces" >&2
+    rm -rf "$TMP_SPACE_DIR"
+    exit 1
+fi
+rm -rf "$TMP_SPACE_DIR"
+
+rm -rf "$TMP_GSTACK_STATE"
+
 TASK_OUTPUT="$(run_task_orchestrator "What is the current plan?")"
 if [[ -n "$TASK_OUTPUT" ]]; then
     echo "Pure informational question should not trigger coding guidance" >&2
@@ -346,6 +477,42 @@ for auto_dir in "$AUTO_DIR_ONE" "$AUTO_DIR_TWO"; do
         exit 1
     fi
 done
+
+ASK_OUTPUT="$(run_ask_codex_with_stub "Summarize the repo layout" --read-only -o "$ROOT/.claude/runtime/codex/audit-smoke.md")"
+ASK_PATH="$(printf "%s\n" "$ASK_OUTPUT" | awk -F= '/^output_path=/ {print $2}')"
+ASK_ARGS_FILE="$(printf "%s\n" "$ASK_OUTPUT" | awk -F= '/^ARGS_FILE=/ {print $2}')"
+if [[ -z "$ASK_PATH" ]] || [[ ! -f "$ASK_PATH" ]] || ! grep -q "stub response" "$ASK_PATH"; then
+    echo "ask_codex.sh should capture JSON mode output from Codex" >&2
+    exit 1
+fi
+if ! printf "%s\n" "$ASK_OUTPUT" | grep -q '^session_id=stub-thread$'; then
+    echo "ask_codex.sh should emit session_id for new sessions" >&2
+    exit 1
+fi
+if [[ ! -f "$ASK_ARGS_FILE" ]] || ! grep -q -- '--json' "$ASK_ARGS_FILE"; then
+    echo "ask_codex.sh should request JSON mode for new sessions" >&2
+    exit 1
+fi
+
+ASK_OUTPUT="$(run_ask_codex_with_stub "Follow up" --session stub-session --read-only -o "$ROOT/.claude/runtime/codex/audit-resume.md")"
+ASK_PATH="$(printf "%s\n" "$ASK_OUTPUT" | awk -F= '/^output_path=/ {print $2}')"
+ASK_ARGS_FILE="$(printf "%s\n" "$ASK_OUTPUT" | awk -F= '/^ARGS_FILE=/ {print $2}')"
+if [[ -z "$ASK_PATH" ]] || [[ ! -f "$ASK_PATH" ]] || ! grep -q "resume response" "$ASK_PATH"; then
+    echo "ask_codex.sh should capture resume-mode output from Codex" >&2
+    exit 1
+fi
+if ! printf "%s\n" "$ASK_OUTPUT" | grep -q '^session_id=stub-session$'; then
+    echo "ask_codex.sh should preserve the caller session_id for resume mode" >&2
+    exit 1
+fi
+if [[ ! -f "$ASK_ARGS_FILE" ]] || ! grep -q '^exec resume ' "$ASK_ARGS_FILE"; then
+    echo "ask_codex.sh should use codex exec resume for resumed sessions" >&2
+    exit 1
+fi
+if grep -q -- '--json' "$ASK_ARGS_FILE" || grep -q -- '--sandbox' "$ASK_ARGS_FILE"; then
+    echo "ask_codex.sh should not pass unsupported resume flags" >&2
+    exit 1
+fi
 
 CACHE_KEY="$(repo_cache_key "packages/app")"
 if [[ -z "$CACHE_KEY" ]] || [[ "$CACHE_KEY" == *"/"* ]]; then
@@ -573,10 +740,9 @@ if blocklist_path.exists():
             stale_test_entries.append(plugin)
 
     if stale_test_entries:
-        print("Enabled plugins are blocklisted by local test entries:")
+        print("Note: enabled plugins are blocklisted by ignored local test entries:")
         for plugin in sorted(set(stale_test_entries)):
             print(f"  {plugin}")
-        raise SystemExit(1)
 PY
 
 rm -rf "$TMP_PLUGIN_STATE_DIR"
@@ -597,6 +763,17 @@ gitignore_check = subprocess.run(
 if gitignore_check.returncode != 0:
     print("Missing gitignore coverage for .superpowers/")
     raise SystemExit(1)
+
+for ignored_path in [".claude/runtime/", ".claude/settings.local.json"]:
+    gitignore_check = subprocess.run(
+        ["git", "-C", str(root), "check-ignore", ignored_path],
+        text=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    if gitignore_check.returncode != 0:
+        print(f"Missing gitignore coverage for {ignored_path}")
+        raise SystemExit(1)
 
 intentional_reference_ignores = {
     "references/everything-claude-code/.env.example": ["/references/everything-claude-code/.env.example"],

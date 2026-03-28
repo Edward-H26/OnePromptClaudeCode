@@ -145,7 +145,7 @@ Launch an Explore subagent or use `deep-research`.
 - Trace how each new feature builds on the existing codebase.
 - If `[REFERENCE_NOTEBOOK]` is provided, read it and extract methodology and patterns.
 - If `[DATASET_URL]` is provided, use HuggingFace MCP or WebFetch to examine the data.
-- Use Context7 MCP (`resolve-library-id`, `query-docs`) for up-to-date documentation on key dependencies.
+- If Context7 is configured locally, use Context7 MCP (`resolve-library-id`, `query-docs`) for up-to-date documentation on key dependencies. Otherwise use the repo docs and web fetches available in the environment.
 
 Output: a changelog analysis with feature evolution, dependency changes, and domain context.
 
@@ -169,7 +169,7 @@ Launch a Plan subagent or use `superpowers:writing-plans` and `feature-dev:code-
 - Break the remaining work into detailed, ordered subtasks (2-5 minutes each).
 - For each subtask, specify: exact files to create or modify, design rationale, acceptance criteria, anti-patterns to avoid, and test strategy.
 - Reference `TOOLING_CONFIG` to tag tasks with `skills_to_use`.
-- Produce a visual outline using Figma MCP `generate_diagram` or a Mermaid diagram when the task involves multiple interacting components.
+- Produce a visual outline using Figma tooling when it is configured locally, or use a Mermaid diagram when that is the more reliable option for the current environment.
 - Consider `/plan-eng-review` for architecturally complex decisions.
 
 Output: a numbered implementation plan with file paths, code design rationale, risk flags, skill integration points, and a dependency graph.

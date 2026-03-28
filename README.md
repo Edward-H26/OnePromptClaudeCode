@@ -4,7 +4,7 @@
 
 A complete Claude Code workflow that covers the entire software development lifecycle. Clone it, start coding, and never write a prompt from scratch again.
 
-54 skill entries. 30 commands. 15 agents. 8 local hooks. 6 templates. 12+ MCP servers. 400+ auto-triggers.
+54 skill entries. 30 commands. 15 agents. 8 local hooks. 6 templates. 11+ shared MCP servers. 400+ auto-triggers.
 
 Built for beginners. Scales for power users.
 
@@ -27,10 +27,11 @@ OnePromptClaudeCode solves all three. It integrates the best of the Claude Code 
 ```bash
 git clone https://github.com/Edward-H26/OnePromptClaudeCode.git
 cd OnePromptClaudeCode
+bash scripts/doctor-workflow.sh
 claude
 ```
 
-That is the full setup. `references/setup.sh` is optional, but it refreshes the curated vendored upstream content under `references/` that some repo-local wrappers and vendored passthrough skills consult as background material. After workflow changes, run `bash scripts/audit-workflow.sh`.
+That is the repo setup. The tracked baseline enables only the repo-stable plugin set; auth-sensitive or duplicate integrations such as GitHub, context7, Figma plugin MCP, and extra browser plugins should be added in `.claude/settings.local.json` only when the local machine is actually configured for them. Start from `.claude/settings.local.example.json` when you want those optional local plugins. Run `bash scripts/doctor-workflow.sh` on a fresh clone to confirm the live workflow is ready. `references/setup.sh` is optional, but it refreshes the curated vendored upstream content under `references/` that some repo-local wrappers and vendored passthrough skills consult as background material. After workflow changes, run `bash scripts/audit-workflow.sh`.
 
 ---
 
@@ -47,7 +48,18 @@ The workflow watches what you do and activates the right tools automatically:
 | Ask about Docker | `docker-patterns` |
 | Type `/ship` | Release-readiness handoff |
 
-Zero commands to memorize. Zero prompts to write. Zero configuration.
+Zero prompts to write. Minimal repo setup. Machine-local plugin installs and auth still need to be healthy.
+
+---
+
+## Runtime Prerequisites
+
+- Install the shared Claude Code baseline plugin set once on the machine that uses this repo.
+- Add auth-sensitive or duplicate plugin integrations in `.claude/settings.local.json`, not the shared tracked config.
+- Use `.claude/settings.local.example.json` as the starting point for optional local plugin enablement.
+- Ensure required MCP connectors and auth are healthy for the tools you actually use.
+- If you want the optional Codex background workflow, make sure `codex` is installed and authenticated.
+- Run `bash scripts/doctor-workflow.sh` after clone, and again after workflow or plugin changes.
 
 ---
 
@@ -62,7 +74,7 @@ Zero commands to memorize. Zero prompts to write. Zero configuration.
 | **Agents** | 15 | Specialized local agents for complex tasks |
 | **Hooks** | 8 | Automated local safety, tracking, and validation hooks |
 | **Templates** | 6 | Reusable prompt templates for common workflows |
-| **MCP Servers** | 12+ | Figma, GitHub, Playwright, MongoDB, HuggingFace, and more |
+| **MCP Servers** | 11+ | Figma, GitHub, Playwright, HuggingFace, and other shared or user-scoped connectors |
 
 ### Development Lifecycle
 
@@ -133,7 +145,7 @@ The workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Te
 | Skill | Trigger | What it does |
 |---|---|---|
 | `super-ralph` | `/super-ralph` | Fully autonomous multi-agent development |
-| `codex` (oiloil) | `/codex` | Delegate coding to Codex CLI via `ask_codex.sh`, plus cross-model review (review/challenge/consult) |
+| `codex` (oiloil) | `/codex` and optional background auto-trigger | Delegate coding to Codex CLI via `ask_codex.sh`, plus cross-model review (review/challenge/consult) |
 | `gstack codex` | internal to `/review-staff` | Enhanced cross-model review with telemetry, platform detection, and plan file integration |
 | `autoresearch` | `/autoresearch` | Karpathy-style ML experiment loops |
 | `autonomous-loops` | ask about "autonomous loop" | Continuous agent loop patterns |
@@ -150,7 +162,9 @@ The workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Te
 
 ---
 
-## Commands
+## Selected Commands
+
+The repo tracks 30 slash commands. Common entry points are listed below.
 
 | Command | Purpose |
 |---|---|
@@ -207,11 +221,11 @@ Automated hooks run at every stage of your workflow:
 | Hook | When | What it does |
 |---|---|---|
 | `check-careful.sh` | Before Bash | Warns before destructive commands |
-| `check-freeze.sh` | Before Edit/Write | Blocks edits outside frozen directory |
+| `check-freeze.sh` | Before Edit/MultiEdit/Write | Blocks edits outside frozen directory |
 | `task-orchestrator-hook.sh` | On prompt | Detects analysis vs coding tasks |
 | `skill-activation-prompt.sh` | On prompt | Suggests skills via 400+ keyword triggers |
-| `post-tool-use-tracker.sh` | After Edit/Write | Tracks edited files |
-| `tsc-check.sh` | After Edit/Write | Runs TypeScript checks |
+| `post-tool-use-tracker.sh` | After Edit/MultiEdit/Write | Tracks edited files |
+| `tsc-check.sh` | After Edit/MultiEdit/Write | Runs TypeScript checks |
 | `workflow-step-tracker.sh` | After Bash/Skill/MCP | Marks workflow completion |
 | `stop-build-check-enhanced.sh` | Session end | Re-runs all checks |
 | `workflow-completion-gate.sh` | Session end | Advisory reminders, cleanup |
@@ -225,7 +239,6 @@ Automated hooks run at every stage of your workflow:
 | **Figma** | Read designs, screenshots, diagrams, Code Connect |
 | **GitHub** | Repos, issues, PRs, reviews |
 | **Playwright** | Browser automation, testing |
-| **MongoDB** | Query, aggregate, schema, CRUD |
 | **Hugging Face** | Model/dataset/paper search, training |
 | **filesystem** | Read/write files |
 | **memory** | Persistent entity/relation graph |
@@ -233,6 +246,7 @@ Automated hooks run at every stage of your workflow:
 | **context7** | Live library documentation |
 | **Scholar Gateway** | Academic paper search |
 | **PDF Viewer** | PDF display and reading |
+| **Optional user-scoped connectors** | Additional project-specific services outside the shared repo config |
 
 ---
 
@@ -260,6 +274,7 @@ Ready-to-use templates at `.claude/prompt-templates/`:
   CLAUDE-skills.md       # Skills inventory reference
   WORKFLOW-REFERENCE.md  # Complete reference (single source of truth)
   settings.json          # Permissions, hooks, plugins, env
+  runtime/               # Repo-local ignored runtime state for safety and Codex
   agents/                # 15 local agent definitions
   commands/              # 30 slash commands
   hooks/                 # 8 automated hook scripts
@@ -302,7 +317,7 @@ This workflow integrates and builds upon the work of incredible community projec
 | Continuous Claude | @AnandChowdhary | Continuous PR loop pattern |
 | Infinite Agentic Loop | @disler | Self-running agent pattern |
 | Ralphinho | @enitrat | RFC-driven DAG orchestration |
-| Official Plugins | Anthropic | Superpowers, feature-dev, code-review, Figma, Playwright, HuggingFace |
+| Official Plugins | Anthropic | Superpowers, feature-dev, code-review, Figma, Playwright, GitHub, HuggingFace |
 | shadcn/ui | shadcn | Component patterns |
 | Context7 | Context7 | Library documentation |
 

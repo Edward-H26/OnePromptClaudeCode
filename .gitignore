@@ -47,6 +47,7 @@
 # Runtime cache directories (recreated by hooks during sessions)
 /tsc-cache/
 /.claude/tsc-cache/
+/.claude/runtime/
 /.claude/skills/codex/.runtime/
 /.claude/skills/super-ralph/.git/
 /.claude/skills/chrome-devtools/scripts/node_modules/
@@ -196,3 +197,4 @@ secrets.*
 .claude/skills/**/learnings.md
 .claude/skills/**/__pycache__/
 .claude/skills/**/*.pyc
+.claude/skills/learned/

@@ -23,8 +23,8 @@ Invoke `/super-ralph` and read the local wrapper at `$CLAUDE_PROJECT_DIR/.claude
 Before launching, use available tools to set up the context:
 
 1. Apply `search-first` to deeply explore the codebase in [DIRECTORY]. Map the project structure, tech stack, conventions, and test infrastructure before Ralph begins.
-2. Use Context7 MCP: call `resolve-library-id` and `query-docs` for every significant dependency so Ralph's agents have up-to-date API docs.
-3. If the project has a database, use MongoDB MCP (`collection-schema`, `collection-indexes`) or apply `postgres-patterns` to understand the data layer.
+2. If Context7 is configured locally, call `resolve-library-id` and `query-docs` for every significant dependency. Otherwise use the repo docs and web fetches that are available in the environment.
+3. If the project has a database, use any available repo-specific database connector or apply `postgres-patterns` to understand the data layer.
 4. Use repo file search and reads to get a structural overview Ralph can reference.
 5. Use Memory MCP: call `search_nodes` to check for prior architectural decisions or constraints relevant to this task.
 6. Consider activating `/careful` if the task touches critical systems, or `/freeze [MODULE_DIR]` to restrict edits to a specific module.
@@ -45,7 +45,7 @@ Super Ralph will then autonomously:
 **Phase 4: Execute** — Agents work in parallel where possible. The judge evaluates each output against the task definition and the `JUDGE_RUBRIC`, so grading matches the user's stated priority, audience, and lifespan. Tasks with dependencies receive extracted prerequisite learnings from completed upstream tasks before implementation retries continue. Each agent has access to the full tool ecosystem:
 - Backend work uses `backend-dev-guidelines`, `docker-patterns`, `postgres-patterns`, `deployment-patterns`
 - Frontend work uses `frontend-dev-guidelines`, `ui-styling`, `liquid-glass-design`, `e2e-testing`
-- All agents can use Context7 MCP, MongoDB MCP, Chrome MCP, Playwright MCP, Figma MCP as needed
+- All agents can use Context7 MCP, Chrome MCP, Playwright MCP, Figma MCP, and any repo-specific database connector when those integrations are configured locally
 - Testing uses `tdd-workflow`, `verification-loop`, `/qa` for browser testing
 - Security checks use `security-review` and `security-scan`
 
@@ -58,7 +58,7 @@ After Ralph completes, run these additional verification steps:
 1. Run `/quality-gate` to validate the combined output against quality criteria.
 2. Run `/codex review` for an independent cross-model review of all changes.
 3. Consider `/codex challenge` to adversarially stress-test the result.
-4. Use Chrome MCP or Playwright MCP to verify any UI changes in the browser.
+4. Use available browser tooling, such as Chrome MCP or Playwright MCP when configured locally, to verify any UI changes in the browser.
 5. Use the `verification-loop` skill for a final structured 6-phase check.
 6. Run `/checkpoint` to save the verified state.
 

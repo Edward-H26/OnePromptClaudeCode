@@ -4,12 +4,24 @@
 # Returns {"permissionDecision":"deny","message":"..."} to block, or {} to allow.
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+RUNTIME_HELPER="$SCRIPT_DIR/../../../../hooks/lib/runtime-state.sh"
+if [[ -f "$RUNTIME_HELPER" ]]; then
+  # shellcheck source=/dev/null
+  source "$RUNTIME_HELPER"
+fi
+
 # Read stdin
 INPUT=$(cat)
 
 # Locate the freeze directory state file
-STATE_DIR="${CLAUDE_PLUGIN_DATA:-$HOME/.gstack}"
-FREEZE_FILE="$STATE_DIR/freeze-dir.txt"
+STATE_DIR="${CLAUDE_PLUGIN_DATA:-${GSTACK_STATE_DIR:-${CLAUDE_PROJECT_DIR:-$PWD}/.claude/runtime/gstack}}"
+if declare -F gstack_state_dir >/dev/null 2>&1; then
+  STATE_DIR="$(gstack_state_dir)"
+fi
+FREEZE_FILE="${FREEZE_FILE:-${STATE_DIR}/freeze-dir.txt}"
+ANALYTICS_DIR="${ANALYTICS_DIR:-${STATE_DIR}/analytics}"
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$PWD}"
 
 # If no freeze file exists, allow everything (not yet configured)
 if [ ! -f "$FREEZE_FILE" ]; then
@@ -17,7 +29,7 @@ if [ ! -f "$FREEZE_FILE" ]; then
   exit 0
 fi
 
-FREEZE_DIR=$(tr -d '[:space:]' < "$FREEZE_FILE")
+IFS= read -r FREEZE_DIR < "$FREEZE_FILE" || true
 
 # If freeze dir is empty, allow
 if [ -z "$FREEZE_DIR" ]; then
@@ -25,44 +37,63 @@ if [ -z "$FREEZE_DIR" ]; then
   exit 0
 fi
 
-# Extract file_path from tool_input JSON
-# Try grep/sed first, fall back to Python for escaped quotes
-FILE_PATH=$(printf '%s' "$INPUT" | grep -o '"file_path"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/.*:[[:space:]]*"//;s/"$//' || true)
+FREEZE_DIR=$(printf '%s' "$FREEZE_DIR" | sed 's|/\+|/|g;s|/$||')
+
+# Extract file paths from tool_input JSON.
+# Supports Edit/Write (`file_path`) and MultiEdit (`edits[].file_path`).
+FILE_PATHS=$(printf '%s' "$INPUT" | grep -o '"file_path"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/.*:[[:space:]]*"//;s/"$//' || true)
 
 # Python fallback if grep returned empty
-if [ -z "$FILE_PATH" ]; then
-  FILE_PATH=$(printf '%s' "$INPUT" | python3 -c 'import sys,json; print(json.loads(sys.stdin.read()).get("tool_input",{}).get("file_path",""))' 2>/dev/null || true)
+if [ -z "$FILE_PATHS" ]; then
+  FILE_PATHS=$(printf '%s' "$INPUT" | python3 -c 'import json, sys
+tool_input = json.loads(sys.stdin.read()).get("tool_input", {})
+paths = []
+file_path = tool_input.get("file_path", "")
+if file_path:
+    paths.append(file_path)
+for edit in tool_input.get("edits", []):
+    edit_path = edit.get("file_path", "")
+    if edit_path:
+        paths.append(edit_path)
+print("\n".join(paths))' 2>/dev/null || true)
 fi
 
-# If we couldn't extract a file path, allow (don't block on parse failure)
-if [ -z "$FILE_PATH" ]; then
+# If we couldn't extract any file paths, allow (don't block on parse failure)
+if [ -z "$FILE_PATHS" ]; then
   echo '{}'
   exit 0
 fi
 
-# Resolve file_path to absolute if it isn't already
-case "$FILE_PATH" in
-  /*) ;; # already absolute
-  *)
-    FILE_PATH="$(pwd)/$FILE_PATH"
-    ;;
-esac
+FIRST_VIOLATION=""
 
-# Normalize: remove double slashes and trailing slash
-FILE_PATH=$(printf '%s' "$FILE_PATH" | sed 's|/\+|/|g;s|/$||')
+while IFS= read -r FILE_PATH; do
+  [ -z "$FILE_PATH" ] && continue
 
-# Check: does the file path start with the freeze directory?
-case "$FILE_PATH" in
-  "${FREEZE_DIR}"*)
-    # Inside freeze boundary — allow
-    echo '{}'
-    ;;
-  *)
-    # Outside freeze boundary — deny
-    # Log hook fire event
-    mkdir -p ~/.gstack/analytics 2>/dev/null || true
-    echo '{"event":"hook_fire","skill":"freeze","pattern":"boundary_deny","ts":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","repo":"'$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || echo "unknown")'"}' >> ~/.gstack/analytics/skill-usage.jsonl 2>/dev/null || true
+  case "$FILE_PATH" in
+    /*) ;; # already absolute
+    *)
+      FILE_PATH="$PROJECT_DIR/$FILE_PATH"
+      ;;
+  esac
 
-    printf '{"permissionDecision":"deny","message":"[freeze] Blocked: %s is outside the freeze boundary (%s). Only edits within the frozen directory are allowed."}\n' "$FILE_PATH" "$FREEZE_DIR"
-    ;;
-esac
+  FILE_PATH=$(printf '%s' "$FILE_PATH" | sed 's|/\+|/|g;s|/$||')
+
+  case "$FILE_PATH" in
+    "$FREEZE_DIR"|"$FREEZE_DIR"/*)
+      ;;
+    *)
+      FIRST_VIOLATION="$FILE_PATH"
+      break
+      ;;
+  esac
+done <<< "$FILE_PATHS"
+
+if [ -z "$FIRST_VIOLATION" ]; then
+  echo '{}'
+  exit 0
+fi
+
+mkdir -p "$ANALYTICS_DIR" 2>/dev/null || true
+echo '{"event":"hook_fire","skill":"freeze","pattern":"boundary_deny","ts":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","repo":"'$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || echo "unknown")'"}' >> "$ANALYTICS_DIR/skill-usage.jsonl" 2>/dev/null || true
+
+printf '{"permissionDecision":"deny","message":"[freeze] Blocked: %s is outside the freeze boundary (%s). Only edits within the frozen directory are allowed."}\n' "$FIRST_VIOLATION" "$FREEZE_DIR/"

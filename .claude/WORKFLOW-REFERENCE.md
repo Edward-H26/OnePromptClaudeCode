@@ -7,8 +7,10 @@
 This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Test, Ship, Reflect**. Each phase has dedicated skills that feed into the next. Skills are activated automatically via keyword triggers or manually via slash commands.
 
 **Global config**: On some local setups, a user-scoped Claude home directory may be symlinked to this project directory. This is a machine-specific convention, not a requirement of the published repo.
-**Repo-local multi-model flow**: `/multi-plan` and `/multi-execute` use the bundled Codex bridge plus installed plugin agents. They no longer depend on personal wrapper tooling outside this repo.
+**Repo-local multi-model flow**: `/multi-plan` and `/multi-execute` use the bundled Codex bridge plus installed plugin agents. The Codex bridge now writes repo-local runtime state under `.claude/runtime/codex/`.
 **Published surface**: This repo tracks the workflow content it runs, including bundled `super-ralph`, bundled `ui-styling` assets, repo-local wrapper skills, and the vendored upstream sources under `references/` that those wrappers and a smaller set of vendored passthrough skills may consult. Reference refreshes are curated and prune upstream runtime-only artifacts that are not part of this repo's published workflow surface.
+**Live readiness**: Use `bash scripts/doctor-workflow.sh` for plugin, MCP, and Codex runtime checks. Use `bash scripts/audit-workflow.sh` for static repo-surface validation.
+**Plugin split**: The tracked shared config enables only the repo-stable baseline. Auth-sensitive or duplicate integrations such as GitHub, context7, or plugin-provided Figma/Playwright MCP servers belong in `.claude/settings.local.json`. Use `.claude/settings.local.example.json` as the tracked starting point for those local overrides.
 
 ---
 
@@ -188,7 +190,6 @@ Availability depends on the local Claude installation, enabled plugins, ignored 
 | **Figma** | Read designs, get screenshots, create diagrams, Code Connect | `get_design_context`, `get_screenshot`, `generate_diagram` |
 | **GitHub** | Repository search, issues, pull requests, and reviews | `search_repositories`, `create_pull_request`, `list_issues` |
 | **Playwright** | Browser automation, click, fill, screenshot, evaluate | `browser_navigate`, `browser_click`, `browser_snapshot` |
-| **MongoDB** | Query, aggregate, schema, indexes, CRUD | `find`, `aggregate`, `collection-schema`, `insert-many` |
 | **Hugging Face** | Model/dataset/paper search, training jobs | `hub_repo_search`, `paper_search`, `dynamic_space` |
 | **filesystem** | Read/write files across allowed directories | `read_file`, `write_file`, `search_files` |
 | **memory** | Persistent entity/relation graph | `create_entities`, `search_nodes`, `add_observations` |
@@ -209,12 +210,11 @@ Availability depends on the local Claude installation, enabled plugins, ignored 
 | `code-review` | PR-style code review with confidence-based filtering. Local blocklist state can make it unavailable even when enabled in tracked config. |
 | `code-simplifier` | Code simplification for clarity and maintainability |
 | `frontend-design` | Production-grade frontend interface generation |
-| `figma` | Figma design-to-code integration |
-| `github` | GitHub issue, PR, and repository workflows. Requires local GitHub auth when used. |
-| `playwright` | Browser automation plugin |
+| `figma` | Optional local plugin when you want the plugin variant instead of the already-configured `claude.ai Figma` connector |
+| `github` | Optional local plugin for GitHub issue, PR, and repository workflows. Requires local GitHub auth when used. |
+| `playwright` | Optional local browser automation plugin when you want the plugin MCP instead of the repo-local/browser tooling already available |
 | `huggingface-skills` | HF model training, dataset management, Gradio apps |
-| `mongodb` | MongoDB MCP server integration |
-| `context7` | Library documentation lookup |
+| `context7` | Optional local library documentation lookup plugin |
 | `pyright-lsp` | Python type checking |
 | `typescript-lsp` | TypeScript language server |
 
@@ -222,17 +222,17 @@ Availability depends on the local Claude installation, enabled plugins, ignored 
 
 ## Hooks System
 
-The 8 locally-maintained hook scripts live in `.claude/hooks/`. The 2 PreToolUse hooks below are provided by the bundled gstack workflow under `.claude/skills/gstack/` and are registered via settings.json when the corresponding skills are activated.
+The 8 locally-maintained hook scripts live in `.claude/hooks/`. The 2 PreToolUse hooks below are provided by the bundled gstack workflow under `.claude/skills/gstack/`, but this repo now keeps their activation state under `.claude/runtime/gstack/`.
 
 | Hook | When | What it does |
 |---|---|---|
-| **PreToolUse** | Before Bash | `check-careful.sh` (gstack): Warns before destructive commands (when /careful active) |
-| **PreToolUse** | Before Edit/Write | `check-freeze.sh` (gstack): Blocks edits outside frozen directory (when /freeze active) |
+| **PreToolUse** | Before Bash | `check-careful.sh` (gstack): Warns before destructive commands when `.claude/runtime/gstack/careful-mode.txt` is active |
+| **PreToolUse** | Before Edit/MultiEdit/Write | `check-freeze.sh` (gstack): Blocks edits outside the repo-local freeze boundary in `.claude/runtime/gstack/freeze-dir.txt` |
 | **UserPromptSubmit** | On prompt | `task-orchestrator-hook.sh`: Detects analysis vs coding, injects guidance |
 | **UserPromptSubmit** | On prompt | `auto-codex-trigger.sh`: Auto-launches Codex in background for coding tasks |
 | **UserPromptSubmit** | On prompt | `skill-activation-prompt.sh`: Suggests skills based on keyword matching |
-| **PostToolUse** | After Edit/Write | `post-tool-use-tracker.sh`: Tracks edited files for downstream hooks |
-| **PostToolUse** | After Edit/Write | `tsc-check.sh`: Runs TypeScript checks on modified files |
+| **PostToolUse** | After Edit/MultiEdit/Write | `post-tool-use-tracker.sh`: Tracks edited files for downstream hooks |
+| **PostToolUse** | After Edit/MultiEdit/Write | `tsc-check.sh`: Runs TypeScript checks on modified files |
 | **PostToolUse** | After Bash/Skill/MCP | `workflow-step-tracker.sh`: Marks workflow completion markers |
 | **Stop** | Session end | `stop-build-check-enhanced.sh`: Re-runs TSC checks at session end |
 | **Stop** | Session end | `workflow-completion-gate.sh`: Advisory reminders, cleans stale cache |

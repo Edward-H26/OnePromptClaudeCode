@@ -76,7 +76,6 @@ append_plugin_line "frontend-design@claude-plugins-official" "frontend-design fo
 append_plugin_line "github@claude-plugins-official" "github for repository and pull request workflows"
 append_plugin_line "playwright@claude-plugins-official" "playwright for browser workflows"
 append_plugin_line "figma@claude-plugins-official" "figma for design workflows"
-append_plugin_line "mongodb@mongodb-plugins" "mongodb for MongoDB-specific MCP and skill flows"
 append_plugin_line "superpowers@claude-plugins-official" "superpowers for additional agent and review workflows"
 
 if [[ -n "$PLUGIN_LINES" ]]; then

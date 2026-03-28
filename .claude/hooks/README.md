@@ -65,6 +65,16 @@ Shared plugin state helpers sourced by task-orchestrator-hook.sh and audit tooli
 - `plugin_available_names()` - Lists plugins both enabled and locally available
 - `plugin_is_available(name)` - Checks whether a plugin should be treated as available
 
+The shared tracked config keeps the baseline plugin set intentionally small. Auth-sensitive or duplicate plugin integrations should be added in `.claude/settings.local.json` so repo health checks stay reproducible.
+
+### `lib/runtime-state.sh`
+Shared repo-local runtime path helpers:
+- `workflow_runtime_root()` - Resolves the repo-local runtime root under `.claude/runtime/`
+- `gstack_state_dir()` - Resolves repo-local careful and freeze state
+- `gstack_analytics_dir()` - Resolves repo-local careful and freeze analytics
+- `codex_home_dir()` - Resolves the repo-local Codex home
+- `codex_runs_dir()` - Resolves repo-local Codex artifact storage
+
 ---
 
 ## Hook Details
@@ -87,7 +97,8 @@ Shared plugin state helpers sourced by task-orchestrator-hook.sh and audit tooli
 
 **Coding task detection:** A prompt is considered a coding task only when it clears the analysis guard and then matches `CODING_PATTERN` or code-related file extensions or terms (`CODING_CONTEXT_PATTERN`).
 
-**Artifact handling:** Each launch gets a unique runtime directory under `.claude/skills/codex/.runtime/` so concurrent launches cannot overwrite each other's output, log, or pid files.
+**Artifact handling:** Each launch gets a unique runtime directory under `.claude/runtime/codex/runs/` so concurrent launches cannot overwrite each other's output, log, or pid files.
+The hook also exports a repo-local Codex home under `.claude/runtime/codex/home/`.
 
 ### skill-activation-prompt (UserPromptSubmit)
 

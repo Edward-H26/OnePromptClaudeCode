@@ -76,6 +76,36 @@ resolve_file_ref() {
   to_abs_if_exists "$cleaned"
 }
 
+toml_escape() {
+  printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+}
+
+bootstrap_codex_home() {
+  local target_home="$1"
+  local source_home="$2"
+  local rel_path=""
+
+  [[ -z "$target_home" ]] && return 0
+  mkdir -p "$target_home"
+
+  [[ -z "$source_home" ]] && return 0
+  [[ "$target_home" == "$source_home" ]] && return 0
+
+  for rel_path in config.toml auth.json oauth.json credentials.json; do
+    if [[ -r "$source_home/$rel_path" ]] && [[ ! -e "$target_home/$rel_path" ]]; then
+      cp "$source_home/$rel_path" "$target_home/$rel_path" 2>/dev/null || true
+    fi
+  done
+}
+
+write_failure_output() {
+  local message="$1"
+  {
+    printf "Codex execution failed.\n\n"
+    printf "%s\n" "$message"
+  } > "$output_path"
+}
+
 append_file_refs() {
   local raw="$1" item
   IFS=',' read -r -a items <<< "$raw"
@@ -136,12 +166,26 @@ if [[ -z "$task_text" ]]; then
   echo "[ERROR] Request text is empty. Pass a positional arg, --task, or stdin." >&2; exit 1
 fi
 
+# --- Resolve repo-local Codex runtime paths ---
+
+project_dir="${CLAUDE_PROJECT_DIR:-$workspace}"
+codex_runtime_root="${AUTO_CODEX_RUNTIME_ROOT:-$project_dir/.claude/runtime/codex}"
+codex_runs_dir="${AUTO_CODEX_RUNTIME_DIR:-$codex_runtime_root/runs}"
+codex_log_dir="$codex_runtime_root/log"
+
+if [[ -z "${CODEX_HOME:-}" ]]; then
+  CODEX_HOME="${AUTO_CODEX_HOME:-$codex_runtime_root/home}"
+fi
+export CODEX_HOME
+
+mkdir -p "$CODEX_HOME" "$codex_runs_dir" "$codex_log_dir"
+bootstrap_codex_home "$CODEX_HOME" "${AUTO_CODEX_SOURCE_HOME:-${HOME:-}/.codex}"
+
 # --- Prepare output path ---
 
 if [[ -z "$output_path" ]]; then
   timestamp="$(date -u +"%Y%m%d-%H%M%S")"
-  skill_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-  output_path="$skill_dir/.runtime/${timestamp}.md"
+  output_path="$codex_runs_dir/${timestamp}.md"
 fi
 mkdir -p "$(dirname "$output_path")"
 
@@ -177,23 +221,35 @@ if [[ -z "$reasoning_effort" ]]; then
   reasoning_effort="medium"
 fi
 
+reasoning_effort_toml="$(toml_escape "$reasoning_effort")"
+codex_log_dir_toml="$(toml_escape "$codex_log_dir")"
+
 # --- Build codex command ---
 
 if [[ -n "$session_id" ]]; then
   # Resume mode: continue a previous session
-  cmd=(codex exec resume --skip-git-repo-check --json -c "model_reasoning_effort=\"$reasoning_effort\"")
-  if [[ "$read_only" == true ]]; then
-    cmd+=(--sandbox read-only)
-  elif [[ -n "$sandbox_mode" ]]; then
-    cmd+=(--sandbox "$sandbox_mode")
-  elif [[ "$full_auto" == true ]]; then
-    cmd+=(--full-auto)
+  cmd=(
+    codex exec resume
+    -c "model_reasoning_effort=\"$reasoning_effort_toml\""
+    -c "skip_git_repo_check=true"
+    -c 'history.persistence="none"'
+    -c "log_dir=\"$codex_log_dir_toml\""
+  )
+  if [[ "$read_only" == true ]] || [[ -n "$sandbox_mode" ]] || [[ "$full_auto" == true ]] || [[ -n "$model" ]]; then
+    echo "[WARNING] Resume mode ignores sandbox, model, and full-auto overrides." >&2
   fi
-  [[ -n "$model" ]] && cmd+=(-m "$model")
   cmd+=("$session_id")
 else
   # New session
-  cmd=(codex exec --cd "$workspace" --skip-git-repo-check --json -c "model_reasoning_effort=\"$reasoning_effort\"")
+  cmd=(
+    codex exec
+    --cd "$workspace"
+    --skip-git-repo-check
+    --json
+    -c "model_reasoning_effort=\"$reasoning_effort_toml\""
+    -c 'history.persistence="none"'
+    -c "log_dir=\"$codex_log_dir_toml\""
+  )
   if [[ "$read_only" == true ]]; then
     cmd+=(--sandbox read-only)
   elif [[ -n "$sandbox_mode" ]]; then
@@ -222,45 +278,99 @@ print_progress() {
   esac
 }
 
-# --- Execute and capture JSON output ---
+# --- Execute and capture output ---
 
 stderr_file="$(mktemp)"
 json_file="$(mktemp)"
+text_file="$(mktemp)"
 prompt_file="$(mktemp)"
-run_script=""
-cleanup() { rm -f "$stderr_file" "$json_file" "$prompt_file" "$run_script"; }
-trap cleanup EXIT
+trap 'rm -f "$stderr_file" "$json_file" "$text_file" "$prompt_file"' EXIT
 
 printf "%s" "$prompt" > "$prompt_file"
 
-run_script="$(mktemp)"
-cat > "$run_script" <<RUNCMD
-cd $(printf '%q' "$workspace") && $(printf '%q ' "${cmd[@]}") < $(printf '%q' "$prompt_file") 2>$(printf '%q' "$stderr_file")
-RUNCMD
-chmod +x "$run_script"
+run_codex() {
+  local os
+  os="$(uname -s)"
 
-if [[ ! -s "$run_script" ]]; then
-    echo "[ERROR] Failed to write run script" >&2
-    exit 1
+  if [[ "$os" == "Darwin" ]]; then
+    if script -q /dev/null true >/dev/null 2>&1; then
+      script -q /dev/null /bin/bash -c \
+        "cd $(printf '%q' "$workspace") && $(printf '%q ' "${cmd[@]}") < $(printf '%q' "$prompt_file") 2>$(printf '%q' "$stderr_file")"
+      return
+    fi
+  else
+    if script -q -c "true" /dev/null >/dev/null 2>&1; then
+      script -q -c \
+        "cd $(printf '%q' "$workspace") && $(printf '%q ' "${cmd[@]}") < $(printf '%q' "$prompt_file") 2>$(printf '%q' "$stderr_file")" \
+        /dev/null
+      return
+    fi
+  fi
+
+  (cd "$workspace" && "${cmd[@]}" < "$prompt_file" 2>"$stderr_file")
+}
+
+run_exit=0
+
+set +e
+if [[ -n "$session_id" ]]; then
+  run_codex | while IFS= read -r line; do
+      cleaned="${line//$'\r'/}"
+      cleaned="${cleaned//$'\004'/}"
+      cleaned="${cleaned//$'\010'/}"
+      cleaned="${cleaned#^D}"
+      [[ -z "$cleaned" ]] && continue
+      printf '%s\n' "$cleaned" >> "$text_file"
+      preview="${cleaned:0:120}"
+      echo "[codex] $preview" >&2
+    done
+  run_exit=${PIPESTATUS[0]}
+else
+  run_codex | while IFS= read -r line; do
+      cleaned="${line//$'\r'/}"
+      cleaned="${cleaned//$'\004'/}"
+      cleaned="${cleaned//$'\010'/}"
+      cleaned="${cleaned#^D}"
+      [[ -z "$cleaned" ]] && continue
+      [[ "$cleaned" != *"{"* ]] && continue
+      cleaned="{${cleaned#*\{}"
+      printf '%s\n' "$cleaned" >> "$json_file"
+      case "$cleaned" in
+        *'"item.started"'*|*'"item.completed"'*) print_progress "$cleaned" ;;
+      esac
+    done
+  run_exit=${PIPESTATUS[0]}
 fi
-script -q /dev/null /bin/bash "$run_script" \
-  | while IFS= read -r line; do
-    # Strip terminal artifacts (carriage return, ^D EOF marker)
-    cleaned="${line//$'\r'/}"
-    cleaned="${cleaned//$'\004'/}"
-    [[ -z "$cleaned" ]] && continue
-    # Only process JSON lines (must start with '{')
-    [[ "$cleaned" != \{* ]] && continue
-    # Write to json_file for later parsing
-    printf '%s\n' "$cleaned" >> "$json_file"
-    # Only parse progress-relevant events (fast string check before jq)
-    case "$cleaned" in
-      *'"item.started"'*|*'"item.completed"'*) print_progress "$cleaned" ;;
-    esac
-  done
+set -e
+
+stderr_preview=""
+if [[ -s "$stderr_file" ]]; then
+  stderr_preview="$(sed -n '1,40p' "$stderr_file")"
+fi
+
+if [[ $run_exit -ne 0 ]]; then
+  if printf '%s' "$stderr_preview" | grep -qi 'Missing bearer or basic authentication'; then
+    write_failure_output "Codex authentication is unavailable for the repo-local runtime at $CODEX_HOME.
+
+If this machine already uses Codex elsewhere, copy or bootstrap the required auth files into that repo-local home, or run:
+
+CODEX_HOME=\"$CODEX_HOME\" codex login"
+  elif printf '%s' "$stderr_preview" | grep -qi 'cannot access session files'; then
+    write_failure_output "Codex could not access its session files.
+
+This repo expects a writable repo-local Codex home. Verify that $CODEX_HOME exists and is writable, then retry."
+  else
+    write_failure_output "${stderr_preview:-Codex exited without a readable error message.}"
+  fi
+
+  if [[ -n "$stderr_preview" ]]; then
+    printf '%s\n' "$stderr_preview" >&2
+  fi
+  exit 1
+fi
 
 if [[ -s "$stderr_file" ]] && grep -q '\[ERROR\]' "$stderr_file" 2>/dev/null; then
-  echo "[ERROR] Codex command failed" >&2
+  write_failure_output "${stderr_preview:-Codex reported an internal error.}"
   cat "$stderr_file" >&2
   exit 1
 fi
@@ -269,44 +379,48 @@ if [[ -s "$stderr_file" ]]; then
   cat "$stderr_file" >&2
 fi
 
-# --- Extract thread_id and all messages from JSON stream ---
+# --- Process output based on mode ---
 
-thread_id="$(jq -r 'select(.type == "thread.started") | .thread_id' < "$json_file" | head -1)"
+if [[ -n "$session_id" ]]; then
+  thread_id="$session_id"
+  if [[ -s "$text_file" ]]; then
+    cat "$text_file" > "$output_path"
+  else
+    echo "(no response from codex)" > "$output_path"
+  fi
+else
+  thread_id="$(jq -r 'select(.type == "thread.started") | .thread_id' < "$json_file" | head -1)"
 
-# Collect all completed items: file changes, tool calls, and agent messages.
-# This gives full visibility into what codex actually did, not just the last message.
-{
-  # 1. Show command executions (shell commands codex ran)
-  jq -r '
-    select(.type == "item.completed" and .item.type == "command_execution")
-    | .item
-    | "### Shell: `" + (.command // "unknown" | gsub("^/bin/zsh -lc "; "") | gsub("^/bin/bash -c "; ""))[0:200] + "`\n" + (.aggregated_output // "" | .[0:500])
-  ' < "$json_file" 2>/dev/null
+  {
+    jq -r '
+      select(.type == "item.completed" and .item.type == "command_execution")
+      | .item
+      | ((.command // "") | gsub("^/bin/zsh -lc "; "") | gsub("^/bin/bash -c "; "")) as $cmd
+      | select($cmd | test("^[\"'"'"']?(sed |cat |head |tail |nl |rg |grep |awk |wc |find |ls )") | not)
+      | "### Shell: `" + ($cmd[0:200]) + "`\n" + (.aggregated_output // "" | .[0:500])
+    ' < "$json_file" 2>/dev/null
 
-  # 2. Show file write/patch operations (tool_call style, if any)
-  jq -r '
-    select(.type == "item.completed" and .item.type == "tool_call")
-    | .item
-    | if .name == "write_file" then
-        "### File written: " + (.arguments | fromjson | .path // "unknown")
-      elif .name == "patch_file" then
-        "### File patched: " + (.arguments | fromjson | .path // "unknown")
-      elif .name == "shell" then
-        "### Shell: `" + (.arguments | fromjson | .command // "unknown")[0:200] + "`\n" + (.output // "" | .[0:500])
-      else empty
-      end
-  ' < "$json_file" 2>/dev/null
+    jq -r '
+      select(.type == "item.completed" and .item.type == "tool_call")
+      | .item
+      | if .name == "write_file" then
+          "### File written: " + (.arguments | fromjson | .path // "unknown")
+        elif .name == "patch_file" then
+          "### File patched: " + (.arguments | fromjson | .path // "unknown")
+        elif .name == "shell" then
+          "### Shell: `" + (.arguments | fromjson | .command // "unknown")[0:200] + "`\n" + (.output // "" | .[0:500])
+        else empty
+        end
+    ' < "$json_file" 2>/dev/null
 
-  # 3. Show all agent messages (not just the last one)
-  jq -r '
-    select(.type == "item.completed" and .item.type == "agent_message")
-    | .item.text
-  ' < "$json_file" 2>/dev/null
-} > "$output_path"
+    jq -r '
+      select(.type == "item.completed" and .item.type == "agent_message") | .item.text
+    ' < "$json_file" 2>/dev/null
+  } > "$output_path"
 
-# If nothing was captured, write a fallback
-if [[ ! -s "$output_path" ]]; then
-  echo "(no response from codex)" > "$output_path"
+  if [[ ! -s "$output_path" ]]; then
+    echo "(no response from codex)" > "$output_path"
+  fi
 fi
 
 # --- Output results ---

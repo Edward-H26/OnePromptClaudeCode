@@ -1,11 +1,13 @@
 ---
 name: codex
-description: Delegate coding tasks to Codex CLI for execution. Only invoke this skill when the user explicitly asks to use Codex — e.g., "用 codex 来做", "让 codex 执行", "ask codex to...", "codex 帮我写". Do not proactively delegate to Codex for general coding requests the user didn't specifically ask Codex to handle. Codex is an autonomous coding agent with the same tools as Claude (file read/write, grep, bash) — it explores the codebase and implements changes on its own. Claude's role is to understand the problem clearly and frame it well for Codex to execute.
+description: Delegate coding tasks to Codex CLI for execution. This repo supports both explicit `/codex` use and the optional background auto-trigger for coding prompts. Codex is an autonomous coding agent with the same tools as Claude (file read/write, grep, bash) and explores the codebase on its own. Claude's role is to understand the problem clearly, frame the goal well, and review Codex output before relying on it.
 ---
 
 ## Critical rules
 
+- This repo may launch the Codex bridge from `auto-codex-trigger.sh` on coding prompts. Treat that output as optional supplemental work unless the user explicitly asked for `/codex`.
 - Use the bundled shell script rather than calling `codex` CLI directly — the script handles output capture, session tracking, and real-time progress streaming correctly.
+- The bundled script uses a repo-local runtime under `.claude/runtime/codex/` when possible, so session artifacts stay out of user-global workflow state.
 - Run the script once per task. If it succeeds (exit code 0), read the output file and proceed. Don't re-run just because the output seems short — Codex often makes changes quietly without narrating every step.
 - Quote file paths containing `[`, `]`, spaces, or special characters (e.g. `--file "src/app/[locale]/page.tsx"`). Without quotes, zsh treats `[...]` as a glob pattern and fails with "no matches found".
 - **Keep the task prompt to the goal and constraints, not the implementation steps.** Aim for under ~500 words. Codex has the same tools as Claude and will explore the codebase itself — spelling out every file to change or every step tends to constrain it rather than help.
@@ -98,6 +100,7 @@ For multi-step projects, use `--session <id>` to continue with full conversation
 - **`script: tcgetattr/ioctl: Operation not supported on socket`** (exit code 1): the `script` command probes stdin with `tcgetattr` at startup and only tolerates `ENOTTY`/`ENODEV` errors. When Claude Code connects stdin via a socketpair, the kernel returns `EOPNOTSUPP` instead — which `script` doesn't whitelist, so it exits immediately. The script detects this automatically by probing with `script -q /dev/null true` first and falls back to direct execution. Update to the latest version if you still see this error.
 - **Exit code 137**: the task was interrupted (user cancel or OOM). Not a Codex bug — retry or break the task into smaller pieces.
 - **`ERROR codex_core::codex: failed to load skill ...`** in stderr: one of Codex's own installed skills has a broken YAML file. This warning is harmless and doesn't affect the current task — ignore it.
+- **`Missing bearer or basic authentication in header`**: the repo-local Codex home does not have usable auth yet. Run `CODEX_HOME="<repo-local-home>" codex login`, or bootstrap the needed auth files from an existing Codex home on the same machine.
 - **`(no response from codex)`** in the output file: Codex ran but produced no readable output. Check stderr for clues; the task may have hit a sandbox restriction.
 
 ## Options
@@ -114,7 +117,7 @@ For multi-step projects, use `--session <id>` to continue with full conversation
 
 When using `--session` to resume a previous conversation, note these limitations:
 
-- **Must run in a git repository** — The `codex exec resume` command requires a git-trusted directory. It does not support `--skip-git-repo-check`.
+- **Repo context still matters** — The wrapper injects `skip_git_repo_check=true` as a config override, but resume still expects the original session context to be coherent.
 - **Limited options** — Resume mode only supports `-c/--config` and `--last`. The following options are **not supported** in resume mode:
   - `--sandbox`
   - `--full-auto`
