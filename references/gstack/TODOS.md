@@ -1,5 +1,19 @@
 # TODOS
 
+## Sidebar Security
+
+### ML Prompt Injection Classifier
+
+**What:** Add DeBERTa-v3-base-prompt-injection-v2 via @huggingface/transformers v4 (WASM backend) as an ML defense layer for the Chrome sidebar. Reusable `browse/src/security.ts` module with `checkInjection()` API. Includes canary tokens, attack logging, shield icon, special telemetry (AskUserQuestion on detection even when telemetry off), and BrowseSafe-bench red team test harness (3,680 adversarial cases from Perplexity).
+
+**Why:** PR 1 fixes the architecture (command allowlist, XML framing, Opus default). But attackers can still trick Claude into navigating to phishing sites or exfiltrating visible page data via allowed browse commands. The ML classifier catches prompt injection patterns that architectural controls can't see. 94.8% accuracy, 99.6% recall, ~50-100ms inference via WASM. Defense-in-depth.
+
+**Context:** Full design doc with industry research, open source tool landscape, Codex review findings, and ambitious Bun-native vision (5ms inference via FFI + Apple Accelerate): [`docs/designs/ML_PROMPT_INJECTION_KILLER.md`](docs/designs/ML_PROMPT_INJECTION_KILLER.md). CEO plan with scope decisions: `~/.gstack/projects/garrytan-gstack/ceo-plans/2026-03-28-sidebar-prompt-injection-defense.md`.
+
+**Effort:** L (human: ~2 weeks / CC: ~3-4 hours)
+**Priority:** P0
+**Depends on:** Sidebar security fix PR (command allowlist + XML framing + arg fix) landing first
+
 ## Builder Ethos
 
 ### First-time Search Before Building intro
@@ -13,6 +27,26 @@
 **Effort:** S
 **Priority:** P2
 **Depends on:** Blog post about Search Before Building
+
+## Chrome DevTools MCP Integration
+
+### Real Chrome session access
+
+**What:** Integrate Chrome DevTools MCP to connect to the user's real Chrome session with real cookies, real state, no Playwright middleman.
+
+**Why:** Right now, headed mode launches a fresh Chromium profile. Users must log in manually or import cookies. Chrome DevTools MCP connects to the user's actual Chrome ... instant access to every authenticated site. This is the future of browser automation for AI agents.
+
+**Context:** Google shipped Chrome DevTools MCP in Chrome 146+ (June 2025). It provides screenshots, console messages, performance traces, Lighthouse audits, and full page interaction through the user's real browser. gstack should use it for real-session access while keeping Playwright for headless CI/testing workflows.
+
+Potential new skills:
+- `/debug-browser`: JS error tracing with source-mapped stack traces
+- `/perf-debug`: performance traces, Core Web Vitals, network waterfall
+
+May replace `/setup-browser-cookies` for most use cases since the user's real cookies are already there.
+
+**Effort:** L (human: ~2 weeks / CC: ~2 hours)
+**Priority:** P0
+**Depends on:** Chrome 146+, DevTools MCP server installed
 
 ## Browse
 
@@ -60,17 +94,14 @@
 **Effort:** S
 **Priority:** P3
 
-### State persistence
+### State persistence — SHIPPED
 
-**What:** Save/load cookies + localStorage to JSON files for reproducible test sessions.
+~~**What:** Save/load cookies + localStorage to JSON files for reproducible test sessions.~~
 
-**Why:** Enables "resume where I left off" for QA sessions and repeatable auth states.
+`$B state save/load` ships in v0.12.1.0. V1 saves cookies + URLs only (not localStorage, which breaks on load-before-navigate). Files at `.gstack/browse-states/{name}.json` with 0o600 permissions. Load replaces session (closes all pages first). Name sanitized to `[a-zA-Z0-9_-]`.
 
-**Context:** The `saveState()`/`restoreState()` helpers from the handoff feature (browser-manager.ts) already capture cookies + localStorage + sessionStorage + URLs. Adding file I/O on top is ~20 lines.
-
-**Effort:** S
-**Priority:** P3
-**Depends on:** Sessions
+**Remaining:** V2 localStorage support (needs pre-navigation injection strategy).
+**Completed:** v0.12.1.0 (2026-03-26)
 
 ### Auth vault
 
@@ -82,14 +113,13 @@
 **Priority:** P3
 **Depends on:** Sessions, state persistence
 
-### Iframe support
+### Iframe support — SHIPPED
 
-**What:** `frame <sel>` and `frame main` commands for cross-frame interaction.
+~~**What:** `frame <sel>` and `frame main` commands for cross-frame interaction.~~
 
-**Why:** Many web apps use iframes (embeds, payment forms, ads). Currently invisible to browse.
+`$B frame` ships in v0.12.1.0. Supports CSS selector, @ref, `--name`, and `--url` pattern matching. Execution target abstraction (`getActiveFrameOrPage()`) across all read/write/snapshot commands. Frame context cleared on navigation, tab switch, resume. Detached frame auto-recovery. Page-only operations (goto, screenshot, viewport) throw clear error when in frame context.
 
-**Effort:** M
-**Priority:** P4
+**Completed:** v0.12.1.0 (2026-03-26)
 
 ### Semantic locators
 
@@ -145,14 +175,51 @@
 **Effort:** L
 **Priority:** P4
 
-### CDP mode
+### Headed mode with Chrome extension — SHIPPED
 
-**What:** Connect to already-running Chrome/Electron apps via Chrome DevTools Protocol.
+`$B connect` launches Playwright's bundled Chromium in headed mode with the gstack Chrome extension auto-loaded. `$B handoff` now produces the same result (extension + side panel). Sidebar chat gated behind `--chat` flag.
 
-**Why:** Test production apps, Electron apps, and existing browser sessions without launching new instances.
+### `$B watch` — SHIPPED
 
-**Effort:** M
+Claude observes user browsing in passive read-only mode with periodic snapshots. `$B watch stop` exits with summary. Mutation commands blocked during watch.
+
+### Sidebar scout / file drop relay — SHIPPED
+
+Sidebar agent writes structured messages to `.context/sidebar-inbox/`. Workspace agent reads via `$B inbox`. Message format: `{type, timestamp, page, userMessage, sidebarSessionId}`.
+
+### Multi-agent tab isolation
+
+**What:** Two Claude sessions connect to the same browser, each operating on different tabs. No cross-contamination.
+
+**Why:** Enables parallel /qa + /design-review on different tabs in the same browser.
+
+**Context:** Requires tab ownership model for concurrent headed connections. Playwright may not cleanly support two persistent contexts. Needs investigation.
+
+**Effort:** L (human: ~2 weeks / CC: ~2 hours)
+**Priority:** P3
+**Depends on:** Headed mode (shipped)
+
+### Sidebar agent needs Write tool + better error visibility
+
+**What:** Two issues with the sidebar agent (`sidebar-agent.ts`): (1) `--allowedTools` is hardcoded to `Bash,Read,Glob,Grep`, missing `Write`. Claude can't create files (like CSVs) when asked. (2) When Claude errors or returns empty, the sidebar UI shows nothing, just a green dot. No error message, no "I tried but failed", nothing.
+
+**Why:** Users ask "write this to a CSV" and the sidebar silently can't. Then they think it's broken. The UI needs to surface errors visibly, and Claude needs the tools to actually do what's asked.
+
+**Context:** `sidebar-agent.ts:163` hardcodes `--allowedTools`. The event relay (`handleStreamEvent`) handles `agent_done` and `agent_error` but the extension's sidepanel.js may not be rendering error states. The sidebar should show "Error: ..." or "Claude finished but produced no output" instead of staying on the green dot forever.
+
+**Effort:** S (human: ~2h / CC: ~10min)
+**Priority:** P1
+**Depends on:** None
+
+### Chrome Web Store publishing
+
+**What:** Publish the gstack browse Chrome extension to Chrome Web Store for easier install.
+
+**Why:** Currently sideloaded via chrome://extensions. Web Store makes install one-click.
+
+**Effort:** S
 **Priority:** P4
+**Depends on:** Chrome extension proving value via sideloading
 
 ### Linux cookie decryption — PARTIALLY SHIPPED
 
@@ -179,6 +246,18 @@ Linux cookie import shipped in v0.11.11.0 (Wave 3). Supports Chrome, Chromium, B
 **Effort:** L
 **Priority:** P2
 **Depends on:** None (BASE_BRANCH_DETECT multi-platform resolver is already done)
+
+### Multi-commit CHANGELOG completeness eval
+
+**What:** Add a periodic E2E eval that creates a branch with 5+ commits spanning 3+ themes (features, cleanup, infra), runs /ship's Step 5 CHANGELOG generation, and verifies the CHANGELOG mentions all themes.
+
+**Why:** The bug fixed in v0.11.22 (garrytan/ship-full-commit-coverage) showed that /ship's CHANGELOG generation biased toward recent commits on long branches. The prompt fix adds a cross-check, but no test exercises the multi-commit failure mode. The existing `ship-local-workflow` E2E only uses a single-commit branch.
+
+**Context:** Would be a `periodic` tier test (~$4/run, non-deterministic since it tests LLM instruction-following). Setup: create bare remote, clone, add 5+ commits across different themes on a feature branch, run Step 5 via `claude -p`, verify CHANGELOG output covers all themes. Pattern: `ship-local-workflow` in `test/skill-e2e-workflow.test.ts`.
+
+**Effort:** M
+**Priority:** P3
+**Depends on:** None
 
 ### Ship log — persistent record of /ship runs
 

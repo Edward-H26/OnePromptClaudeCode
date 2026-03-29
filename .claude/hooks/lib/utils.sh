@@ -66,7 +66,7 @@ safe_rm_cache() {
     local expected_prefix
     expected_prefix="$(cd "$project_dir/.claude/tsc-cache" 2>/dev/null && pwd)" || return 1
 
-    if [[ "$resolved" != "$expected_prefix"* ]]; then
+    if [[ "$resolved" != "$expected_prefix" ]] && [[ "$resolved" != "$expected_prefix"/* ]]; then
         echo "Warning: Refusing to delete $dir (not under $expected_prefix)" >&2
         return 1
     fi

@@ -31,7 +31,7 @@ bash scripts/doctor-workflow.sh
 claude
 ```
 
-That is the repo setup. The tracked baseline enables only the repo-stable plugin set; auth-sensitive or duplicate integrations such as GitHub, context7, Figma plugin MCP, and extra browser plugins should be added in `.claude/settings.local.json` only when the local machine is actually configured for them. Start from `.claude/settings.local.example.json` when you want those optional local plugins. Run `bash scripts/doctor-workflow.sh` on a fresh clone to confirm the live workflow is ready, and clear any stale local plugin blocklist test entries if the doctor warns about them. `references/setup.sh` is optional, but it refreshes the curated vendored upstream content under `references/` that some repo-local wrappers and vendored passthrough skills consult as background material. After workflow changes, run `bash scripts/audit-workflow.sh`.
+That is the repo setup. The tracked baseline enables only the repo-stable plugin set; auth-sensitive or duplicate integrations such as GitHub, context7, Figma plugin MCP, and extra browser plugins should be added in `.claude/settings.local.json` only when the local machine is actually configured for them. Start from `.claude/settings.local.example.json`, which lists the optional plugins but leaves them disabled until you flip the specific ones you need to `true`. Run `bash scripts/doctor-workflow.sh` on a fresh clone to confirm the live workflow is ready, and clear any stale local plugin blocklist test entries if the doctor warns about them. `references/setup.sh` is optional, but it refreshes the curated vendored upstream content under `references/` that some repo-local wrappers and vendored passthrough skills consult as background material. After workflow changes, run `bash scripts/audit-workflow.sh`.
 
 ---
 
@@ -56,7 +56,7 @@ Zero prompts to write. Minimal repo setup. Machine-local plugin installs and aut
 
 - Install the shared Claude Code baseline plugin set once on the machine that uses this repo.
 - Add auth-sensitive or duplicate plugin integrations in `.claude/settings.local.json`, not the shared tracked config.
-- Use `.claude/settings.local.example.json` as the starting point for optional local plugin enablement.
+- Use `.claude/settings.local.example.json` as the starting point for optional local plugin enablement, then flip only the plugins you actually need to `true`.
 - Ensure required MCP connectors and auth are healthy for the tools you actually use.
 - If you want the optional Codex background workflow, make sure `codex` is installed and authenticated.
 - Run `bash scripts/doctor-workflow.sh` after clone, and again after workflow or plugin changes.
@@ -72,7 +72,7 @@ Zero prompts to write. Minimal repo setup. Machine-local plugin installs and aut
 | **Skills** | 54 | Bundled workflow skill entries available directly from the tracked repo |
 | **Commands** | 30 | Slash commands for planning, implementation, review, QA, and release handoff |
 | **Agents** | 14 | Specialized local agents for complex tasks |
-| **Hooks** | 8 | Automated local safety, tracking, and validation hooks |
+| **Hooks** | 10 | Automated safety, tracking, and validation hooks (8 local + 2 gstack) |
 | **Templates** | 6 | Reusable prompt templates for common workflows |
 | **MCP Servers** | 11+ | Figma, GitHub, Playwright, HuggingFace, and other shared or user-scoped connectors |
 
@@ -144,7 +144,7 @@ The workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Te
 
 | Skill | Trigger | What it does |
 |---|---|---|
-| `super-ralph` | `/super-ralph` | Fully autonomous multi-agent development |
+| `super-ralph` | `/super-ralph` | Fully autonomous multi-agent development (brainstorm or oneshot) |
 | `codex` (oiloil) | `/codex` and optional background auto-trigger | Delegate coding to Codex CLI via `ask_codex.sh`, plus cross-model review (review/challenge/consult) |
 | `gstack codex` | internal to `/review-staff` | Enhanced cross-model review with telemetry, platform detection, and plan file integration |
 | `autoresearch` | `/autoresearch` | Karpathy-style ML experiment loops |
@@ -174,7 +174,7 @@ The repo tracks 30 slash commands. Common entry points are listed below.
 | `/review-staff` | Staff engineer code review |
 | `/investigate` | Root-cause debugging |
 | `/codex` | Cross-model review (review/challenge/consult) |
-| `/super-ralph` | Autonomous multi-agent execution |
+| `/super-ralph` | Autonomous multi-agent execution (brainstorm or oneshot) |
 | `/orchestrate` | Sequential agent orchestration |
 | `/autoresearch` | ML experiment loop |
 | `/careful` | Safety guardrails |
@@ -223,6 +223,7 @@ Automated hooks run at every stage of your workflow:
 | `check-freeze.sh` | Before Edit/MultiEdit/Write | Blocks edits outside frozen directory |
 | `task-orchestrator-hook.sh` | On prompt | Detects analysis vs coding tasks |
 | `skill-activation-prompt.sh` | On prompt | Suggests skills via 400+ keyword triggers |
+| `auto-codex-trigger.sh` | On prompt | Auto-launches Codex in background for coding tasks |
 | `post-tool-use-tracker.sh` | After Edit/MultiEdit/Write | Tracks edited files |
 | `tsc-check.sh` | After Edit/MultiEdit/Write | Runs TypeScript checks |
 | `workflow-step-tracker.sh` | After Bash/Skill/MCP | Marks workflow completion |
@@ -258,7 +259,7 @@ Ready-to-use templates at `.claude/prompt-templates/`:
 | `feature-implementation.md` | Multi-agent feature development | `[TASK]`, `[DIRECTORY]`, `[API]` |
 | `debug.md` | Root-cause debugging with safety scoping | `[BUG]`, `[DIRECTORY]` |
 | `code-quality.md` | Code review, refactoring, security audit | `[DIRECTORY]`, `[MODE]` |
-| `super-ralph.md` | Fully autonomous multi-agent implementation | `[TASK]`, `[DIRECTORY]` |
+| `super-ralph.md` | Fully autonomous multi-agent implementation (brainstorm or oneshot) | `[TASK]`, `[DIRECTORY]` |
 | `gstack-sprint.md` | Full Think-Plan-Build-Review-Test-Ship sprint | `[GOAL]`, `[TARGET_URL]` |
 | `design-to-code.md` | Figma/design to production code pipeline | `[FIGMA_URL]`, `[TARGET_STACK]` |
 
@@ -276,7 +277,7 @@ Ready-to-use templates at `.claude/prompt-templates/`:
   runtime/               # Repo-local ignored runtime state for safety and Codex
   agents/                # 14 local agent definitions
   commands/              # 30 slash commands
-  hooks/                 # 8 automated hook scripts
+  hooks/                 # 8 local hook scripts (+ 2 gstack PreToolUse hooks)
   prompt-templates/      # 6 reusable templates
   skills/                # 54 skill entries
     skill-rules.json     # 400+ keyword trigger engine

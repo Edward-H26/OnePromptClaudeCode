@@ -68,11 +68,35 @@ root = Path(".")
 skills_dir = root / ".claude" / "skills"
 skill_rules_path = skills_dir / "skill-rules.json"
 
+parsed_json = {}
 for path in [root / ".claude" / "settings.json", root / ".claude" / "settings.local.example.json", skill_rules_path]:
     with path.open() as handle:
-        json.load(handle)
+        parsed_json[path.name] = json.load(handle)
 
-skill_rules = json.loads(skill_rules_path.read_text())
+settings_local_example = parsed_json["settings.local.example.json"]
+if "permissions" in settings_local_example:
+    print(".claude/settings.local.example.json should not carry machine-local permission overrides.")
+    raise SystemExit(1)
+
+optional_example_plugins = {
+    "context7@claude-plugins-official",
+    "figma@claude-plugins-official",
+    "github@claude-plugins-official",
+    "playwright@claude-plugins-official",
+}
+enabled_example_plugins = {
+    name
+    for name, value in (settings_local_example.get("enabledPlugins") or {}).items()
+    if value is True
+}
+unsafe_example_plugins = sorted(optional_example_plugins & enabled_example_plugins)
+if unsafe_example_plugins:
+    print(".claude/settings.local.example.json should leave optional plugins disabled by default:")
+    for name in unsafe_example_plugins:
+        print(f"  {name}")
+    raise SystemExit(1)
+
+skill_rules = parsed_json["skill-rules.json"]
 rule_skills = set(skill_rules.get("skills", {}))
 skill_dirs = {
     path.name
@@ -896,7 +920,7 @@ if gitignore_check.returncode != 0:
     print("Missing gitignore coverage for .superpowers/")
     raise SystemExit(1)
 
-for ignored_path in [".claude/runtime/", ".claude/settings.local.json"]:
+for ignored_path in [".claude/runtime/", ".claude/settings.local.json", ".credentials.json"]:
     gitignore_check = subprocess.run(
         ["git", "-C", str(root), "check-ignore", ignored_path],
         text=True,
@@ -912,15 +936,18 @@ intentional_reference_ignores = {
     "references/everything-claude-code/.opencode/plugins/index.ts": ["/references/everything-claude-code/.opencode/plugins/"],
     "references/everything-claude-code/docs/ja-JP/plugins/README.md": ["/references/everything-claude-code/docs/*/plugins/"],
     "references/everything-claude-code/plugins/README.md": ["/references/everything-claude-code/plugins/"],
-    "references/gstack/.agents": ["/references/gstack/.agents/", ".agents/"],
+    "references/gstack/agents/openai.yaml": ["/references/gstack/agents/openai.yaml"],
     "references/gstack/bin/gstack-global-discover": ["/references/gstack/bin/gstack-global-discover", "bin/gstack-global-discover"],
     "references/gstack/browse/dist": ["/references/gstack/browse/dist/", "browse/dist/"],
     "references/super-ralph/learnings.md": ["/references/super-ralph/learnings.md", "learnings.md"],
 }
 
 for rel_path, expected_patterns in intentional_reference_ignores.items():
+    full_path = root / rel_path
+    if not full_path.exists():
+        continue
     check = subprocess.run(
-        ["git", "-C", str(root), "check-ignore", "-v", rel_path],
+        ["git", "-C", str(root), "check-ignore", "--no-index", "-v", rel_path],
         text=True,
         capture_output=True,
     )
@@ -950,6 +977,7 @@ public_files = subprocess.check_output(
 ).splitlines()
 
 disallowed_prefixes = [
+    ".credentials.json",
     "social/",
     ".claude.json",
     ".claude/ide/",

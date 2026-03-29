@@ -82,6 +82,8 @@
 /.claude/settings.local.json
 /.env
 /.env.*
+/.credentials.json
+/.credentials*.json
 **/.env
 **/.env.*
 !**/.env.example
@@ -128,7 +130,7 @@
 **/bun.lockb
 
 # Curated vendored reference exclusions (the repo publishes only the wired surface it uses)
-/references/gstack/.agents/
+/references/gstack/agents/openai.yaml
 /references/gstack/browse/dist/
 /references/gstack/bin/gstack-global-discover
 /references/gstack/bun.lock
@@ -148,6 +150,24 @@
 /references/everything-claude-code/node_modules/
 /references/everything-claude-code/plugins/
 /references/*/.git/
+
+# gstack upstream infrastructure (CI, telemetry, tests, dev scripts)
+/references/gstack/.github/
+/references/gstack/supabase/
+/references/gstack/test/
+/references/gstack/scripts/
+/references/gstack/browse/test/
+/references/gstack/agents/openai.yaml
+
+# gstack SKILL.md template files (rendered SKILL.md already tracked)
+/references/gstack/**/*.tmpl
+
+# everything-claude-code upstream content not needed for reference
+/references/everything-claude-code/tests/
+/references/everything-claude-code/docs/business/
+/references/everything-claude-code/docs/releases/*/linkedin-post.md
+/references/everything-claude-code/docs/releases/*/x-thread.md
+/references/everything-claude-code/docs/releases/*/x-quote-*.md
 
 # Memory system (auto-generated per user)
 /memory/

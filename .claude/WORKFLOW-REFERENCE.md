@@ -10,7 +10,7 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 **Repo-local multi-model flow**: `/multi-plan` and `/multi-execute` use the bundled Codex bridge plus installed plugin agents. The Codex bridge now writes repo-local runtime state under `.claude/runtime/codex/`.
 **Published surface**: This repo tracks the workflow content it runs, including bundled `super-ralph`, bundled `ui-styling` assets, repo-local wrapper skills, and the vendored upstream sources under `references/` that those wrappers and a smaller set of vendored passthrough skills may consult. Reference refreshes are curated and prune upstream runtime-only artifacts that are not part of this repo's published workflow surface.
 **Live readiness**: Use `bash scripts/doctor-workflow.sh` for plugin, MCP, and Codex runtime checks. Use `bash scripts/audit-workflow.sh` for static repo-surface validation.
-**Plugin split**: The tracked shared config enables only the repo-stable baseline. Auth-sensitive or duplicate integrations such as GitHub, context7, or plugin-provided Figma/Playwright MCP servers belong in `.claude/settings.local.json`. Use `.claude/settings.local.example.json` as the tracked starting point for those local overrides. If `bash scripts/doctor-workflow.sh` warns about enabled plugins that are also blocklisted in ignored local state, clear the stale local blocklist entry before relying on that plugin.
+**Plugin split**: The tracked shared config enables only the repo-stable baseline. Auth-sensitive or duplicate integrations such as GitHub, context7, or plugin-provided Figma/Playwright MCP servers belong in `.claude/settings.local.json`. Use `.claude/settings.local.example.json` as the tracked starting point for those local overrides; it lists the optional plugins but leaves them disabled until a local machine explicitly enables them. If `bash scripts/doctor-workflow.sh` warns about enabled plugins that are also blocklisted in ignored local state, clear the stale local blocklist entry before relying on that plugin.
 
 ---
 
@@ -113,7 +113,7 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 |---|---|---|
 | `skill-developer` | ask about skills/hooks | Meta-skill for creating and managing Claude Code skills, hooks, commands, agents. |
 | `strategic-compact` | at phase boundaries | Strategic context compaction. Decision guide for when to compact. |
-| `super-ralph` | `/super-ralph` | Local wrapper skill that dispatches into the bundled autonomous workflow under `.claude/skills/super-ralph/`. |
+| `super-ralph` | `/super-ralph` | Local wrapper skill that dispatches into the bundled autonomous workflow under `.claude/skills/super-ralph/`. Supports oneshot mode for zero-setup execution. |
 | `chrome-devtools` | ask about Chrome DevTools | Node.js scripts for Chrome DevTools Protocol: navigate, screenshot, console, evaluate, network. |
 | `browse` | ask to "open browser" | Repo-local browser workflow that uses the tooling available in this environment. |
 | `setup-browser-cookies` | ask about browser cookies | Import cookies from Chrome, Arc, Brave, Edge for authenticated testing. |
@@ -145,7 +145,7 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 | `/codex` | Coding delegation and cross-model review (oiloil) | `/codex review`, `/codex challenge`, `/codex <task>` |
 | `/simplify` | Code simplification review | `/simplify <focus area>` |
 | `/autoresearch` | ML experiment loop | `/autoresearch <hypothesis>` |
-| `/super-ralph` | Autonomous execution | `/super-ralph <task>` |
+| `/super-ralph` | Autonomous execution (brainstorm or oneshot) | `/super-ralph <task>` |
 | `/orchestrate` | Multi-agent orchestration | `/orchestrate <task description>` |
 | `/multi-plan` | Repo-local multi-model planning | `/multi-plan <scope>` |
 | `/multi-execute` | Repo-local multi-model execution | `/multi-execute <plan>` |
@@ -249,7 +249,7 @@ These are repo-local starting points, not hard-gated control flows. They must st
 | `feature-implementation.md` | Full multi-agent feature implementation with orchestration and API integration mode | `[TASK]`, `[DIRECTORY]`, `[API]`, `[AUTH_METHOD]` |
 | `debug.md` | Root-cause debugging with safety scoping (/freeze, /investigate) | `[BUG]`, `[DIRECTORY]`, `[MODULE_DIR]` |
 | `code-quality.md` | Code review, refactoring, and security audit (3 modes) | `[DIRECTORY]`, `[SCOPE]`, `[GOAL]`, `[MODE]` |
-| `super-ralph.md` | Fully autonomous multi-agent implementation | `[TASK]`, `[DIRECTORY]`, `[CONSTRAINTS]` |
+| `super-ralph.md` | Fully autonomous multi-agent implementation (brainstorm or oneshot) | `[TASK]`, `[DIRECTORY]`, `[CONSTRAINTS]` |
 | `gstack-sprint.md` | Full Think-Plan-Build-Review-Test-Ship sprint | `[GOAL]`, `[CONSTRAINTS]`, `[TARGET_URL]` |
 | `design-to-code.md` | Figma/design to production code pipeline | `[FIGMA_URL]`, `[DESIGN_DESCRIPTION]`, `[TARGET_STACK]` |
 
@@ -268,4 +268,4 @@ These are repo-local starting points, not hard-gated control flows. They must st
 | **Reflect** | retro | `/retro` |
 | **Safety** | careful, freeze, guard | `/careful`, `/freeze`, `/guard`, `/unfreeze` |
 | **Debug** | systematic-debugging, investigate | `/investigate` |
-| **Autonomous** | super-ralph, autonomous-loops | `/super-ralph`, `/orchestrate` |
+| **Autonomous** | super-ralph (brainstorm/oneshot), autonomous-loops | `/super-ralph`, `/orchestrate` |

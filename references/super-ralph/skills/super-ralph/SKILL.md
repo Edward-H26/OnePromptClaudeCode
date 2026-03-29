@@ -7,14 +7,30 @@ description: Autonomous agentic loop that decomposes any user query into tasks, 
 
 Autonomous agentic loop: decompose → test → build → debug → learn → merge.
 
+## Runtime Compatibility (Additive)
+
+This skill is authored in Claude-native terms and is also intended to run in Codex environments without removing any Claude behavior.
+
+Use this mapping when running outside Claude:
+
+| Claude primitive | Codex-compatible equivalent |
+|------------------|-----------------------------|
+| `AskUserQuestion` | Ask a single plain-text question in chat, include the same options, and wait for a reply before proceeding |
+| `Agent` tool dispatch | Run the same role prompt in a fresh Codex session/agent run; parallelize independent work with foreground parallel runs |
+| `run_in_background: true` | Do not detach jobs. Keep work in foreground sessions so prompts/approvals and progress stay visible |
+
+If this file says "use AskUserQuestion," treat that as "single interactive question gate" in Codex.
+
 ## Quick Reference
 
 ```
 User Query
-  → Brainstorm: interactive Q&A to explore intent, scope, edge cases (AskUserQuestion loop)
-  → Intent Profile: 3 questions (priority, audience, lifespan) → JUDGE_RUBRIC
-  → Tooling: scan available skills/agents, ask user about goals, assemble custom toolset
-  → Pre-Flight: scope workspace + set MAX_RETRIES (AskUserQuestion)
+  → Mode Selection: oneshot (fully autonomous) or brainstorm (interactive) — single AskUserQuestion
+  → IF brainstorm: interactive Q&A to explore intent, scope, edge cases (AskUserQuestion loop)
+  → IF oneshot: auto-analyze query, infer intent/scope/constraints, write BRAINSTORM_SUMMARY silently
+  → Intent Profile: 3 questions or auto-infer (based on MODE) → JUDGE_RUBRIC
+  → Tooling: scan skills/agents, recommend or auto-select (based on MODE) → TOOLING_CONFIG
+  → Pre-Flight: scope workspace + set MAX_RETRIES (interactive or defaults based on MODE)
   → Decompose: orchestrator breaks query into tasks directly (no separate manager/planner agent)
   → Per Task (parallel if independent — never use run_in_background):
       → ralph-tester: write tests → JUDGE: pass? → retry tester if fail
@@ -47,11 +63,66 @@ After Phase 0, the entire loop runs **without any user interaction**. No `AskUse
 
 ---
 
+## Phase -2: Mode Selection (BLOCKING — very first prehook)
+
+The first and possibly only question Super Ralph asks. Determines whether the rest of the setup is interactive or autonomous.
+
+### How it works
+
+Ask one `AskUserQuestion`:
+
+```
+question: "How should I approach this?"
+header: "Mode"
+options:
+  - label: "Oneshot"
+    description: "I'll handle everything autonomously — no questions, just deliver"
+  - label: "Brainstorm"
+    description: "Let's explore the idea together step by step"
+  - label: "Chat about this"
+    description: "Stop — I want to discuss this before deciding"
+multiSelect: false
+```
+
+Store the answer as `MODE`:
+- **"Oneshot"** → `MODE = oneshot`
+- **"Brainstorm"** → `MODE = brainstorm`
+- **"Chat about this"** → stop completely, do not set MODE, respond to the user and wait. Resume only when they explicitly say to continue.
+
+### What MODE controls
+
+| MODE | Behavior |
+|------|----------|
+| `brainstorm` | All phases run interactively as documented below (existing behavior, unchanged) |
+| `oneshot` | All phases still run, but every `AskUserQuestion` gate is replaced with autonomous self-decision. No further user interaction until final delivery. |
+
+### Oneshot defaults
+
+When `MODE = oneshot`, the orchestrator uses these defaults instead of asking:
+
+| Phase | Default |
+|-------|---------|
+| Brainstorm | Analyze query, infer intent/scope/constraints, write BRAINSTORM_SUMMARY |
+| Intent Profile | Default to middle tier: solid and correct + my team + weeks to months |
+| Tooling | Auto-select recommended toolset based on BRAINSTORM_SUMMARY |
+| Pre-Flight | Current directory writable, no read-only, nothing off-limits, MAX_RETRIES=6 |
+
+---
+
 ## Phase -1: Brainstorm (BLOCKING — prehook-style interactive Q&A)
 
 Before scoping the workspace or planning tasks, **explore the user's idea through conversation**. The goal is to deeply understand what the user actually wants — not just what they typed.
 
-**This phase is interactive.** Use `AskUserQuestion` as prehook gates — one question at a time, each with a "Chat about this" escape hatch that fully stops the workflow.
+### MODE gate
+
+- **If `MODE = brainstorm`:** run the interactive flow below as documented.
+- **If `MODE = oneshot`:** skip all `AskUserQuestion` calls. Instead:
+  1. Analyze the user's query to infer intent, scope, constraints, edge cases, and users.
+  2. Write the `BRAINSTORM_SUMMARY` autonomously based on your analysis.
+  3. Do NOT show the summary or ask for confirmation — proceed directly to Phase -0.75.
+  4. If the query is ambiguous, make reasonable assumptions and document them in the summary's "Key Decisions" section.
+
+**This phase is interactive.** Use `AskUserQuestion` as prehook gates — one question at a time, each with a "Chat about this" escape hatch that fully stops the workflow. In Codex, ask the same question directly in chat and wait for the response before continuing.
 
 ### Prehook Rules (apply to ALL setup phases: Brainstorm, Tooling, Pre-Flight)
 
@@ -150,6 +221,15 @@ The `BRAINSTORM_SUMMARY` is used by the orchestrator during task decomposition (
 ## Phase -0.75: Intent Profile (BLOCKING — after brainstorm, before tooling)
 
 After confirming the brainstorm summary, capture the user's **intent profile** through 3 direct questions. The answers determine how strictly the judge grades every agent's output — a prototype gets lenient judging on polish, a production system gets strict on everything.
+
+### MODE gate
+
+- **If `MODE = brainstorm`:** ask the 3 questions below interactively.
+- **If `MODE = oneshot`:** skip all `AskUserQuestion` calls. Instead:
+  1. Infer priority, audience, and lifespan from the query and BRAINSTORM_SUMMARY.
+  2. When ambiguous, default to the middle tier: **solid and correct + my team + weeks to months**.
+  3. Build the `INTENT_PROFILE` and `JUDGE_RUBRIC` from the inferred values.
+  4. Proceed directly to Phase -0.5.
 
 ### How it works
 
@@ -267,6 +347,15 @@ If brainstorming was skipped (dead simple query), default to the middle tier: **
 
 After understanding *what* the user wants to build, figure out *what tools will help build it*. Scan available skills and agents, match them to the user's goals, and let the user confirm or adjust the toolset.
 
+### MODE gate
+
+- **If `MODE = brainstorm`:** scan and present recommendations interactively as documented below.
+- **If `MODE = oneshot`:** skip all `AskUserQuestion` calls. Instead:
+  1. Run the scan (Step 1) as normal.
+  2. Run the matching (Step 2) as normal.
+  3. Auto-select the recommended toolset — equivalent to the user picking "Recommended set" and then "Looks good — proceed."
+  4. Build `TOOLING_CONFIG` and proceed directly to Phase 0.
+
 ### How it works
 
 #### Step 1: Scan available skills and agents
@@ -277,13 +366,18 @@ Search for all available skills and agents in the environment:
 # Scan for skills
 find ~/.claude/skills/ -name "SKILL.md" 2>/dev/null
 find .claude/skills/ -name "SKILL.md" 2>/dev/null
+find ~/.codex/skills/ -name "SKILL.md" 2>/dev/null
+find .codex/skills/ -name "SKILL.md" 2>/dev/null
 
 # Scan for agents
 find ~/.claude/agents/ -name "*.md" 2>/dev/null
 find .claude/agents/ -name "*.md" 2>/dev/null
+find ~/.codex/agents/ -name "*.md" 2>/dev/null
+find .codex/agents/ -name "*.md" 2>/dev/null
 
 # Also check for project-local skills
 find . -path "*/.claude/skills/*/SKILL.md" 2>/dev/null
+find . -path "*/.codex/skills/*/SKILL.md" 2>/dev/null
 ```
 
 Read the `name` and `description` fields from each discovered skill/agent file. Build an inventory:
@@ -384,6 +478,7 @@ The config is used by the orchestrator and injected into sub-agent prompts:
 - Don't overwhelm the user — recommend 2-4 tools max, not every skill in the system
 - If no extra skills are relevant (e.g., the task is pure backend with standard libraries), say so and suggest "Just the defaults"
 - Skills that the user's project already has in its local `.claude/skills/` take priority over global ones
+- Skills that the user's project already has in its local `.codex/skills/` take priority over global ones
 - If a skill would clearly help but isn't installed, mention it: "You don't have a {X} skill, but it might help here. Want to skip it or create one?"
 - If the brainstorm summary makes the tooling obvious (e.g., "build a landing page" → `landing-page` skill), pre-select it as the recommended option
 
@@ -392,6 +487,16 @@ The config is used by the orchestrator and injected into sub-agent prompts:
 ## Phase 0: Pre-Flight Scoping (BLOCKING — prehook-style workspace setup)
 
 Before any agent runs, scope the workspace using `AskUserQuestion` prehook gates — one question at a time, each with "Chat about this." This is the last interactive phase before full autonomy.
+
+### MODE gate
+
+- **If `MODE = brainstorm`:** ask the 4 questions below interactively.
+- **If `MODE = oneshot`:** skip all `AskUserQuestion` calls. Use these defaults:
+  1. **Writable directories:** Current directory and subdirectories.
+  2. **Read-only context:** None — figure it out.
+  3. **Off-limits:** Nothing off-limits.
+  4. **MAX_RETRIES:** 6 (3 normal + debug + 3 more).
+  5. Build `WORKSPACE_RULES` from these defaults and proceed directly to Phase 1.
 
 **Question 1 — Writable directories:**
 ```
@@ -527,7 +632,7 @@ mkdir -p workspace/task-{id}/tests workspace/task-{id}/output
 
 ### Step 4: Dispatch tasks
 
-Dispatch independent tasks **in parallel** by making multiple Agent tool calls in a single message. Tasks with dependencies wait for their dependencies to complete first. **Never use `run_in_background: true`** — instead, dispatch multiple foreground agents concurrently.
+Dispatch independent tasks **in parallel** by making multiple Agent tool calls in a single message. Tasks with dependencies wait for their dependencies to complete first. **Never use `run_in_background: true`** — instead, dispatch multiple foreground agents concurrently. In Codex, use multiple foreground sessions/agents in parallel for independent tasks.
 
 ---
 
@@ -536,6 +641,8 @@ Dispatch independent tasks **in parallel** by making multiple Agent tool calls i
 **Never set `run_in_background: true`** when dispatching agents via the Agent tool. Background agents cannot prompt the user for tool permission approvals (WebSearch, WebFetch, Bash, etc.), causing tools to be auto-denied and agents to fail silently.
 
 **To parallelize:** dispatch multiple foreground agents in a single message (multiple Agent tool calls). They run concurrently and can each prompt for tool permissions. Use this for independent tasks with no shared dependencies.
+
+Codex equivalent: run multiple foreground sessions/agents concurrently and avoid detached/background execution.
 
 ---
 

@@ -2,12 +2,13 @@
 
 ## How to Use
 
-Fully autonomous multi-agent implementation. Super Ralph decomposes the task, spawns specialized agents, self-debugs, and merges results.
+Fully autonomous multi-agent implementation. Super Ralph decomposes the task, spawns specialized agents, self-debugs, and merges results. Two modes: **oneshot** (zero-setup, fully autonomous) and **brainstorm** (interactive Q&A before execution).
 
 ```text
 [TASK]: Describe the feature, fix, or change you want built.
 [DIRECTORY]: The project directory to work in (e.g., /path/to/project).
 [CONSTRAINTS]: Any constraints (e.g., "no new dependencies", "must pass existing tests", "backend only").
+[MODE]: oneshot (default) or brainstorm.
 ```
 
 ## Execution Prompt
@@ -18,56 +19,100 @@ You are working in the project directory: **[DIRECTORY]**
 
 **Constraints:** [CONSTRAINTS]
 
+**Mode:** [MODE]
+
 Invoke `/super-ralph` and read the local wrapper at `$CLAUDE_PROJECT_DIR/.claude/skills/super-ralph/SKILL.md`. Then use the bundled Super Ralph files under `$CLAUDE_PROJECT_DIR/.claude/skills/super-ralph/` and run the full autonomous loop.
 
-Before launching, use available tools to set up the context:
+### Pre-Launch Context Setup
 
-1. Apply `search-first` to deeply explore the codebase in [DIRECTORY]. Map the project structure, tech stack, conventions, and test infrastructure before Ralph begins.
-2. If Context7 is configured locally, call `resolve-library-id` and `query-docs` for every significant dependency. Otherwise use the repo docs and web fetches that are available in the environment.
-3. If the project has a database, use any available repo-specific database connector or apply `postgres-patterns` to understand the data layer.
-4. Use repo file search and reads to get a structural overview Ralph can reference.
-5. Use Memory MCP: call `search_nodes` to check for prior architectural decisions or constraints relevant to this task.
-6. Consider activating `/careful` if the task touches critical systems, or `/freeze [MODULE_DIR]` to restrict edits to a specific module.
+Before Ralph begins its phases, gather context so the tooling discovery and task decomposition have real data to work with.
 
-Super Ralph will then autonomously:
+**Codebase exploration:**
+1. Apply `search-first` to deeply explore the codebase in [DIRECTORY]. Map the project structure, tech stack, conventions, and test infrastructure.
+2. Use repo file search and reads to build a structural overview Ralph can reference during decomposition.
 
-**Phase 1: Brainstorm** — Restate the request, ask clarifying questions, and confirm a `BRAINSTORM_SUMMARY` so task decomposition reflects explored user intent instead of the raw query.
+**Dependency documentation (when available):**
+3. If Context7 MCP is configured locally, call `resolve-library-id` and `query-docs` for every significant dependency. Otherwise use web fetches and repo docs.
 
-**Phase 2: Intent + Tooling + Pre-flight** — Capture the intent profile, derive a `JUDGE_RUBRIC`, scan available skills and agents, and lock workspace boundaries plus retry limits.
+**Data layer (when applicable):**
+4. If the project has a database, use any available database MCP connector or apply `postgres-patterns` to understand the schema and query patterns.
 
-**Phase 3: Decompose** — Break the task into independent subtasks with clear boundaries, explicit dependencies, success criteria, anti-patterns, and test strategy. Each subtask gets assigned to a specialized Ralph agent:
-- `ralph-worker` for implementation
-- `ralph-tester` for test writing and coverage
-- `ralph-debugger` for fixing failures
-- `ralph-judge` for intent-aware quality evaluation
-- `ralph-merger` for combining results
+**Safety scoping:**
+5. Consider activating `/careful` if the task touches critical systems, or `/freeze [MODULE_DIR]` to restrict edits to a specific module.
 
-**Phase 4: Execute** — Agents work in parallel where possible. The judge evaluates each output against the task definition and the `JUDGE_RUBRIC`, so grading matches the user's stated priority, audience, and lifespan. Tasks with dependencies receive extracted prerequisite learnings from completed upstream tasks before implementation retries continue. Each agent has access to the full tool ecosystem:
-- Backend work uses `backend-dev-guidelines`, `docker-patterns`, `postgres-patterns`, `deployment-patterns`
-- Frontend work uses `frontend-dev-guidelines`, `ui-styling`, `liquid-glass-design`, `e2e-testing`
-- All agents can use Context7 MCP, Chrome MCP, Playwright MCP, Figma MCP, and any repo-specific database connector when those integrations are configured locally
-- Testing uses `tdd-workflow`, `verification-loop`, `/qa` for browser testing
-- Security checks use `security-review` and `security-scan`
+### Mode Selection
 
-**Phase 5: Merge** — Combine all agent outputs, resolve conflicts, run the full verification suite, and keep the merged result aligned with the same intent-aware quality bar.
+If [MODE] is **oneshot**, pass the mode preference to Ralph so it skips the mode selection question and enters oneshot mode directly:
+- Ralph auto-analyzes the query, infers intent/scope/constraints, and writes the `BRAINSTORM_SUMMARY` silently.
+- Defaults to middle-tier intent: solid and correct, team audience, weeks-to-months lifespan.
+- Auto-selects the recommended toolset from available skills and agents.
+- Scopes to [DIRECTORY] as writable with MAX_RETRIES=6.
+- Proceeds directly to autonomous execution with zero further questions.
 
-**Phase 6: Learn** — Write per-task and per-agent learnings. Dependency learnings are summarized and passed forward to downstream tasks instead of leaving each fresh sub-agent to rediscover prior mistakes.
+If [MODE] is **brainstorm**, Ralph asks clarifying questions through its interactive prehook sequence before going autonomous.
 
-After Ralph completes, run these additional verification steps:
+### Ralph Phases
 
-1. Run `/quality-gate` to validate the combined output against quality criteria.
-2. Run `/codex review` for an independent cross-model review of all changes.
-3. Consider `/codex challenge` to adversarially stress-test the result.
-4. Use available browser tooling, such as Chrome MCP or Playwright MCP when configured locally, to verify any UI changes in the browser.
-5. Use the `verification-loop` skill for a final structured 6-phase check.
-6. Run `/checkpoint` to save the verified state.
+**Phase -2: Mode Selection** — Single question: Oneshot, Brainstorm, or Chat. Skipped if [MODE] is specified.
 
-Rules:
+**Phase -1: Brainstorm** — Restate the request, ask clarifying questions, and confirm a `BRAINSTORM_SUMMARY`. In oneshot mode, Ralph auto-analyzes the query silently and proceeds.
+
+**Phase -0.75: Intent Profile** — Three questions (priority, audience, lifespan) that generate a `JUDGE_RUBRIC` controlling how strictly the judge grades every agent output. In oneshot mode, defaults to middle tier.
+
+**Phase -0.5: Tooling Discovery** — Scans all available skills and agents in the environment, matches them to the task, and builds a `TOOLING_CONFIG`. This is where Ralph selects from the repo's full skill inventory:
+
+| Task Domain | Skills Ralph May Select |
+|------------|------------------------|
+| Backend/API | `backend-dev-guidelines`, `docker-patterns`, `deployment-patterns`, `claude-api` |
+| Frontend/UI | `frontend-dev-guidelines`, `ui-styling`, `liquid-glass-design`, `shadcn-ui` |
+| Database | `postgres-patterns` |
+| Testing | `tdd-workflow`, `e2e-testing`, `python-testing` |
+| Security | `security-review`, `security-scan` |
+| Design | `design-consultation`, frontend-design plugin |
+| Architecture | architect agent, architecture-review-system agent |
+| Debugging | `systematic-debugging`, `investigate` |
+
+Ralph also picks from the 17 local agents (architect, build-error-resolver, code-refactor-master, database-reviewer, frontend-developer, frontend-error-fixer, etc.) and installed plugin agents (code-review, code-simplifier, feature-dev).
+
+**Phase 0: Pre-Flight** — Locks workspace boundaries, read-only paths, off-limits paths, and MAX_RETRIES. In oneshot mode, uses [DIRECTORY] as writable scope with 6 retries.
+
+**Phase 1: Decompose** — Breaks the task into independent subtasks with explicit dependencies, success criteria, anti-patterns, and test strategy. Tags each task with `skills_to_use` from the TOOLING_CONFIG.
+
+**Phase 2: Execute** — Per-task loop, parallel where independent:
+- `ralph-tester` writes adversarial tests (happy path, edge cases, failure modes)
+- `ralph-judge` evaluates every output against the JUDGE_RUBRIC (no retry limit)
+- `ralph-worker` implements until tests pass, gets failure context on retries
+- At MAX_RETRIES/2: worker writes `debug.md`, then `ralph-debugger` does cold root-cause analysis
+- At MAX_RETRIES: auto-skip, log to learnings
+- Learnings from completed tasks flow forward to dependent tasks
+
+**Phase 3: Merge and Learn** — `ralph-merger` combines all outputs, resolves conflicts, produces the deliverable in `workspace/final/`. Writes per-task learnings and a cross-task run summary to `learnings.md`.
+
+### Post-Completion Verification
+
+After Ralph delivers, run these verification steps:
+
+1. `/quality-gate` to validate the combined output against quality criteria.
+2. `/codex review` for an independent cross-model review of all changes.
+3. `/codex challenge` to adversarially stress-test the result (optional but recommended for ship-ready work).
+4. If UI changes: use Chrome MCP, Playwright MCP, or `/qa` for browser verification.
+5. `verification-loop` skill for a structured 6-phase check (build, type, lint, test, security, diff).
+6. `/checkpoint` to save the verified state.
+
+### Post-Completion Suggestions
+
+After verification, consider:
+- `/retro` if the task was significant, to capture workflow lessons.
+- `/document-release` if the changes warrant documentation updates.
+- `/simplify` to review the output for unnecessary complexity.
+- `/review-staff` for a staff-engineer-level code review pass.
+
+### Rules
 
 - Do not git commit or push. The user owns all commits.
-- After the interactive setup, Ralph runs autonomously without asking more questions.
-- If a task still fails after the configured retry limit, auto-skip it and log the reason plus learnings.
-- All work stays within [DIRECTORY].
-- Respect [CONSTRAINTS] throughout the entire process.
-- After completion, suggest `/retro` to the user if the task was significant.
-- Consider `/document-release` if the changes warrant documentation updates.
+- After setup completes, Ralph runs fully autonomously with zero user interaction.
+- Failed tasks auto-skip at MAX_RETRIES and log the reason plus learnings.
+- All work stays within [DIRECTORY]. Respect [CONSTRAINTS] throughout.
+- Never use `run_in_background: true` for agent dispatch. Parallelize with multiple foreground Agent calls in a single message.
+- Every sub-agent output passes through `ralph-judge` before proceeding. No retry limit on judge rejections.
+- Fresh agent context per dispatch. No shared state, no sunk-cost reasoning.

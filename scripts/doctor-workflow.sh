@@ -51,19 +51,36 @@ if require_cmd claude; then
     if claude plugin list >"$plugin_log" 2>&1; then
         set +e
         plugin_parser_output="$(
-            python3 - "$ROOT/.claude/settings.json" "$plugin_log" <<'PY'
+            python3 - "$ROOT/.claude/settings.json" "$ROOT/.claude/settings.local.json" "$plugin_log" <<'PY'
 import json
 import re
 import sys
 from pathlib import Path
 
 settings_path = Path(sys.argv[1])
-plugin_log_path = Path(sys.argv[2])
+local_settings_path = Path(sys.argv[2])
+plugin_log_path = Path(sys.argv[3])
 
-enabled = {
+shared_enabled = {
     name
     for name, value in json.loads(settings_path.read_text()).get("enabledPlugins", {}).items()
     if value is True
+}
+
+local_enabled = set()
+if local_settings_path.exists():
+    local_enabled = {
+        name
+        for name, value in json.loads(local_settings_path.read_text()).get("enabledPlugins", {}).items()
+        if value is True
+    }
+
+enabled = shared_enabled | local_enabled
+local_optional = {
+    "context7@claude-plugins-official",
+    "figma@claude-plugins-official",
+    "github@claude-plugins-official",
+    "playwright@claude-plugins-official",
 }
 
 text = plugin_log_path.read_text()
@@ -87,11 +104,24 @@ warnings = []
 for plugin in sorted(enabled):
     status = statuses.get(plugin)
     if status is None:
-        failures.append(f"missing from `claude plugin list`: {plugin}")
+        message = f"missing from `claude plugin list`: {plugin}"
+        if plugin in shared_enabled:
+            failures.append(message)
+        else:
+            warnings.append(message)
     elif "failed to load" in status.lower():
-        failures.append(f"failed to load: {plugin}")
+        message = f"failed to load: {plugin}"
+        if plugin in shared_enabled:
+            failures.append(message)
+        elif plugin in local_optional:
+            warnings.append(f"{message} (optional local plugin)")
+        else:
+            warnings.append(message)
     elif "enabled" in status.lower():
-        print(f"PASS: enabled plugin available: {plugin}")
+        if plugin in local_enabled and plugin not in shared_enabled:
+            print(f"PASS: local enabled plugin available: {plugin}")
+        else:
+            print(f"PASS: enabled plugin available: {plugin}")
     else:
         warnings.append(f"enabled plugin reported non-ready status: {plugin} ({status})")
 
@@ -157,7 +187,7 @@ if installed_path.exists():
     missing_local = sorted(optional_plugins & installed - enabled_local)
     if missing_local:
         print(
-            "WARN: optional plugins are installed locally but not enabled in .claude/settings.local.json: "
+            "NOTE: optional plugins are installed locally but remain disabled in .claude/settings.local.json: "
             + ", ".join(missing_local)
         )
 PY
@@ -165,6 +195,44 @@ PY
     if [[ -n "$local_settings_warnings" ]]; then
         printf "%s\n" "$local_settings_warnings"
         warnings=$((warnings + $(printf "%s\n" "$local_settings_warnings" | grep -c '^WARN:' || true)))
+    fi
+
+    plugin_state_warnings="$(
+        python3 - "$ROOT/.claude/settings.json" "$ROOT/plugins/blocklist.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+settings_path = Path(sys.argv[1])
+blocklist_path = Path(sys.argv[2])
+
+enabled = {
+    name
+    for name, value in json.loads(settings_path.read_text()).get("enabledPlugins", {}).items()
+    if value is True
+}
+
+if not blocklist_path.exists():
+    raise SystemExit(0)
+
+blocklist = json.loads(blocklist_path.read_text())
+for entry in blocklist.get("plugins", []):
+    plugin = entry.get("plugin")
+    reason = (entry.get("reason") or "").strip()
+    text = (entry.get("text") or "").strip()
+    if plugin not in enabled:
+        continue
+    lower = f"{reason} {text}".lower()
+    if "test" in lower:
+        print(
+            "WARN: enabled shared plugin is still present in ignored local blocklist "
+            f"with a test marker: {plugin} ({reason or 'no reason'})"
+        )
+PY
+    )"
+    if [[ -n "$plugin_state_warnings" ]]; then
+        printf "%s\n" "$plugin_state_warnings"
+        warnings=$((warnings + $(printf "%s\n" "$plugin_state_warnings" | grep -c '^WARN:' || true)))
     fi
 
     marketplace_log="$(mktemp)"
@@ -187,11 +255,42 @@ if require_cmd claude; then
     if claude mcp list >"$mcp_log" 2>&1; then
         set +e
         mcp_parser_output="$(
-            python3 - "$mcp_log" <<'PY'
+            python3 - "$ROOT/.claude/settings.json" "$ROOT/.claude/settings.local.json" "$mcp_log" <<'PY'
+import json
 import sys
 from pathlib import Path
 
-text = Path(sys.argv[1]).read_text().splitlines()
+settings_path = Path(sys.argv[1])
+local_settings_path = Path(sys.argv[2])
+mcp_log_path = Path(sys.argv[3])
+
+enabled = {
+    name
+    for name, value in json.loads(settings_path.read_text()).get("enabledPlugins", {}).items()
+    if value is True
+}
+
+if local_settings_path.exists():
+    enabled |= {
+        name
+        for name, value in json.loads(local_settings_path.read_text()).get("enabledPlugins", {}).items()
+        if value is True
+    }
+
+plugin_keys = {
+    "plugin:context7:context7:": "context7@claude-plugins-official",
+    "plugin:figma:figma:": "figma@claude-plugins-official",
+    "plugin:github:github:": "github@claude-plugins-official",
+    "plugin:playwright:playwright:": "playwright@claude-plugins-official",
+}
+
+def plugin_key_for_line(line: str):
+    for prefix, plugin_name in plugin_keys.items():
+        if prefix in line:
+            return plugin_name
+    return None
+
+text = mcp_log_path.read_text().splitlines()
 failures = []
 warnings = []
 passes = []
@@ -201,8 +300,14 @@ for line in text:
     if " - ✓ Connected" in line:
         passes.append(line)
     elif " - ! Needs authentication" in line:
+        plugin_name = plugin_key_for_line(line)
+        if plugin_name is not None and plugin_name not in enabled:
+            continue
         warnings.append(line)
     elif "plugin:" in line and " - ✗ Failed to connect" in line:
+        plugin_name = plugin_key_for_line(line)
+        if plugin_name is not None and plugin_name not in enabled:
+            continue
         hint = ""
         if "plugin:github:github:" in line:
             hint = " (optional plugin MCP; usually missing GitHub auth or token wiring)"

@@ -16,7 +16,7 @@ prune_curated_reference_artifacts() {
 
     case "$repo_name" in
         gstack)
-            for rel_path in ".agents" "bin/gstack-global-discover" "browse/dist" "bun.lock" "docs/images" "node_modules"; do
+            for rel_path in "agents/openai.yaml" "bin/gstack-global-discover" "browse/dist" "bun.lock" "docs/images" "node_modules"; do
                 rm -rf "$target_dir/$rel_path"
             done
             ;;

@@ -570,6 +570,7 @@
             "description": "Security review: secrets, input validation, SQL injection, XSS, CSRF, auth, rate limiting",
             "promptTriggers": {
                 "keywords": [
+                    "auth",
                     "security",
                     "vulnerability",
                     "injection",
@@ -577,6 +578,7 @@
                     "csrf",
                     "authentication",
                     "authorization",
+                    "jwt",
                     "secrets",
                     "api key",
                     "owasp",
@@ -858,12 +860,20 @@
                     "break this down and build",
                     "ralph this",
                     "autonomous agents",
-                    "multi-agent execution"
+                    "multi-agent execution",
+                    "oneshot",
+                    "one shot",
+                    "just do it",
+                    "handle everything",
+                    "skip setup",
+                    "no questions"
                 ],
                 "intentPatterns": [
                     "(super|use).*ralph",
                     "ralph.*(build|execute|decompose|this)",
-                    "break.*down.*build"
+                    "break.*down.*build",
+                    "(oneshot|one.?shot).*(build|execute|implement|run)",
+                    "(just|skip).*(do|build|handle|setup|questions)"
                 ]
             }
         },

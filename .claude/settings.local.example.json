@@ -1,8 +1,8 @@
 {
   "enabledPlugins": {
-    "context7@claude-plugins-official": true,
-    "figma@claude-plugins-official": true,
-    "github@claude-plugins-official": true,
-    "playwright@claude-plugins-official": true
+    "context7@claude-plugins-official": false,
+    "figma@claude-plugins-official": false,
+    "github@claude-plugins-official": false,
+    "playwright@claude-plugins-official": false
   }
 }

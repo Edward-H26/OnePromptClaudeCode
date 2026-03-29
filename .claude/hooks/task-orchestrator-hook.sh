@@ -58,12 +58,13 @@ exit 0
 fi
 
 PLUGIN_LINES=""
+AVAILABLE_PLUGINS="$(plugin_available_names 2>/dev/null || true)"
 
 append_plugin_line() {
     local plugin_name="$1"
     local description="$2"
 
-    if plugin_is_available "$plugin_name"; then
+    if printf "%s\n" "$AVAILABLE_PLUGINS" | grep -Fxq "$plugin_name"; then
         PLUGIN_LINES="${PLUGIN_LINES}- ${description}\n"
     fi
 }

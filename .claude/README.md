@@ -14,7 +14,7 @@ This directory contains the maintained workflow source for this `agent/claude` e
 
 - `.claude/settings.json` is the canonical shared config for this workspace.
 - `.claude/settings.local.json` is for machine-local overrides only.
-- `.claude/settings.local.example.json` is the tracked starting point for optional local plugin enablement.
+- `.claude/settings.local.example.json` is the tracked starting point for optional local plugin enablement and leaves those optional plugins disabled by default.
 - Auth-sensitive or duplicate plugin integrations belong in `.claude/settings.local.json`, not the shared tracked config.
 - `.claude/CLAUDE*.md`, `.claude/hooks/`, `.claude/commands/`, `.claude/prompt-templates/`, `.claude/agents/`, and `.claude/skills/` are maintained source files.
 - `.claude/skills/` is the published workflow surface in this repo, including the bundled `gstack` and `super-ralph` content.

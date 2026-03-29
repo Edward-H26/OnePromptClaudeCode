@@ -85,6 +85,7 @@ mkdir -p "$STEPS_DIR/codex-kickoff" 2>/dev/null || true
 
 PROMPT_FILE="$(mktemp)"
 LAUNCH_SCRIPT="$(mktemp)"
+trap 'rm -f "$PROMPT_FILE" "$LAUNCH_SCRIPT" 2>/dev/null' EXIT
 printf '%s' "$PROMPT" > "$PROMPT_FILE"
 cat > "$LAUNCH_SCRIPT" <<LAUNCH
 #!/bin/bash
@@ -101,6 +102,7 @@ nohup /bin/bash -c '
     if [ -n "$TIMEOUT_CMD" ]; then
         "$TIMEOUT_CMD" 120 /bin/bash "$1"
     else
+        echo "WARNING: neither timeout nor gtimeout found; Codex running without external timeout guard" >&2
         /bin/bash "$1"
     fi
     rm -f "$2" "$1"
