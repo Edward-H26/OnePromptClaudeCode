@@ -9,6 +9,7 @@ Fully autonomous multi-agent implementation. Super Ralph decomposes the task, sp
 [DIRECTORY]: The project directory to work in (e.g., /path/to/project).
 [CONSTRAINTS]: Any constraints (e.g., "no new dependencies", "must pass existing tests", "backend only").
 [MODE]: oneshot (default) or brainstorm.
+[TYPE]: feature (default), debug, refactor, review, or security-audit.
 ```
 
 ## Execution Prompt
@@ -20,6 +21,8 @@ You are working in the project directory: **[DIRECTORY]**
 **Constraints:** [CONSTRAINTS]
 
 **Mode:** [MODE]
+
+**Type:** [TYPE]
 
 Invoke `/super-ralph` and read the local wrapper at `$CLAUDE_PROJECT_DIR/.claude/skills/super-ralph/SKILL.md`. Then use the bundled Super Ralph files under `$CLAUDE_PROJECT_DIR/.claude/skills/super-ralph/` and run the full autonomous loop.
 
@@ -39,6 +42,40 @@ Before Ralph begins its phases, gather context so the tooling discovery and task
 
 **Safety scoping:**
 5. Consider activating `/careful` if the task touches critical systems, or `/freeze [MODULE_DIR]` to restrict edits to a specific module.
+
+### Task Type Guidance
+
+The [TYPE] parameter shapes how Ralph decomposes and executes the task:
+
+**feature** (default): Full build cycle. Ralph decomposes into implementation subtasks, writes tests first, builds, and merges. Uses the standard tester/worker/judge/merger agent pipeline.
+
+**debug**: Root-cause analysis and fix. Before decomposition, Ralph:
+1. Activates `systematic-debugging` or `/investigate` to force root-cause analysis before any fix attempt.
+2. Reproduces the issue with the smallest reliable command, test, or browser flow.
+3. If `[DIRECTORY]` has a specific module at fault, applies `/freeze` to restrict edits.
+4. Decomposes the fix into: reproduce test, root-cause identification, minimal fix, regression test.
+5. Uses `ralph-debugger` early (not just at MAX_RETRIES/2) since debugging is the primary activity.
+
+**refactor**: Behavior-preserving structural improvement. Ralph:
+1. Maps all usages before editing. Activates `code-refactor` for controlled, scoped transformations.
+2. Decomposes into independent refactoring units that can be tested in isolation.
+3. Each subtask must prove behavior is unchanged via existing or new tests.
+4. `ralph-judge` evaluates against "no behavior change" as the primary criterion.
+5. Summarizes files changed and residual risks in the merge report.
+
+**review**: Read-only code review, no edits. Ralph:
+1. Activates `security-review` for application risks and `security-scan` for config/workflow risks.
+2. Decomposes the codebase into review zones (auth, data flow, API surface, config, etc.).
+3. Each `ralph-worker` reviews its zone and produces findings ordered by severity.
+4. `ralph-merger` consolidates findings into a single report with deduplicated issues.
+5. No files are modified. Output is a structured report with file references and fix direction.
+
+**security-audit**: Deep security-focused review. Ralph:
+1. Activates both `security-review` and `security-scan`.
+2. Decomposes into OWASP categories: injection, auth/access, secrets exposure, config hardening, dependency risks.
+3. Each subtask scans its category and produces findings with severity, evidence, and remediation.
+4. `ralph-merger` produces a consolidated security report with prioritized action items.
+5. No files are modified unless [CONSTRAINTS] explicitly say "fix found issues."
 
 ### Mode Selection
 

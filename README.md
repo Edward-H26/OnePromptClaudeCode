@@ -4,7 +4,7 @@
 
 A complete Claude Code workflow that covers the entire software development lifecycle. Clone it, start coding, and never write a prompt from scratch again.
 
-55 skill entries. 30 commands. 14 agents. 8 local hooks. 6 templates. 11+ shared MCP servers. 400+ auto-triggers.
+55 skill entries. 30 commands. 14 agents. 8 local hooks. 7 templates. 11+ shared MCP servers. 400+ auto-triggers.
 
 Built for beginners. Scales for power users.
 
