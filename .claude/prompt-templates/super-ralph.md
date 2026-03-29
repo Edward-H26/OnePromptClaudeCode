@@ -65,6 +65,7 @@ If [MODE] is **brainstorm**, Ralph asks clarifying questions through its interac
 |------------|------------------------|
 | Backend/API | `backend-dev-guidelines`, `docker-patterns`, `deployment-patterns`, `claude-api` |
 | Frontend/UI | `frontend-dev-guidelines`, `ui-styling`, `liquid-glass-design`, `shadcn-ui` |
+| Design Intelligence | `ui-ux-pro-max` (style selection, color palettes, font pairing, UX guidelines, design system generation) |
 | Database | `postgres-patterns` |
 | Testing | `tdd-workflow`, `e2e-testing`, `python-testing` |
 | Security | `security-review`, `security-scan` |

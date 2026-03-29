@@ -998,7 +998,12 @@ bad.extend(
 )
 
 LARGE_FILE_THRESHOLD = 500_000
+KNOWN_LARGE_DATA_FILES = {
+    "references/ui-ux-pro-max/data/google-fonts.csv",
+}
 for rel_path in public_files:
+    if rel_path in KNOWN_LARGE_DATA_FILES:
+        continue
     path = root / rel_path
     if path.is_file() and path.stat().st_size > LARGE_FILE_THRESHOLD:
         bad.append(f"{rel_path} ({path.stat().st_size // 1024}KB)")

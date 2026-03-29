@@ -4,7 +4,7 @@
 
 A complete Claude Code workflow that covers the entire software development lifecycle. Clone it, start coding, and never write a prompt from scratch again.
 
-54 skill entries. 30 commands. 14 agents. 8 local hooks. 6 templates. 11+ shared MCP servers. 400+ auto-triggers.
+55 skill entries. 30 commands. 14 agents. 8 local hooks. 6 templates. 11+ shared MCP servers. 400+ auto-triggers.
 
 Built for beginners. Scales for power users.
 
@@ -124,6 +124,7 @@ The workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Te
 | `postgres-patterns` | ask about PostgreSQL | Queries, indexing, migrations, performance tuning |
 | `deployment-patterns` | ask about deployment | CI/CD, blue-green, canary strategies |
 | `ui-styling` | auto on UI/CSS work | shadcn/ui, Tailwind CSS, 40+ fonts |
+| `ui-ux-pro-max` | ask about design decisions | 67 UI styles, 161 palettes, 57 fonts, 99 UX guidelines, 25 chart types |
 | `shadcn-ui` | ask about shadcn/ui | shadcn/ui component composition, theming, registry, OKLCH tokens |
 | `code-refactor` | ask to refactor | Grep + Edit workflow for bulk refactoring |
 

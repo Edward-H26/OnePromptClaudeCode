@@ -85,6 +85,7 @@ Scan the environment for available skills and agents, match them to the brainsto
    - Backend work: `backend-dev-guidelines`
    - Frontend work: `frontend-dev-guidelines`
    - UI styling: `ui-styling`, `shadcn-ui`
+   - Design decisions (style, color, typography, UX): `ui-ux-pro-max`
    - Refactors: `code-refactor`
    - Bugs: `systematic-debugging`
    - Security: `security-review`, `security-scan`

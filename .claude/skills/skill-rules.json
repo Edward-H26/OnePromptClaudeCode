@@ -415,6 +415,66 @@
                 ]
             }
         },
+        "ui-ux-pro-max": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "AI-powered design intelligence: 67 UI styles, 161 color palettes, 57 font pairings, 99 UX guidelines, 25 chart types across 15+ stacks. Use before building UI for design system generation, style selection, typography, and color decisions.",
+            "promptTriggers": {
+                "keywords": [
+                    "ui ux",
+                    "ux guidelines",
+                    "design intelligence",
+                    "color palette",
+                    "color scheme",
+                    "font pairing",
+                    "typography selection",
+                    "ui style",
+                    "glassmorphism",
+                    "brutalism",
+                    "minimalism",
+                    "neumorphism",
+                    "design system generation",
+                    "chart type",
+                    "data visualization",
+                    "landing page design",
+                    "page structure",
+                    "cta strategy",
+                    "accessibility check",
+                    "ui review",
+                    "design recommendation",
+                    "style recommendation",
+                    "choose colors",
+                    "choose fonts",
+                    "pick a style",
+                    "what style",
+                    "which colors",
+                    "design direction"
+                ],
+                "intentPatterns": [
+                    "(choose|pick|recommend|suggest|select).*?(style|color|font|palette|typography|theme)",
+                    "(design|generate|create).*?(system|direction|recommendation|palette)",
+                    "(what|which|best).*?(style|color|font|design|layout).*?(for|fits|matches)",
+                    "(review|audit|check|improve).*?(ui|ux|design|accessibility|usability)",
+                    "(build|create|design).*?(landing|dashboard|page|app|interface)",
+                    "(glassmorphism|brutalism|minimalism|neumorphism|skeuomorphism)"
+                ],
+                "keywordExclusions": [
+                    "backend only",
+                    "api only",
+                    "database only",
+                    "no ui"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "**/design-system/**",
+                    "**/design-system/MASTER.md"
+                ],
+                "pathExclusions": [],
+                "contentPatterns": []
+            }
+        },
         "systematic-debugging": {
             "type": "domain",
             "enforcement": "suggest",

@@ -39,6 +39,7 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 | `search-first` | ask to "search first" | Explore existing code before writing new code. Codebase search methodology. |
 | `code-refactor` | ask to refactor | Grep + Edit workflow for bulk refactoring with verification. |
 | `ui-styling` | auto on UI/CSS work | shadcn/ui components, Tailwind CSS, canvas-based design, 40+ fonts. |
+| `ui-ux-pro-max` | ask about design decisions | 67 UI styles, 161 color palettes, 57 font pairings, 99 UX guidelines, 25 chart types. Design system generation across 15+ stacks. |
 | `shadcn-ui` | ask about shadcn/ui | shadcn/ui component composition, theming, registry workflow, and OKLCH tokens. |
 | `liquid-glass-design` | ask for "glass design" | Modern glassmorphic UI: translucent layers, depth, frosted effects. |
 
