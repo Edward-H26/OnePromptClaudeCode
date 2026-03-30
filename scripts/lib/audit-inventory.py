@@ -160,3 +160,46 @@ if broken_links:
     for rel_path, link, reason in broken_links:
         print(f"  {rel_path}: {link} ({reason})")
     raise SystemExit(1)
+
+proto_pollution_keys = {"__proto__", "constructor", "__defineGetter__", "__defineSetter__"}
+tracked_json_files = [
+    root / ".claude" / "settings.json",
+    root / ".claude" / "settings.local.example.json",
+    skill_rules_path,
+]
+
+def check_proto_keys(obj, path=""):
+    if isinstance(obj, dict):
+        for key in obj:
+            if key in proto_pollution_keys:
+                return f"{path}.{key}" if path else key
+            result = check_proto_keys(obj[key], f"{path}.{key}" if path else key)
+            if result:
+                return result
+    elif isinstance(obj, list):
+        for i, item in enumerate(obj):
+            result = check_proto_keys(item, f"{path}[{i}]")
+            if result:
+                return result
+    return None
+
+for json_path in tracked_json_files:
+    if not json_path.exists():
+        continue
+    data = json.loads(json_path.read_text())
+    hit = check_proto_keys(data)
+    if hit:
+        print(f"Prototype pollution key found in {json_path.as_posix()}: {hit}")
+        raise SystemExit(1)
+
+agent_names = [p.stem.lower() for p in (root / ".claude" / "agents").glob("*.md") if p.name != "README.md"]
+if len(agent_names) != len(set(agent_names)):
+    dupes = [name for name in agent_names if agent_names.count(name) > 1]
+    print(f"Duplicate agent names: {sorted(set(dupes))}")
+    raise SystemExit(1)
+
+command_names_list = [p.stem.lower() for p in (root / ".claude" / "commands").glob("*.md") if p.name != "README.md"]
+if len(command_names_list) != len(set(command_names_list)):
+    dupes = [name for name in command_names_list if command_names_list.count(name) > 1]
+    print(f"Duplicate command names: {sorted(set(dupes))}")
+    raise SystemExit(1)

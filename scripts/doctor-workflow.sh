@@ -35,7 +35,7 @@ print_file_head() {
     fi
 }
 
-echo "[1/5] Static audit"
+echo "[1/8] Static audit"
 audit_log="$(mktemp)"
 if bash "$ROOT/scripts/audit-workflow.sh" >"$audit_log" 2>&1; then
     pass "Static workflow audit passed"
@@ -45,7 +45,35 @@ else
 fi
 rm -f "$audit_log"
 
-echo "[2/5] Shared plugin health"
+echo "[2/8] Skill symlink health"
+BROKEN=""
+while IFS= read -r symlink; do
+    if [[ ! -e "$symlink" ]]; then
+        BROKEN="${BROKEN}  ${symlink}\n"
+    fi
+done < <(find .claude/skills -type l -not -path "*/node_modules/*" 2>/dev/null)
+if [[ -n "$BROKEN" ]]; then
+    fail "Broken skill symlinks detected"
+    printf '%b' "$BROKEN"
+else
+    pass "All skill symlinks resolve"
+fi
+
+echo "[3/8] Hook executable permissions"
+NON_EXEC=""
+for hook_script in .claude/hooks/*.sh; do
+    if [[ -f "$hook_script" ]] && [[ ! -x "$hook_script" ]]; then
+        NON_EXEC="${NON_EXEC}  ${hook_script}\n"
+    fi
+done
+if [[ -n "$NON_EXEC" ]]; then
+    fail "Non-executable hook scripts found"
+    printf '%b' "$NON_EXEC"
+else
+    pass "All hook scripts are executable"
+fi
+
+echo "[4/8] Shared plugin health"
 if require_cmd claude; then
     plugin_log="$(mktemp)"
     if claude plugin list >"$plugin_log" 2>&1; then
@@ -249,7 +277,7 @@ PY
     rm -f "$plugin_log" "$marketplace_log"
 fi
 
-echo "[3/5] MCP health"
+echo "[5/8] MCP health"
 if require_cmd claude; then
     mcp_log="$(mktemp)"
     if claude mcp list >"$mcp_log" 2>&1; then
@@ -350,8 +378,11 @@ PY
     rm -f "$mcp_log"
 fi
 
-echo "[4/5] Codex read-only smoke"
+echo "[6/8] Codex read-only smoke"
 if require_cmd codex; then
+    CODEX_VERSION="$(codex --version 2>/dev/null || echo "unknown")"
+    echo "  Codex version: $CODEX_VERSION"
+
     codex_runtime_root="$ROOT/.claude/runtime/codex"
     codex_output="$codex_runtime_root/doctor-smoke.md"
     codex_stdout="$(mktemp)"
@@ -375,6 +406,10 @@ if require_cmd codex; then
         fi
     else
         fail "Codex read-only smoke test failed"
+        echo "  Diagnostics:"
+        echo "  - Verify OPENAI_API_KEY or ANTHROPIC_API_KEY is set"
+        echo "  - Run: codex --version"
+        echo "  - Run: codex 'Reply with ok' --read-only"
         print_file_head "$codex_stderr"
         print_file_head "$codex_output"
     fi
@@ -382,13 +417,56 @@ if require_cmd codex; then
     rm -f "$codex_stdout" "$codex_stderr"
 fi
 
-echo "[5/5] Git surface check"
+echo "[7/8] Git surface check"
 status_output="$(git status --short)"
 if [[ -n "$status_output" ]]; then
     warn "Working tree has tracked or untracked changes"
     printf "%s\n" "$status_output"
 else
     pass "Working tree is clean"
+fi
+
+echo "[8/8] Local JSON safety and runtime hygiene"
+LOCAL_JSON_SAFETY=true
+for local_json in .claude/session-aliases.json plugins/blocklist.json plugins/installed_plugins.json; do
+    if [[ -f "$local_json" ]]; then
+        if python3 -c "
+import json, sys
+data = json.loads(open(sys.argv[1]).read())
+def check(obj, path=''):
+    if isinstance(obj, dict):
+        for k in obj:
+            if k in ('__proto__', 'constructor', '__defineGetter__', '__defineSetter__'):
+                print(f'  Unsafe key: {path}.{k}' if path else f'  Unsafe key: {k}')
+                return True
+            if check(obj[k], f'{path}.{k}' if path else k):
+                return True
+    return False
+sys.exit(0 if check(data) else 1)
+" "$local_json" 2>/dev/null; then
+            LOCAL_JSON_SAFETY=false
+            warn "Prototype pollution key in $local_json"
+        fi
+    fi
+done
+if $LOCAL_JSON_SAFETY; then
+    pass "Local JSON files safe from prototype pollution vectors"
+fi
+
+STALE_DIRS=""
+for runtime_dir in .claude/runtime .claude/tsc-cache; do
+    if [[ -d "$runtime_dir" ]]; then
+        stale_count=$(find "$runtime_dir" -mindepth 1 -maxdepth 1 -type d -mtime +14 2>/dev/null | wc -l | tr -d ' ')
+        if [[ "$stale_count" -gt 0 ]]; then
+            STALE_DIRS="${STALE_DIRS}  $runtime_dir: $stale_count directories older than 14 days\n"
+        fi
+    fi
+done
+if [[ -n "$STALE_DIRS" ]]; then
+    warn "Stale runtime directories found"
+    printf '%b' "$STALE_DIRS"
+else
+    pass "No stale runtime directories"
 fi
 
 echo

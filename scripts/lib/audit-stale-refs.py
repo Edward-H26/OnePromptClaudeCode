@@ -162,3 +162,55 @@ if broken_refs:
     for path, rel in broken_refs:
         print(f"  {path}: {rel}")
     raise SystemExit(1)
+
+workflow_ref_path = root / ".claude" / "WORKFLOW-REFERENCE.md"
+if workflow_ref_path.exists():
+    workflow_ref = workflow_ref_path.read_text()
+
+    agent_dir = root / ".claude" / "agents"
+    actual_agents = {p.stem for p in agent_dir.glob("*.md") if p.name != "README.md"}
+    ref_agent_pattern = re.compile(r"^\|\s*`([a-z][\w-]*)`\s*\|")
+    ref_agents = set()
+    in_agents_section = False
+    for line in workflow_ref.splitlines():
+        if "## Agents Reference" in line:
+            in_agents_section = True
+            continue
+        if in_agents_section and line.startswith("## "):
+            break
+        if in_agents_section:
+            m = ref_agent_pattern.match(line)
+            if m:
+                name = m.group(1)
+                if not name.startswith("ralph-"):
+                    ref_agents.add(name)
+
+    missing_agent_files = sorted(ref_agents - actual_agents)
+    if missing_agent_files:
+        print("WORKFLOW-REFERENCE.md lists agents not found in .claude/agents/:")
+        for name in missing_agent_files:
+            print(f"  {name}")
+        raise SystemExit(1)
+
+    commands_dir = root / ".claude" / "commands"
+    actual_commands = {p.stem for p in commands_dir.glob("*.md") if p.name != "README.md"}
+    ref_command_pattern = re.compile(r"^\|\s*`/([a-z][\w-]*)`\s*\|")
+    ref_commands = set()
+    in_commands_section = False
+    for line in workflow_ref.splitlines():
+        if "## Commands Reference" in line:
+            in_commands_section = True
+            continue
+        if in_commands_section and line.startswith("## "):
+            break
+        if in_commands_section:
+            m = ref_command_pattern.match(line)
+            if m:
+                ref_commands.add(m.group(1))
+
+    missing_command_files = sorted(ref_commands - actual_commands)
+    if missing_command_files:
+        print("WORKFLOW-REFERENCE.md lists commands not found in .claude/commands/:")
+        for name in missing_command_files:
+            print(f"  {name}")
+        raise SystemExit(1)

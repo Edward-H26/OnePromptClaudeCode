@@ -20,6 +20,8 @@ patterns = [
     re.compile(r"mongodb\+srv://[^@\s]+:[^@\s]+@"),
     re.compile(r"postgres://[^@\s]+:[^@\s]+@"),
     re.compile(r"mysql://[^@\s]+:[^@\s]+@"),
+    re.compile(r"hf_[A-Za-z0-9]{30,}"),
+    re.compile(r"sk-ant-[A-Za-z0-9_-]{20,}"),
 ]
 
 allow_paths = {"scripts/audit-workflow.sh", "scripts/lib/audit-secrets.py"}

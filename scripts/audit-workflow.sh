@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-echo "[1/9] Shell syntax"
+echo "[1/11] Shell syntax"
 bash -n .claude/hooks/*.sh .claude/hooks/lib/*.sh references/*.sh scripts/*.sh
 for gstack_bin in .claude/skills/gstack/*/bin/*.sh; do
     [ -f "$gstack_bin" ] && bash -n "$gstack_bin"
@@ -25,13 +25,34 @@ do
     fi
 done
 
-echo "[2/9] Hook script path resolution"
+for hook_script in .claude/hooks/*.sh; do
+    if [[ -f "$hook_script" ]] && [[ ! -x "$hook_script" ]]; then
+        echo "Hook script not executable: $hook_script" >&2
+        exit 1
+    fi
+done
+
+echo "[2/11] Symlink integrity"
+BROKEN_SYMLINKS=""
+while IFS= read -r symlink; do
+    if [[ ! -e "$symlink" ]]; then
+        BROKEN_SYMLINKS="${BROKEN_SYMLINKS}  ${symlink}\n"
+    fi
+done < <(find .claude/skills -type l -not -path "*/node_modules/*" 2>/dev/null)
+if [[ -n "$BROKEN_SYMLINKS" ]]; then
+    echo "Broken symlinks in .claude/skills/:" >&2
+    printf '%b' "$BROKEN_SYMLINKS" >&2
+    exit 1
+fi
+
+echo "[3/11] Hook script path resolution"
+
 python3 "$ROOT/scripts/lib/audit-hook-paths.py"
 
-echo "[3/9] JSON parse and skill inventory"
+echo "[4/11] JSON parse and skill inventory"
 python3 "$ROOT/scripts/lib/audit-inventory.py"
 
-echo "[4/9] Hook prompt classification, cache-key safety, and helper smokes"
+echo "[5/11] Hook prompt classification, cache-key safety, and helper smokes"
 source ".claude/hooks/lib/patterns.sh"
 source ".claude/hooks/lib/utils.sh"
 source ".claude/hooks/lib/plugin-state.sh"
@@ -299,16 +320,34 @@ if grep -q -- '--json' "$ASK_ARGS_FILE" || grep -q -- '--sandbox' "$ASK_ARGS_FIL
     exit 1
 fi
 
+SKILL_OUTPUT="$(run_skill_activation "How do these modules relate to each other?")"
+if printf "%s\n" "$SKILL_OUTPUT" | grep -q "ship"; then
+    echo "Unexpected ship activation for relation prompt" >&2
+    exit 1
+fi
+
+SKILL_OUTPUT="$(run_skill_activation "Refresh the browser page to see the latest changes.")"
+if printf "%s\n" "$SKILL_OUTPUT" | grep -q "security-review"; then
+    echo "Unexpected security-review activation for browser refresh prompt" >&2
+    exit 1
+fi
+
+SKILL_OUTPUT="$(run_skill_activation "What did we discuss in the last session?")"
+if printf "%s\n" "$SKILL_OUTPUT" | grep -q "backend-dev-guidelines"; then
+    echo "Unexpected backend skill activation for conversation prompt" >&2
+    exit 1
+fi
+
 CACHE_KEY="$(repo_cache_key "packages/app")"
 if [[ -z "$CACHE_KEY" ]] || [[ "$CACHE_KEY" == *"/"* ]]; then
     echo "Unsafe repo cache key: $CACHE_KEY" >&2
     exit 1
 fi
 
-echo "[5/9] Local stale-reference scan"
+echo "[6/11] Local stale-reference scan"
 python3 "$ROOT/scripts/lib/audit-stale-refs.py"
 
-echo "[6/9] Plugin alignment and public surface"
+echo "[7/11] Plugin alignment and public surface"
 TMP_PLUGIN_STATE_DIR="$(mktemp -d)"
 plugin_enabled_names > "$TMP_PLUGIN_STATE_DIR/enabled"
 plugin_available_names > "$TMP_PLUGIN_STATE_DIR/available"
@@ -345,13 +384,25 @@ rm -rf "$TMP_PLUGIN_STATE_DIR"
 
 python3 "$ROOT/scripts/lib/audit-plugins.py"
 
-echo "[7/9] Secret-pattern scan on public surface"
+echo "[8/11] Secret-pattern scan on public surface"
 python3 "$ROOT/scripts/lib/audit-secrets.py"
 
-echo "[8/9] Ignored sensitive-state summary"
+echo "[9/11] Ignored sensitive-state summary"
 python3 "$ROOT/scripts/lib/audit-ignored.py"
 
-echo "[9/9] Public surface summary"
+echo "[10/11] Public surface summary"
 python3 "$ROOT/scripts/lib/audit-surface.py"
+
+echo "[11/11] Cross-validation summary"
+python3 -c "
+from pathlib import Path
+root = Path('.')
+skills = {p.name for p in (root / '.claude' / 'skills').iterdir() if (p.is_dir() or p.is_symlink()) and (p / 'SKILL.md').exists()}
+agents = {p.stem for p in (root / '.claude' / 'agents').glob('*.md') if p.name != 'README.md'}
+commands = {p.stem for p in (root / '.claude' / 'commands').glob('*.md') if p.name != 'README.md'}
+hooks = list((root / '.claude' / 'hooks').glob('*.sh'))
+templates = {p.stem for p in (root / '.claude' / 'prompt-templates').glob('*.md') if p.name != 'README.md'}
+print(f'  Skills: {len(skills)}, Agents: {len(agents)}, Commands: {len(commands)}, Hooks: {len(hooks)}, Templates: {len(templates)}')
+"
 
 echo "Workflow audit passed."
