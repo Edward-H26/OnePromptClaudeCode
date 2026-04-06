@@ -1,3 +1,8 @@
+---
+description: Execute an approved plan using repo-local tooling and Codex bridge
+argument-hint: "Plan or task description"
+---
+
 # Multi-Execute
 
 Execute an approved plan using repo-local tooling, installed plugin agents, and the bundled Codex bridge.

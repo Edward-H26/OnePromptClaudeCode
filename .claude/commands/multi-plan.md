@@ -1,3 +1,8 @@
+---
+description: Create a repo-local implementation plan using workspace tools
+argument-hint: "Scope or task description"
+---
+
 # Multi-Plan
 
 Create a repo-local implementation plan using the workflow assets and installed plugins that actually exist in this workspace.

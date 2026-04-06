@@ -13,4 +13,4 @@ For the complete inventory of skills, commands, agents, hooks, plugins, MCP serv
 - **Bundled assets**: `skills/ui-styling/canvas-fonts/` is intentionally tracked as part of the design workflow bundle.
 - **Skill rules**: `skills/skill-rules.json` drives auto-suggestion via the `skill-activation-prompt.sh` hook.
 - **Optional plugins**: auth-sensitive or duplicate integrations should be enabled through `.claude/settings.local.json`, not the shared tracked config.
-- **Counts**: 54 skill entries total, all available directly from the tracked repo surface.
+- **Counts**: 55 skill entries total, all available directly from the tracked repo surface.

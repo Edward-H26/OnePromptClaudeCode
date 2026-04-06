@@ -1,3 +1,7 @@
+---
+description: Release readiness workflow (tests, coverage, changelog, handoff)
+---
+
 Invoke the `/ship` skill. Read the SKILL at `$CLAUDE_PROJECT_DIR/.claude/skills/ship/SKILL.md` and follow it exactly.
 
 This is the release readiness workflow: sync base, run tests, audit coverage, version bump, and prepare changelog and PR handoff.

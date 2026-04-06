@@ -1,3 +1,7 @@
+---
+description: Incrementally fix build and type errors
+---
+
 # Build and Fix
 
 Incrementally fix build and type errors with minimal, safe changes.

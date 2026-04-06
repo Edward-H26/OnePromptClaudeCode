@@ -1,3 +1,8 @@
+---
+description: Coordinate a complex task with local and plugin agents
+argument-hint: "Task description"
+---
+
 # Orchestrate Command
 
 Coordinate a complex task with the local agents and installed plugin agents that actually exist in this workspace.

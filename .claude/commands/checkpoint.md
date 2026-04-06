@@ -1,3 +1,8 @@
+---
+description: Create or verify a workflow checkpoint
+argument-hint: "create|verify|list [name]"
+---
+
 # Checkpoint Command
 
 Create or verify a checkpoint in your workflow.

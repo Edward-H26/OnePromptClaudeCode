@@ -1,3 +1,8 @@
+---
+description: Run an on-demand verification pass
+argument-hint: "[path|.] [--fix] [--strict]"
+---
+
 # Quality Gate Command
 
 Run an on-demand verification pass for a file or project scope.

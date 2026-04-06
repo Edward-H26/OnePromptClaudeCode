@@ -258,6 +258,7 @@ else
     cmd+=(--full-auto)
   fi
   [[ -n "$model" ]] && cmd+=(-m "$model")
+  cmd+=("$prompt")
 fi
 
 # --- Progress watcher function ---
