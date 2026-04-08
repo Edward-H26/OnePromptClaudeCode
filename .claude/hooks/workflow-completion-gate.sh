@@ -34,22 +34,24 @@ fi
 MISSING=""
 COMPLETED=""
 
-if [[ -d "$STEPS_DIR/codex-kickoff" ]]; then
-    COMPLETED="${COMPLETED}[x] Optional Codex kickoff recorded\n"
-else
-    MISSING="${MISSING}[ ] Optional Codex kickoff not recorded\n"
-fi
+if [[ -f "$CACHE_DIR/affected-repos.txt" ]] && [[ -s "$CACHE_DIR/affected-repos.txt" ]]; then
+    if [[ -d "$STEPS_DIR/codex-kickoff" ]]; then
+        COMPLETED="${COMPLETED}[x] Optional Codex kickoff recorded\n"
+    else
+        MISSING="${MISSING}[ ] Optional Codex kickoff not recorded\n"
+    fi
 
-if [[ -d "$STEPS_DIR/simplify-review" ]]; then
-    COMPLETED="${COMPLETED}[x] Optional simplification review recorded\n"
-else
-    MISSING="${MISSING}[ ] Optional simplification review not recorded\n"
-fi
+    if [[ -d "$STEPS_DIR/simplify-review" ]]; then
+        COMPLETED="${COMPLETED}[x] Optional simplification review recorded\n"
+    else
+        MISSING="${MISSING}[ ] Optional simplification review not recorded\n"
+    fi
 
-if [[ -d "$STEPS_DIR/codex-eval" ]]; then
-    COMPLETED="${COMPLETED}[x] Optional Codex evaluation recorded\n"
-else
-    MISSING="${MISSING}[ ] Optional Codex evaluation not recorded\n"
+    if [[ -d "$STEPS_DIR/codex-eval" ]]; then
+        COMPLETED="${COMPLETED}[x] Optional Codex evaluation recorded\n"
+    else
+        MISSING="${MISSING}[ ] Optional Codex evaluation not recorded\n"
+    fi
 fi
 
 HAS_FRONTEND_FILES=0
@@ -80,7 +82,7 @@ TSC_CACHE_ROOT="$CLAUDE_PROJECT_DIR/.claude/tsc-cache"
 if [[ -d "$TSC_CACHE_ROOT" ]]; then
     while IFS= read -r stale_dir; do
         safe_rm_cache "$stale_dir"
-    done < <(find "$TSC_CACHE_ROOT" -mindepth 1 -maxdepth 1 -type d -mtime +7 2>/dev/null)
+    done < <(find "$TSC_CACHE_ROOT" -mindepth 1 -maxdepth 1 -type d -mtime +14 2>/dev/null)
 fi
 
 exit 0

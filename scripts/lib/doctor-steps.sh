@@ -298,15 +298,24 @@ plugin_keys = {
     "plugin:playwright:playwright:": "playwright@claude-plugins-official",
 }
 
+optional_claude_ai = {
+    "claude.ai Google Calendar",
+    "claude.ai Gmail",
+}
+
 def plugin_key_for_line(line: str):
     for prefix, plugin_name in plugin_keys.items():
         if prefix in line:
             return plugin_name
     return None
 
+def is_optional_claude_ai(line: str) -> bool:
+    return any(line.startswith(prefix) for prefix in optional_claude_ai)
+
 text = mcp_log_path.read_text().splitlines()
 failures = []
 warnings = []
+notes = []
 passes = []
 
 for line in text:
@@ -317,7 +326,10 @@ for line in text:
         plugin_name = plugin_key_for_line(line)
         if plugin_name is not None and plugin_name not in enabled:
             continue
-        warnings.append(line)
+        if is_optional_claude_ai(line):
+            notes.append(f"{line} (optional, authenticate via claude.ai account settings)")
+        else:
+            warnings.append(line)
     elif "plugin:" in line and " - ✗ Failed to connect" in line:
         plugin_name = plugin_key_for_line(line)
         if plugin_name is not None and plugin_name not in enabled:
@@ -331,10 +343,15 @@ for line in text:
             hint = " (optional plugin MCP; web lookup remains available even when this plugin is down)"
         warnings.append(f"{line}{hint}")
     elif line.startswith("claude.ai ") and " - ✗ Failed to connect" in line:
-        failures.append(line)
+        if is_optional_claude_ai(line):
+            notes.append(f"{line} (optional)")
+        else:
+            failures.append(line)
 
 for line in passes:
     print(f"PASS: {line}")
+for line in notes:
+    print(f"NOTE: {line}")
 for line in warnings:
     print(f"WARN: {line}")
 
@@ -423,7 +440,7 @@ doctorJsonSafety() {
     local LOCAL_JSON_SAFETY=true
     for local_json in .claude/session-aliases.json plugins/blocklist.json plugins/installed_plugins.json; do
         if [[ -f "$local_json" ]]; then
-            if python3 -c "
+            if ! python3 -c "
 import json, sys
 data = json.loads(open(sys.argv[1]).read())
 def check(obj, path=''):
@@ -435,7 +452,7 @@ def check(obj, path=''):
             if check(obj[k], f'{path}.{k}' if path else k):
                 return True
     return False
-sys.exit(0 if check(data) else 1)
+sys.exit(1 if check(data) else 0)
 " "$local_json" 2>/dev/null; then
                 LOCAL_JSON_SAFETY=false
                 warn "Prototype pollution key in $local_json"

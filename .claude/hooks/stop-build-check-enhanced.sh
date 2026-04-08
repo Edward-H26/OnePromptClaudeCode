@@ -82,10 +82,8 @@ if [[ "$HAS_ERRORS" == "true" ]]; then
         fi
     done < "$RESULTS_DIR/error-summary.txt"
 
-    cp "$CACHE_DIR/commands.txt" "$CACHE_DIR/tsc-commands.txt" 2>/dev/null || true
-
     AFFECTED_REPOS=$(cat "$CACHE_DIR/affected-repos.txt" 2>/dev/null | sort -u | tr '\n' ' ')
-    TSC_COMMANDS=$(cat "$CACHE_DIR/tsc-commands.txt" 2>/dev/null || echo "")
+    TSC_COMMANDS=$(cat "$CACHE_DIR/commands.txt" 2>/dev/null || echo "")
     ERROR_PREVIEW=$(grep "error TS" "$CACHE_DIR/last-errors.txt" 2>/dev/null | head -5)
 
     if [[ $TOTAL_ERRORS -ge ${AUTO_ERROR_THRESHOLD:-5} ]]; then

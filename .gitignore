@@ -169,6 +169,11 @@
 /references/everything-claude-code/docs/releases/*/x-thread.md
 /references/everything-claude-code/docs/releases/*/x-quote-*.md
 
+# Vendored reference credential examples
+# The references/ directory contains upstream documentation with placeholder
+# API keys and example .env content. These are NOT real credentials.
+# audit-secrets.py flags them as informational notes.
+
 # Memory system (auto-generated per user)
 /memory/
 **/MEMORY.md
@@ -208,6 +213,37 @@ secrets.*
 *.sqlite-wal
 *.sqlite-shm
 *.db-journal
+
+# ── Extended credential safety net ──
+
+# SSH keys (no extension, caught by name)
+id_rsa
+id_ed25519
+id_ecdsa
+id_dsa
+
+# Database and service credential files
+.pgpass
+.my.cnf
+.htpasswd
+.netrc
+.npmrc
+
+# Cloud platform credential files
+service-account*.json
+keyfile*.json
+token.json
+
+# Terraform state (contains plaintext secrets)
+*.tfstate
+*.tfstate.backup
+terraform.tfvars
+.terraform/
+
+# Data dumps (PII risk)
+*.sql
+!**/migrations/*.sql
+*.dump
 
 # Skill runtime working files (safety net across all skills)
 .claude/skills/**/workspace/

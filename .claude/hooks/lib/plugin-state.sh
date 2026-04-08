@@ -73,7 +73,7 @@ plugin_blocklisted_names() {
     jq -r '
         .plugins // [] |
         .[] |
-        select((((.reason // "") + " " + (.text // "")) | ascii_downcase | contains("test")) | not) |
+        select((((.reason // "") + " " + (.text // "")) | ascii_downcase | test("\\btest\\b")) | not) |
         .plugin // empty
     ' "$blocklist_path" 2>/dev/null | sort -u
 }
@@ -111,24 +111,6 @@ plugin_available_names() {
             cat "$tmp_dir/candidates"
             return_code=$?
         fi
-    fi
-
-    rm -rf "$tmp_dir" 2>/dev/null || true
-    return $return_code
-}
-
-plugin_unavailable_enabled_names() {
-    local tmp_dir
-    tmp_dir="$(mktemp -d)" || return 1
-    local return_code=0
-
-    if ! plugin_enabled_names > "$tmp_dir/enabled"; then
-        return_code=$?
-    elif ! plugin_available_names > "$tmp_dir/available"; then
-        return_code=$?
-    else
-        comm -23 "$tmp_dir/enabled" "$tmp_dir/available"
-        return_code=$?
     fi
 
     rm -rf "$tmp_dir" 2>/dev/null || true

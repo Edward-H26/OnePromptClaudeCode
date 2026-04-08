@@ -281,7 +281,7 @@
   "effortLevel": "max",
   "statusLine": {
     "type": "command",
-    "command": "jq -r '[if .context_window.remaining_percentage then \"ctx:\\(.context_window.remaining_percentage)%\" else empty end, if .rate_limits.five_hour.used_percentage then \"5h:\\(.rate_limits.five_hour.used_percentage | round)%\" else empty end, if .rate_limits.seven_day.used_percentage then \"7d:\\(.rate_limits.seven_day.used_percentage | round)%\" else empty end] | join(\" \u00b7 \")'"
+    "command": "bash .claude/statusline.sh"
   },
   "outputStyle": "Explanatory"
 }

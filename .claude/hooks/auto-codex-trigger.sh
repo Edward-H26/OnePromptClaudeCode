@@ -75,6 +75,8 @@ OUTPUT_PATH="$ARTIFACT_DIR/output.md"
 CODEX_LOG="$ARTIFACT_DIR/run.log"
 PID_PATH="$ARTIFACT_DIR/run.pid"
 
+# Codex run artifacts are self-contained and consumed immediately; shorter
+# retention (7d) than the 14d threshold used by tsc-cache and doctor checks.
 find "$RUNTIME_DIR" -mindepth 1 -maxdepth 1 -type d -mtime +7 -exec rm -rf {} + 2>/dev/null || true
 
 SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // empty')
@@ -85,7 +87,6 @@ mkdir -p "$STEPS_DIR/codex-kickoff" 2>/dev/null || true
 
 PROMPT_FILE="$(mktemp)"
 LAUNCH_SCRIPT="$(mktemp)"
-trap 'rm -f "$PROMPT_FILE" "$LAUNCH_SCRIPT" 2>/dev/null' EXIT
 printf '%s' "$PROMPT" > "$PROMPT_FILE"
 cat > "$LAUNCH_SCRIPT" <<LAUNCH
 #!/bin/bash
