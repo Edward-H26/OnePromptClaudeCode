@@ -20,8 +20,8 @@ This repo keeps `careful` state in `.claude/runtime/gstack/`.
 When this skill is invoked, activate the session flag with Bash:
 
 ```bash
-mkdir -p "$CLAUDE_PROJECT_DIR/.claude/runtime/gstack"
-printf "active\n" > "$CLAUDE_PROJECT_DIR/.claude/runtime/gstack/careful-mode.txt"
+mkdir -p ".claude/runtime/gstack"
+printf "active\n" > ".claude/runtime/gstack/careful-mode.txt"
 echo "Careful mode is active for this repo session."
 ```
 

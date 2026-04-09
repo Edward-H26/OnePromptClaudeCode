@@ -1,0 +1,9 @@
+# Force LF line endings for shell scripts (prevents CRLF corruption on Windows)
+*.sh text eol=lf
+
+# Force CRLF for PowerShell scripts (Windows convention)
+*.ps1 text eol=crlf
+
+# Keep JSON and markdown as LF
+*.json text eol=lf
+*.md text eol=lf

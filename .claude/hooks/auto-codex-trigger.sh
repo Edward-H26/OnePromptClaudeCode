@@ -3,6 +3,12 @@ set -e
 
 command -v jq >/dev/null 2>&1 || exit 0
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/patterns.sh"
+source "$SCRIPT_DIR/lib/runtime-state.sh"
+source "$SCRIPT_DIR/lib/utils.sh"
+CLAUDE_HOME_DIR="$(resolve_claude_home)"
+
 INPUT=$(cat)
 PROMPT=$(echo "$INPUT" | jq -r '.prompt // empty')
 
@@ -10,7 +16,7 @@ if [[ -z "$PROMPT" ]]; then
     exit 0
 fi
 
-CODEX_SCRIPT="${AUTO_CODEX_SCRIPT:-${CLAUDE_PROJECT_DIR:-$PWD}/.claude/skills/codex/scripts/ask_codex.sh}"
+CODEX_SCRIPT="${AUTO_CODEX_SCRIPT:-$CLAUDE_HOME_DIR/skills/codex/scripts/ask_codex.sh}"
 if [[ ! -x "$CODEX_SCRIPT" ]]; then
     echo "WARNING: Codex script not found or not executable at $CODEX_SCRIPT" >&2
     exit 0
@@ -20,9 +26,6 @@ if ! command -v codex >/dev/null 2>&1; then
     echo "WARNING: codex command not found in PATH" >&2
     exit 0
 fi
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/lib/patterns.sh"
 
 PROMPT_LOWER=$(echo "$PROMPT" | tr '[:upper:]' '[:lower:]')
 
@@ -67,8 +70,8 @@ fi
 
 WORKSPACE="${CLAUDE_PROJECT_DIR:-$PWD}"
 TIMESTAMP=$(date -u +"%Y%m%d-%H%M%S")
-AUTO_CODEX_HOME="${AUTO_CODEX_HOME:-$WORKSPACE/.claude/runtime/codex/home}"
-RUNTIME_DIR="${AUTO_CODEX_RUNTIME_DIR:-$WORKSPACE/.claude/runtime/codex/runs}"
+AUTO_CODEX_HOME="$(codex_home_dir)"
+RUNTIME_DIR="$(codex_runs_dir)"
 mkdir -p "$RUNTIME_DIR"
 ARTIFACT_DIR="$(mktemp -d "$RUNTIME_DIR/auto-${TIMESTAMP}-XXXXXX")"
 OUTPUT_PATH="$ARTIFACT_DIR/output.md"
@@ -81,7 +84,7 @@ find "$RUNTIME_DIR" -mindepth 1 -maxdepth 1 -type d -mtime +7 -exec rm -rf {} + 
 
 SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // empty')
 SESSION_ID="${SESSION_ID:-default}"
-STEPS_DIR="$WORKSPACE/.claude/tsc-cache/$SESSION_ID/workflow-steps"
+STEPS_DIR="$CLAUDE_HOME_DIR/tsc-cache/$SESSION_ID/workflow-steps"
 mkdir -p "$STEPS_DIR"
 mkdir -p "$STEPS_DIR/codex-kickoff" 2>/dev/null || true
 
@@ -101,7 +104,7 @@ nohup /bin/bash -c '
     command -v timeout >/dev/null 2>&1 && TIMEOUT_CMD="timeout"
     command -v gtimeout >/dev/null 2>&1 && TIMEOUT_CMD="gtimeout"
     if [ -n "$TIMEOUT_CMD" ]; then
-        "$TIMEOUT_CMD" 120 /bin/bash "$1"
+        "$TIMEOUT_CMD" '"${CODEX_TIMEOUT:-120}"' /bin/bash "$1"
     else
         echo "WARNING: neither timeout nor gtimeout found; Codex running without external timeout guard" >&2
         /bin/bash "$1"

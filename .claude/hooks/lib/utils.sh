@@ -1,5 +1,34 @@
 #!/bin/bash
 
+resolve_claude_home() {
+    local script_dir
+    local idx=${#BASH_SOURCE[@]}
+    while (( idx > 0 )); do
+        idx=$((idx - 1))
+        local src="${BASH_SOURCE[$idx]}"
+        local dir="$(cd "$(dirname "$src")" && pwd -P)"
+        if [[ "$dir" != *"/lib" ]]; then
+            script_dir="$dir"
+            break
+        fi
+    done
+    script_dir="${script_dir:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)}"
+    local candidate="$script_dir"
+    while [[ "$candidate" != "/" ]]; do
+        if [[ -d "$candidate/hooks" && -d "$candidate/skills" ]]; then
+            echo "$candidate"
+            return 0
+        fi
+        candidate="$(dirname "$candidate")"
+    done
+    if [[ -d "$HOME/.claude" ]]; then
+        cd "$HOME/.claude" && pwd -P
+        return 0
+    fi
+    echo ""
+    return 1
+}
+
 atomic_sort_unique() {
     local file="$1"
     local lock_dir="${file}.lock"
@@ -9,7 +38,6 @@ atomic_sort_unique() {
     while ! mkdir "$lock_dir" 2>/dev/null; do
         if [[ -d "$lock_dir" ]] && find "$lock_dir" -maxdepth 0 -mmin +1 -print -quit 2>/dev/null | grep -q .; then
             rm -rf "$lock_dir" 2>/dev/null
-            continue
         fi
         i=$((i + 1))
         if [[ $i -ge $max_wait ]]; then
@@ -64,7 +92,7 @@ safe_rm_cache() {
     local resolved
     resolved="$(cd "$dir" && pwd)" || return 1
     local expected_prefix
-    expected_prefix="$(cd "$project_dir/.claude/tsc-cache" 2>/dev/null && pwd)" || return 1
+    expected_prefix="$(cd "${CLAUDE_HOME_DIR:-$project_dir/.claude}/tsc-cache" 2>/dev/null && pwd)" || return 1
 
     if [[ "$resolved" != "$expected_prefix" ]] && [[ "$resolved" != "$expected_prefix"/* ]]; then
         echo "Warning: Refusing to delete $dir (not under $expected_prefix)" >&2
@@ -166,5 +194,9 @@ validate_and_run_tsc() {
         return 2
     fi
 
-    /bin/bash -c "$tsc_cmd" 2>&1
+    if [[ -n "$cd_target" ]]; then
+        (cd "$cd_target" && /bin/bash -c "$sanitized" 2>&1)
+    else
+        /bin/bash -c "$sanitized" 2>&1
+    fi
 }

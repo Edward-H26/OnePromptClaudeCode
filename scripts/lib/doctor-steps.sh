@@ -4,6 +4,37 @@
 # (failures, warnings), and helper functions (pass, warn, fail,
 # require_cmd, print_file_head) to be defined in the caller scope.
 
+doctorDeployToHome() {
+    local target="$HOME/.claude"
+    local deployed=0
+
+    for dir in hooks skills agents commands prompt-templates; do
+        if [[ -d "$ROOT/.claude/$dir" ]]; then
+            mkdir -p "$target/$dir"
+            rsync -a --delete "$ROOT/.claude/$dir/" "$target/$dir/" 2>/dev/null && deployed=$((deployed + 1))
+        fi
+    done
+
+    for f in CLAUDE.md CLAUDE-testing.md CLAUDE-website-workflow.md CLAUDE-skills.md WORKFLOW-REFERENCE.md README.md; do
+        if [[ -f "$ROOT/.claude/$f" ]]; then
+            cp "$ROOT/.claude/$f" "$target/$f" 2>/dev/null
+        fi
+    done
+
+    if [[ -f "$ROOT/.claude/settings.json" ]] && [[ ! -f "$target/settings.json" ]]; then
+        cp "$ROOT/.claude/settings.json" "$target/settings.json"
+        pass "Deployed settings.json to $target (first install)"
+    elif [[ -f "$ROOT/.claude/settings.json" ]] && [[ -f "$target/settings.json" ]]; then
+        pass "Existing $target/settings.json preserved (update manually if needed)"
+    fi
+
+    if [[ "$deployed" -gt 0 ]]; then
+        pass "Deployed $deployed directories to $target"
+    else
+        fail "Could not deploy to $target"
+    fi
+}
+
 doctorStaticAudit() {
     local audit_log
     audit_log="$(mktemp)"

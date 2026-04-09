@@ -6,7 +6,7 @@ Claude Code hooks that enable skill auto-activation, file tracking, workflow rem
 
 ## Prerequisites
 
-- **jq** (required): All hooks depend on jq for JSON parsing. Hooks degrade silently if jq is missing. Install via `brew install jq` (macOS) or `apt-get install jq` (Linux).
+- **jq** (required): All hooks depend on jq for JSON parsing. Hooks degrade silently if jq is missing. Install via `brew install jq` (macOS), `apt-get install jq` (Linux), or `winget install stedolan.jq` / `choco install jq` (Windows).
 - **bash 4+** (recommended): Hooks use associative arrays and modern bash features.
 - **codex** (optional): Required only for `auto-codex-trigger.sh`. Other hooks work without it.
 
@@ -172,11 +172,11 @@ Also cleans up stale `tsc-cache` sessions older than 7 days.
 
 **Hook not firing:**
 - Verify the hook is in `.claude/settings.json` under the correct event
-- Check the script is executable: `chmod +x "$CLAUDE_PROJECT_DIR/.claude/hooks/SCRIPT.sh"`
-- Test the script directly: `echo '{"prompt":"test"}' | bash "$CLAUDE_PROJECT_DIR/.claude/hooks/SCRIPT.sh"`
+- Check the script is executable: `chmod +x "~/.claude/hooks/SCRIPT.sh"`
+- Test the script directly: `echo '{"prompt":"test"}' | bash "~/.claude/hooks/SCRIPT.sh"`
 
 **"PostToolUse:Edit hook blocking error":**
-- Run `bash -n "$CLAUDE_PROJECT_DIR/.claude/hooks/lib/utils.sh"` to check for syntax errors
+- Run `bash -n "~/.claude/hooks/lib/utils.sh"` to check for syntax errors
 - Check that `jq` is installed: `command -v jq`
 - Look at tsc-check.sh output: the error might be a TypeScript compilation failure, not a hook error
 
@@ -191,7 +191,7 @@ Also cleans up stale `tsc-cache` sessions older than 7 days.
 - Verify the prompt isn't being classified as "analysis-only" by the pattern matching
 
 **Hook stalls or hangs:**
-- Check for stale lock files: `ls -la $CLAUDE_PROJECT_DIR/.claude/tsc-cache/**/*.lock`
+- Check for stale lock files: `ls -la ~/.claude/tsc-cache/**/*.lock`
 - Remove a stale empty lock directory manually with `rmdir` if needed after checking that no hook process is still running
 - Kill orphan background processes: `ps aux | grep 'tsc-check\|auto-codex-trigger' | grep -v grep`
 

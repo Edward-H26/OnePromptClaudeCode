@@ -15,7 +15,7 @@ $ARGUMENTS
 3. Run the Codex script in the background:
 
 ```bash
-"$CLAUDE_PROJECT_DIR/.claude/skills/codex/scripts/ask_codex.sh" "$ARGUMENTS" -w <workspace> --file <detected_files>
+"~/.claude/skills/codex/scripts/ask_codex.sh" "$ARGUMENTS" -w <workspace> --file <detected_files>
 ```
 
 Run it as a background shell process if parallel execution is useful in the current session.

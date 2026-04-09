@@ -11,8 +11,10 @@ fi
 
 PROMPT_LOWER=$(echo "$PROMPT" | tr '[:upper:]' '[:lower:]')
 
-CLAUDE_PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$PWD}"
-RULES_PATH="$CLAUDE_PROJECT_DIR/.claude/skills/skill-rules.json"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/utils.sh"
+CLAUDE_HOME_DIR="$(resolve_claude_home)"
+RULES_PATH="$CLAUDE_HOME_DIR/skills/skill-rules.json"
 if [[ ! -f "$RULES_PATH" ]]; then
     exit 0
 fi

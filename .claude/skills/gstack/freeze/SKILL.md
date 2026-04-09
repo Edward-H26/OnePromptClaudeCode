@@ -24,8 +24,8 @@ When a target directory is known, activate the boundary with Bash:
 ```bash
 FREEZE_DIR="$(cd "<target-directory>" 2>/dev/null && pwd)"
 test -n "$FREEZE_DIR"
-mkdir -p "$CLAUDE_PROJECT_DIR/.claude/runtime/gstack"
-printf "%s/\n" "${FREEZE_DIR%/}" > "$CLAUDE_PROJECT_DIR/.claude/runtime/gstack/freeze-dir.txt"
+mkdir -p ".claude/runtime/gstack"
+printf "%s/\n" "${FREEZE_DIR%/}" > ".claude/runtime/gstack/freeze-dir.txt"
 echo "Freeze boundary set to $FREEZE_DIR/"
 ```
 

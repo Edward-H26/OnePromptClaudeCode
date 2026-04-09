@@ -45,7 +45,9 @@ FILE_PATHS=$(printf '%s' "$INPUT" | grep -o '"file_path"[[:space:]]*:[[:space:]]
 
 # Python fallback if grep returned empty
 if [ -z "$FILE_PATHS" ]; then
-  FILE_PATHS=$(printf '%s' "$INPUT" | python3 -c 'import json, sys
+  PYTHON_CMD="python3"
+  command -v python3 >/dev/null 2>&1 || PYTHON_CMD="python"
+  FILE_PATHS=$(printf '%s' "$INPUT" | "$PYTHON_CMD" -c 'import json, sys
 tool_input = json.loads(sys.stdin.read()).get("tool_input", {})
 paths = []
 file_path = tool_input.get("file_path", "")

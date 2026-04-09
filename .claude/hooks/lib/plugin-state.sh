@@ -1,13 +1,11 @@
 #!/bin/bash
 
 plugin_settings_path() {
-    local project_dir="${CLAUDE_PROJECT_DIR:-$PWD}"
-    echo "$project_dir/.claude/settings.json"
+    echo "${CLAUDE_CONFIG_DIR:-${CLAUDE_PROJECT_DIR:-$PWD}/.claude}/settings.json"
 }
 
 plugin_local_settings_path() {
-    local project_dir="${CLAUDE_PROJECT_DIR:-$PWD}"
-    echo "$project_dir/.claude/settings.local.json"
+    echo "${CLAUDE_CONFIG_DIR:-${CLAUDE_PROJECT_DIR:-$PWD}/.claude}/settings.local.json"
 }
 
 plugin_installed_path() {

@@ -21,7 +21,7 @@ $ARGUMENTS
 - `feature-dev:code-explorer` for deep parallel exploration
 - `feature-dev:code-architect` when architecture tradeoffs need a second pass
 - `superpowers:writing-plans` when a more formal task breakdown is useful
-- `"$CLAUDE_PROJECT_DIR/.claude/skills/codex/scripts/ask_codex.sh" --read-only` for one bounded Codex second opinion after local exploration
+- `"~/.claude/skills/codex/scripts/ask_codex.sh" --read-only` for one bounded Codex second opinion after local exploration
 
 ## Workflow
 

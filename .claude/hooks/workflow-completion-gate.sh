@@ -7,12 +7,13 @@ command -v jq >/dev/null 2>&1 || { echo "jq is required but not installed" >&2; 
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/utils.sh"
+CLAUDE_HOME_DIR="$(resolve_claude_home)"
 
 HOOK_INPUT=$(cat)
 SESSION_ID=$(echo "$HOOK_INPUT" | jq -r '.session_id // empty' 2>/dev/null || echo "")
 SESSION_ID="${SESSION_ID:-default}"
 
-CACHE_DIR="$CLAUDE_PROJECT_DIR/.claude/tsc-cache/$SESSION_ID"
+CACHE_DIR="$CLAUDE_HOME_DIR/tsc-cache/$SESSION_ID"
 STEPS_DIR="$CACHE_DIR/workflow-steps"
 
 if [[ ! -f "$CACHE_DIR/affected-repos.txt" ]]; then
@@ -78,7 +79,7 @@ if [[ -n "$MISSING" ]]; then
     } >&2
 fi
 
-TSC_CACHE_ROOT="$CLAUDE_PROJECT_DIR/.claude/tsc-cache"
+TSC_CACHE_ROOT="$CLAUDE_HOME_DIR/tsc-cache"
 if [[ -d "$TSC_CACHE_ROOT" ]]; then
     while IFS= read -r stale_dir; do
         safe_rm_cache "$stale_dir"

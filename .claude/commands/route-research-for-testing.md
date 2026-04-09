@@ -9,7 +9,7 @@ allowed-tools: Bash(cat:*), Bash(awk:*), Bash(grep:*), Bash(sort:*), Bash(xargs:
 Changed route files this session (auto-generated):
 
 shopt -s nullglob
-for file in "$CLAUDE_PROJECT_DIR"/.claude/tsc-cache/*/edited-files.log; do
+for file in ~/.claude/tsc-cache/*/edited-files.log; do
   cat "$file"
 done | awk -F'\t' '{print $2}' | grep '/routes/' | sort -u
 

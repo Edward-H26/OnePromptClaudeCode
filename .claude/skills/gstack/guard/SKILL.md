@@ -20,8 +20,8 @@ Use this skill when the task needs both destructive-command caution and a strict
 1. Activate `careful`:
 
 ```bash
-mkdir -p "$CLAUDE_PROJECT_DIR/.claude/runtime/gstack"
-printf "active\n" > "$CLAUDE_PROJECT_DIR/.claude/runtime/gstack/careful-mode.txt"
+mkdir -p ".claude/runtime/gstack"
+printf "active\n" > ".claude/runtime/gstack/careful-mode.txt"
 ```
 
 2. Activate `freeze` for the requested directory:
@@ -29,7 +29,7 @@ printf "active\n" > "$CLAUDE_PROJECT_DIR/.claude/runtime/gstack/careful-mode.txt
 ```bash
 FREEZE_DIR="$(cd "<target-directory>" 2>/dev/null && pwd)"
 test -n "$FREEZE_DIR"
-printf "%s/\n" "${FREEZE_DIR%/}" > "$CLAUDE_PROJECT_DIR/.claude/runtime/gstack/freeze-dir.txt"
+printf "%s/\n" "${FREEZE_DIR%/}" > ".claude/runtime/gstack/freeze-dir.txt"
 echo "Guard mode is active. Careful mode enabled and freeze boundary set to $FREEZE_DIR/"
 ```
 

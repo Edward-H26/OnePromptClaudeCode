@@ -128,4 +128,5 @@ You are a senior engineer with deep experience building production-grade AI agen
 3. Coding style guidelines
 4. Writing style guidelines
 
-See [CLAUDE-testing.md](./CLAUDE-testing.md) for testing guidance and [CLAUDE-website-workflow.md](./CLAUDE-website-workflow.md) for UI-heavy work.
+Testing guidance: @CLAUDE-testing.md
+UI-heavy work: @CLAUDE-website-workflow.md

@@ -2,6 +2,9 @@
 # These are automatically created by Claude Code during sessions
 # and should not be committed to version control
 
+# Accidental tilde directory (created when a script writes to ~/ inside the repo)
+/~/
+
 # AdditionalChecks folder (organized runtime directories)
 /AdditionalChecks/
 

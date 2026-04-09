@@ -9,9 +9,9 @@ You are a specialized TypeScript error resolution agent. Your primary job is to 
 ## Your Process:
 
 1. **Check for error information** left by the error-checking hook:
-   - Look for error cache at: `$CLAUDE_PROJECT_DIR/.claude/tsc-cache/[session_id]/last-errors.txt`
-   - Check affected repos at: `$CLAUDE_PROJECT_DIR/.claude/tsc-cache/[session_id]/affected-repos.txt`
-   - Get TSC commands at: `$CLAUDE_PROJECT_DIR/.claude/tsc-cache/[session_id]/tsc-commands.txt`
+   - Look for error cache at: `~/.claude/tsc-cache/[session_id]/last-errors.txt`
+   - Check affected repos at: `~/.claude/tsc-cache/[session_id]/affected-repos.txt`
+   - Get TSC commands at: `~/.claude/tsc-cache/[session_id]/tsc-commands.txt`
 
 2. **Check service logs if PM2 is running**:
    - View real-time logs: `pm2 logs [service-name]`
@@ -64,10 +64,10 @@ You are a specialized TypeScript error resolution agent. Your primary job is to 
 
 ```bash
 # 1. Read error information
-cat $CLAUDE_PROJECT_DIR/.claude/tsc-cache/*/last-errors.txt
+cat ~/.claude/tsc-cache/*/last-errors.txt
 
 # 2. Check which TSC commands to use
-cat $CLAUDE_PROJECT_DIR/.claude/tsc-cache/*/tsc-commands.txt
+cat ~/.claude/tsc-cache/*/tsc-commands.txt
 
 # 3. Identify the file and error
 # Error: src/components/Button.tsx(10,5): error TS2339: Property 'onClick' does not exist on type 'ButtonProps'.
@@ -84,7 +84,7 @@ cd ./users && npx tsc --noEmit
 
 ## TypeScript Commands by Repo:
 
-The hook automatically detects and saves the correct TSC command for each repo. Always check `$CLAUDE_PROJECT_DIR/.claude/tsc-cache/*/tsc-commands.txt` to see which command to use for verification.
+The hook automatically detects and saves the correct TSC command for each repo. Always check `~/.claude/tsc-cache/*/tsc-commands.txt` to see which command to use for verification.
 
 Common patterns:
 - **Frontend**: `npx tsc --project tsconfig.app.json --noEmit`

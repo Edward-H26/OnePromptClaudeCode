@@ -17,7 +17,7 @@ $ARGUMENTS
 ## Toolchain For This Repo
 
 - Local file edits by Claude
-- Optional Codex delegation through `"$CLAUDE_PROJECT_DIR/.claude/skills/codex/scripts/ask_codex.sh"`
+- Optional Codex delegation through `"~/.claude/skills/codex/scripts/ask_codex.sh"`
 - Optional review and exploration through installed `feature-dev` and `superpowers` plugin agents
 - Standard project verification commands and browser tooling
 
@@ -39,7 +39,7 @@ Use the bundled Codex bridge only when it materially helps:
 
 Default review mode:
 ```bash
-"$CLAUDE_PROJECT_DIR/.claude/skills/codex/scripts/ask_codex.sh" \
+"~/.claude/skills/codex/scripts/ask_codex.sh" \
   --read-only \
   --reasoning high \
   -w "$PWD" \

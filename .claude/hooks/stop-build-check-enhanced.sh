@@ -10,12 +10,13 @@ command -v jq >/dev/null 2>&1 || { echo "jq is required but not installed" >&2; 
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/utils.sh"
+CLAUDE_HOME_DIR="$(resolve_claude_home)"
 
 EVENT_INFO=$(cat)
 
 SESSION_ID=$(echo "$EVENT_INFO" | jq -r '.session_id // empty' 2>/dev/null || echo "")
 
-CACHE_DIR="$CLAUDE_PROJECT_DIR/.claude/tsc-cache/${SESSION_ID:-default}"
+CACHE_DIR="$CLAUDE_HOME_DIR/tsc-cache/${SESSION_ID:-default}"
 
 if [[ ! -d "$CACHE_DIR" ]]; then
     exit 0

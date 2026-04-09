@@ -40,12 +40,12 @@ Ask the user: "Confirm these settings or tell me what to change. Once confirmed,
 
 1. **Setup**: Check if workspace exists. If not, run:
    ```
-   bash "$CLAUDE_PROJECT_DIR/.claude/skills/autoresearch/scripts/setup.sh" --workspace <workspace>
+   bash "~/.claude/skills/autoresearch/scripts/setup.sh" --workspace <workspace>
    ```
 
 2. **Baseline**: Run the unmodified train.py as baseline (first entry in results.tsv).
 
-3. **Loop**: Follow the autoresearch skill loop protocol (see `$CLAUDE_PROJECT_DIR/.claude/skills/autoresearch/SKILL.md`):
+3. **Loop**: Follow the autoresearch skill loop protocol (see `~/.claude/skills/autoresearch/SKILL.md`):
    - Read state, form hypothesis, snapshot train.py, train, evaluate, keep/discard, log, report, repeat.
 
 4. **Finish**: When turns are exhausted or user stops, write the final report to `<workspace>/report.md` and display the summary.

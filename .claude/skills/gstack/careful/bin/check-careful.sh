@@ -33,7 +33,9 @@ CMD=$(printf '%s' "$INPUT" | grep -o '"command"[[:space:]]*:[[:space:]]*"[^"]*"'
 
 # Python fallback if grep returned empty (e.g., escaped quotes in command)
 if [ -z "$CMD" ]; then
-  CMD=$(printf '%s' "$INPUT" | python3 -c 'import sys,json; print(json.loads(sys.stdin.read()).get("tool_input",{}).get("command",""))' 2>/dev/null || true)
+  PYTHON_CMD="python3"
+  command -v python3 >/dev/null 2>&1 || PYTHON_CMD="python"
+  CMD=$(printf '%s' "$INPUT" | "$PYTHON_CMD" -c 'import sys,json; print(json.loads(sys.stdin.read()).get("tool_input",{}).get("command",""))' 2>/dev/null || true)
 fi
 
 # If we still couldn't extract a command, allow

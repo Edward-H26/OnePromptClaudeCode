@@ -6,6 +6,9 @@ command -v jq >/dev/null 2>&1 || exit 0
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/patterns.sh"
 source "$SCRIPT_DIR/lib/plugin-state.sh"
+source "$SCRIPT_DIR/lib/utils.sh"
+CLAUDE_HOME_DIR="$(resolve_claude_home)"
+export CLAUDE_CONFIG_DIR="$CLAUDE_HOME_DIR"
 
 INPUT=$(cat)
 PROMPT=$(echo "$INPUT" | jq -r '.prompt // empty' 2>/dev/null || echo "")

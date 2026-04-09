@@ -157,7 +157,12 @@
       "Read(./file-history/**)",
       "Read(./projects/**)",
       "Read(./session-env/**)",
-      "Read(./sessions/**)"
+      "Read(./sessions/**)",
+      "Read(./.claude/runtime/**)",
+      "Read(./.credentials.json)",
+      "Bash(cat .env*)",
+      "Bash(cat .credentials*)",
+      "Bash(cat **/auth.json)"
     ],
     "ask": [
       "Bash(git merge:*)",
@@ -174,7 +179,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "CLAUDE_PLUGIN_DATA=\"$CLAUDE_PROJECT_DIR/.claude/runtime/gstack\" bash $CLAUDE_PROJECT_DIR/.claude/skills/gstack/careful/bin/check-careful.sh",
+            "command": "CLAUDE_PLUGIN_DATA=\"~/.claude/runtime/gstack\" bash ~/.claude/skills/gstack/careful/bin/check-careful.sh",
             "statusMessage": "Checking careful mode..."
           }
         ]
@@ -184,7 +189,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "CLAUDE_PLUGIN_DATA=\"$CLAUDE_PROJECT_DIR/.claude/runtime/gstack\" bash $CLAUDE_PROJECT_DIR/.claude/skills/gstack/freeze/bin/check-freeze.sh",
+            "command": "CLAUDE_PLUGIN_DATA=\"~/.claude/runtime/gstack\" bash ~/.claude/skills/gstack/freeze/bin/check-freeze.sh",
             "statusMessage": "Checking freeze boundary..."
           }
         ]
@@ -195,15 +200,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/task-orchestrator-hook.sh"
+            "command": "~/.claude/hooks/task-orchestrator-hook.sh"
           },
           {
             "type": "command",
-            "command": "AUTO_CODEX_HOME=\"$CLAUDE_PROJECT_DIR/.claude/runtime/codex/home\" AUTO_CODEX_RUNTIME_DIR=\"$CLAUDE_PROJECT_DIR/.claude/runtime/codex/runs\" $CLAUDE_PROJECT_DIR/.claude/hooks/auto-codex-trigger.sh"
+            "command": "AUTO_CODEX_HOME=\"~/.claude/runtime/codex/home\" AUTO_CODEX_RUNTIME_DIR=\"~/.claude/runtime/codex/runs\" ~/.claude/hooks/auto-codex-trigger.sh"
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/skill-activation-prompt.sh"
+            "command": "~/.claude/hooks/skill-activation-prompt.sh"
           }
         ]
       }
@@ -214,11 +219,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/post-tool-use-tracker.sh"
+            "command": "~/.claude/hooks/post-tool-use-tracker.sh"
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/tsc-check.sh"
+            "command": "~/.claude/hooks/tsc-check.sh"
           }
         ]
       },
@@ -227,7 +232,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/workflow-step-tracker.sh"
+            "command": "~/.claude/hooks/workflow-step-tracker.sh"
           }
         ]
       },
@@ -236,7 +241,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/workflow-step-tracker.sh"
+            "command": "~/.claude/hooks/workflow-step-tracker.sh"
           }
         ]
       },
@@ -245,7 +250,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/workflow-step-tracker.sh"
+            "command": "~/.claude/hooks/workflow-step-tracker.sh"
           }
         ]
       }
@@ -255,11 +260,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/stop-build-check-enhanced.sh"
+            "command": "~/.claude/hooks/stop-build-check-enhanced.sh"
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/workflow-completion-gate.sh"
+            "command": "~/.claude/hooks/workflow-completion-gate.sh"
           }
         ]
       }
@@ -281,7 +286,11 @@
   "effortLevel": "max",
   "statusLine": {
     "type": "command",
-    "command": "bash .claude/statusline.sh"
+    "command": "bash ~/.claude/statusline.sh"
   },
-  "outputStyle": "Explanatory"
+  "outputStyle": "Explanatory",
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  }
 }

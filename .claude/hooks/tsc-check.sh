@@ -10,11 +10,12 @@ CLAUDE_PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$PWD}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/utils.sh"
+CLAUDE_HOME_DIR="$(resolve_claude_home)"
 
 HOOK_INPUT=$(cat)
 SESSION_ID=$(echo "$HOOK_INPUT" | jq -r '.session_id // empty' 2>/dev/null || echo "")
 SESSION_ID="${SESSION_ID:-default}"
-CACHE_DIR="$CLAUDE_PROJECT_DIR/.claude/tsc-cache/$SESSION_ID"
+CACHE_DIR="$CLAUDE_HOME_DIR/tsc-cache/$SESSION_ID"
 
 exit_code=0
 mkdir -p "$CACHE_DIR"
@@ -130,8 +131,9 @@ $CHECK_OUTPUT"
             echo "Error Preview:"
             echo "$ERROR_OUTPUT" | grep "error TS" | head -10
             echo ""
-            if [ $(echo "$ERROR_OUTPUT" | grep -c "error TS") -gt 10 ]; then
-                echo "... and $(($(echo "$ERROR_OUTPUT" | grep -c "error TS") - 10)) more errors"
+            ts_error_count=$(echo "$ERROR_OUTPUT" | grep -c "error TS" || echo "0")
+            if [ "${ts_error_count:-0}" -gt 10 ]; then
+                echo "... and $((ts_error_count - 10)) more errors"
             fi
         } >&2
 

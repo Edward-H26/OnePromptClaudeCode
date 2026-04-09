@@ -7,10 +7,10 @@ description: Local wrapper that dispatches into the bundled Super Ralph autonomo
 
 This is a local router only. The bundled Super Ralph workflow lives at:
 
-- `$CLAUDE_PROJECT_DIR/.claude/skills/super-ralph/skills/super-ralph/SKILL.md`
-- `$CLAUDE_PROJECT_DIR/.claude/skills/super-ralph/agents/`
-- `$CLAUDE_PROJECT_DIR/.claude/skills/super-ralph/commands/super-ralph.md`
+- `~/.claude/skills/super-ralph/skills/super-ralph/SKILL.md`
+- `~/.claude/skills/super-ralph/agents/`
+- `~/.claude/skills/super-ralph/commands/super-ralph.md`
 
 Stay inside the local `.claude/skills/super-ralph/` tree when following that workflow.
 
-**Read `$CLAUDE_PROJECT_DIR/.claude/skills/super-ralph/skills/super-ralph/SKILL.md` and follow its instructions.**
+**Read `~/.claude/skills/super-ralph/skills/super-ralph/SKILL.md` and follow its instructions.**

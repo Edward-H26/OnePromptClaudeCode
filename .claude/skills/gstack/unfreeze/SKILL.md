@@ -20,6 +20,6 @@ This repo stores the active freeze boundary in `.claude/runtime/gstack/freeze-di
 When this skill is invoked, remove that boundary with Bash:
 
 ```bash
-rm -f "$CLAUDE_PROJECT_DIR/.claude/runtime/gstack/freeze-dir.txt"
+rm -f ".claude/runtime/gstack/freeze-dir.txt"
 echo "Freeze boundary removed for this repo session."
 ```

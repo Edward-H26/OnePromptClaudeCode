@@ -27,28 +27,31 @@ print_file_head() {
 
 source "$ROOT/scripts/lib/doctor-steps.sh"
 
-echo "[1/8] Static audit"
+echo "[1/9] Deploy to ~/.claude"
+doctorDeployToHome
+
+echo "[2/9] Static audit"
 doctorStaticAudit
 
-echo "[2/8] Skill symlink health"
+echo "[3/9] Skill symlink health"
 doctorSymlinkHealth
 
-echo "[3/8] Hook executable permissions"
+echo "[4/9] Hook executable permissions"
 doctorHookPermissions
 
-echo "[4/8] Shared plugin health"
+echo "[5/9] Shared plugin health"
 doctorPluginHealth
 
-echo "[5/8] MCP health"
+echo "[6/9] MCP health"
 doctorMcpHealth
 
-echo "[6/8] Codex read-only smoke"
+echo "[7/9] Codex read-only smoke"
 doctorCodexSmoke
 
-echo "[7/8] Git surface check"
+echo "[8/9] Git surface check"
 doctorGitSurface
 
-echo "[8/8] Local JSON safety and runtime hygiene"
+echo "[9/9] Local JSON safety and runtime hygiene"
 doctorJsonSafety
 
 echo

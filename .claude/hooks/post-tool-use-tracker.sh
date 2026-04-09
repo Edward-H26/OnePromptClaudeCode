@@ -8,6 +8,7 @@ CLAUDE_PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$PWD}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/utils.sh"
+CLAUDE_HOME_DIR="$(resolve_claude_home)"
 
 HOOK_INPUT=$(cat)
 
@@ -28,7 +29,7 @@ if [[ -z "$FILE_PATHS" ]]; then
     exit 0
 fi
 
-CACHE_DIR="$CLAUDE_PROJECT_DIR/.claude/tsc-cache/${SESSION_ID:-default}"
+CACHE_DIR="$CLAUDE_HOME_DIR/tsc-cache/${SESSION_ID:-default}"
 mkdir -p "$CACHE_DIR"
 
 while IFS= read -r file_path; do

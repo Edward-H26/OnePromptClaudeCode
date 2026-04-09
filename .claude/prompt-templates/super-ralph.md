@@ -24,7 +24,7 @@ You are working in the project directory: **[DIRECTORY]**
 
 **Type:** [TYPE]
 
-Invoke `/super-ralph` and read the local wrapper at `$CLAUDE_PROJECT_DIR/.claude/skills/super-ralph/SKILL.md`. Then use the bundled Super Ralph files under `$CLAUDE_PROJECT_DIR/.claude/skills/super-ralph/` and run the full autonomous loop.
+Invoke `/super-ralph` and read the local wrapper at `~/.claude/skills/super-ralph/SKILL.md`. Then use the bundled Super Ralph files under `~/.claude/skills/super-ralph/` and run the full autonomous loop.
 
 ### Pre-Launch Context Setup
 

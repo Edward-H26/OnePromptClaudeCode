@@ -5,12 +5,16 @@ command -v jq >/dev/null 2>&1 || exit 0
 
 CLAUDE_PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$PWD}"
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/utils.sh"
+CLAUDE_HOME_DIR="$(resolve_claude_home)"
+
 HOOK_INPUT=$(cat)
 SESSION_ID=$(echo "$HOOK_INPUT" | jq -r '.session_id // empty' 2>/dev/null)
 SESSION_ID="${SESSION_ID:-default}"
 TOOL_NAME=$(echo "$HOOK_INPUT" | jq -r '.tool_name // empty' 2>/dev/null)
 
-STEPS_DIR="$CLAUDE_PROJECT_DIR/.claude/tsc-cache/$SESSION_ID/workflow-steps"
+STEPS_DIR="$CLAUDE_HOME_DIR/tsc-cache/$SESSION_ID/workflow-steps"
 mkdir -p "$STEPS_DIR"
 
 if [[ "$TOOL_NAME" == "Bash" ]]; then
