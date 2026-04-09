@@ -1,3 +1,5 @@
+$ErrorActionPreference = "Stop"
+
 $hookInput = [Console]::In.ReadToEnd()
 $data = $hookInput | ConvertFrom-Json
 
@@ -7,7 +9,9 @@ if ($toolName -notin @("Edit", "MultiEdit", "Write")) { exit 0 }
 . "$PSScriptRoot/lib/utils.ps1"
 
 $claudeHome = Resolve-ClaudeHome
-$sessionId = if ($data.session_id) { $data.session_id } else { "default" }
+$rawSessionId = if ($data.session_id) { $data.session_id } else { "default" }
+$sessionId = $rawSessionId -replace "[^a-zA-Z0-9_-]", ""
+if (-not $sessionId) { $sessionId = "default" }
 $cacheDir = Join-Path $claudeHome "tsc-cache/$sessionId"
 
 New-Item -ItemType Directory -Path $cacheDir -Force | Out-Null
@@ -54,16 +58,23 @@ foreach ($repo in $reposToCheck) {
         continue
     }
 
+    if (-not (Test-TscCommand $tscCmd)) {
+        Write-Host "Skipped (unsafe command)" -ForegroundColor Yellow
+        continue
+    }
+
+    $pushed = $false
     try {
         Push-Location $repoPath
+        $pushed = $true
         $tscArgs = $tscCmd -split "\s+"
         $output = & $tscArgs[0] $tscArgs[1..($tscArgs.Length-1)] 2>&1
         $exitCode = $LASTEXITCODE
-        Pop-Location
     } catch {
-        Pop-Location
         $exitCode = 1
         $output = $_.Exception.Message
+    } finally {
+        if ($pushed) { Pop-Location }
     }
 
     if ($exitCode -ne 0) {

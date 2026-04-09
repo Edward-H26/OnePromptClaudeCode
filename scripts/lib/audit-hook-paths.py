@@ -17,6 +17,7 @@ for event, entries in hooks.items():
         for hook in entry.get("hooks", []):
             cmd = hook.get("command", "")
             resolved = cmd.replace("$CLAUDE_PROJECT_DIR", str(root.resolve()))
+            resolved = resolved.replace("~/", os.path.expanduser("~/"))
             scripts = re.findall(r'(/\S+\.sh|(?:^|\s)(\S+\.sh))', resolved)
             for match in scripts:
                 script_path = match[0].strip() if match[0].strip().startswith("/") else match[1].strip()

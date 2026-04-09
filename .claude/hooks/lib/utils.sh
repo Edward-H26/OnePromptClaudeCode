@@ -1,5 +1,10 @@
 #!/bin/bash
 
+sanitize_session_id() {
+    local raw="${1:-default}"
+    printf '%s' "$raw" | tr -cd '[:alnum:]_-'
+}
+
 resolve_claude_home() {
     local script_dir
     local idx=${#BASH_SOURCE[@]}
@@ -22,7 +27,7 @@ resolve_claude_home() {
         candidate="$(dirname "$candidate")"
     done
     if [[ -d "$HOME/.claude" ]]; then
-        cd "$HOME/.claude" && pwd -P
+        echo "$(cd "$HOME/.claude" && pwd -P)"
         return 0
     fi
     echo ""
@@ -36,8 +41,17 @@ atomic_sort_unique() {
     local i=0
 
     while ! mkdir "$lock_dir" 2>/dev/null; do
-        if [[ -d "$lock_dir" ]] && find "$lock_dir" -maxdepth 0 -mmin +1 -print -quit 2>/dev/null | grep -q .; then
-            rm -rf "$lock_dir" 2>/dev/null
+        if [[ -d "$lock_dir" ]]; then
+            local lock_pid=""
+            [[ -f "$lock_dir/pid" ]] && lock_pid="$(cat "$lock_dir/pid" 2>/dev/null)"
+            if [[ -n "$lock_pid" ]] && ! kill -0 "$lock_pid" 2>/dev/null; then
+                rm -rf "$lock_dir" 2>/dev/null
+                continue
+            fi
+            if find "$lock_dir" -maxdepth 0 -mmin +1 -print -quit 2>/dev/null | grep -q .; then
+                rm -rf "$lock_dir" 2>/dev/null
+                continue
+            fi
         fi
         i=$((i + 1))
         if [[ $i -ge $max_wait ]]; then
@@ -46,6 +60,8 @@ atomic_sort_unique() {
         fi
         sleep 0.1
     done
+
+    echo $$ > "$lock_dir/pid" 2>/dev/null || { rm -rf "$lock_dir" 2>/dev/null; return 1; }
 
     local return_code=0
     local tmp_file="${file}.tmp"

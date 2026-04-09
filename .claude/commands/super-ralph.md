@@ -10,9 +10,9 @@ The user wants to run the Super Ralph autonomous agentic loop.
 Use the local wrapper skill at `.claude/skills/super-ralph/SKILL.md` as the entrypoint. That wrapper routes into the bundled Super Ralph source that ships inside this repo.
 
 Start from:
-- `~/.claude/skills/super-ralph/commands/super-ralph.md`
-- `~/.claude/skills/super-ralph/skills/super-ralph/SKILL.md`
-- `~/.claude/skills/super-ralph/agents/`
+- `.claude/skills/super-ralph/commands/super-ralph.md`
+- `.claude/skills/super-ralph/skills/super-ralph/SKILL.md`
+- `.claude/skills/super-ralph/agents/`
 
 The bundled workflow handles everything:
 

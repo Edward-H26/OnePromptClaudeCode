@@ -26,7 +26,9 @@ foreach ($skill in $rules.skills.PSObject.Properties) {
     $matched = $false
 
     foreach ($kw in $keywords) {
-        if ($promptLower -match [regex]::Escape($kw.ToLower())) {
+        $escaped = [regex]::Escape($kw.ToLower())
+        $wordPattern = "(^|[^a-zA-Z0-9_])" + $escaped + "([^a-zA-Z0-9_]|$)"
+        if ($promptLower -match $wordPattern) {
             $matched = $true
             break
         }
@@ -43,7 +45,9 @@ foreach ($skill in $rules.skills.PSObject.Properties) {
 
     if ($matched -and $excludeKeywords) {
         foreach ($ek in $excludeKeywords) {
-            if ($promptLower -match [regex]::Escape($ek.ToLower())) {
+            $escapedEk = [regex]::Escape($ek.ToLower())
+            $ekPattern = "(^|[^a-zA-Z0-9_])" + $escapedEk + "([^a-zA-Z0-9_]|$)"
+            if ($promptLower -match $ekPattern) {
                 $matched = $false
                 break
             }

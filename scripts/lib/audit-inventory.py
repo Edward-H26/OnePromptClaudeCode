@@ -14,6 +14,9 @@ skill_rules_path = skills_dir / "skill-rules.json"
 
 parsed_json = {}
 for path in [root / ".claude" / "settings.json", root / ".claude" / "settings.local.example.json", skill_rules_path]:
+    if not path.exists():
+        print(f"Required config file not found: {path.as_posix()}")
+        raise SystemExit(1)
     with path.open() as handle:
         parsed_json[path.name] = json.load(handle)
 

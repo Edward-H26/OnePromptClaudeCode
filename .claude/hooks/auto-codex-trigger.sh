@@ -83,34 +83,37 @@ PID_PATH="$ARTIFACT_DIR/run.pid"
 find "$RUNTIME_DIR" -mindepth 1 -maxdepth 1 -type d -mtime +7 -exec rm -rf {} + 2>/dev/null || true
 
 SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // empty')
-SESSION_ID="${SESSION_ID:-default}"
+SESSION_ID="$(sanitize_session_id "${SESSION_ID:-default}")"
 STEPS_DIR="$CLAUDE_HOME_DIR/tsc-cache/$SESSION_ID/workflow-steps"
 mkdir -p "$STEPS_DIR"
 mkdir -p "$STEPS_DIR/codex-kickoff" 2>/dev/null || true
 
-PROMPT_FILE="$(mktemp)"
-LAUNCH_SCRIPT="$(mktemp)"
+PROMPT_FILE="$(mktemp)" || { echo "Failed to create temp file" >&2; exit 1; }
+LAUNCH_SCRIPT="$(mktemp)" || { rm -f "$PROMPT_FILE"; echo "Failed to create temp file" >&2; exit 1; }
 printf '%s' "$PROMPT" > "$PROMPT_FILE"
-cat > "$LAUNCH_SCRIPT" <<LAUNCH
+cat > "$LAUNCH_SCRIPT" <<'LAUNCH'
 #!/bin/bash
-export CLAUDE_PROJECT_DIR="$WORKSPACE"
-export AUTO_CODEX_HOME="$AUTO_CODEX_HOME"
-export AUTO_CODEX_RUNTIME_DIR="$RUNTIME_DIR"
-"$CODEX_SCRIPT" -t "\$(cat '$PROMPT_FILE')" -w "$WORKSPACE" -o "$OUTPUT_PATH"
+export CLAUDE_PROJECT_DIR="$1"
+export AUTO_CODEX_HOME="$2"
+export AUTO_CODEX_RUNTIME_DIR="$3"
+"$4" -t "$(cat "$5")" -w "$1" -o "$6"
 LAUNCH
 chmod +x "$LAUNCH_SCRIPT"
 nohup /bin/bash -c '
+    LAUNCH_SCRIPT="$1"; PROMPT_FILE="$2"
+    WORKSPACE="$3"; CODEX_HOME="$4"; RUNTIME="$5"
+    CODEX_SCRIPT="$6"; OUTPUT="$7"; TIMEOUT_SECS="$8"
     TIMEOUT_CMD=""
     command -v timeout >/dev/null 2>&1 && TIMEOUT_CMD="timeout"
     command -v gtimeout >/dev/null 2>&1 && TIMEOUT_CMD="gtimeout"
     if [ -n "$TIMEOUT_CMD" ]; then
-        "$TIMEOUT_CMD" '"${CODEX_TIMEOUT:-120}"' /bin/bash "$1"
+        "$TIMEOUT_CMD" "$TIMEOUT_SECS" /bin/bash "$LAUNCH_SCRIPT" "$WORKSPACE" "$CODEX_HOME" "$RUNTIME" "$CODEX_SCRIPT" "$PROMPT_FILE" "$OUTPUT"
     else
         echo "WARNING: neither timeout nor gtimeout found; Codex running without external timeout guard" >&2
-        /bin/bash "$1"
+        /bin/bash "$LAUNCH_SCRIPT" "$WORKSPACE" "$CODEX_HOME" "$RUNTIME" "$CODEX_SCRIPT" "$PROMPT_FILE" "$OUTPUT"
     fi
-    rm -f "$2" "$1"
-' _ "$LAUNCH_SCRIPT" "$PROMPT_FILE" > "$CODEX_LOG" 2>&1 &
+    rm -f "$PROMPT_FILE" "$LAUNCH_SCRIPT"
+' _ "$LAUNCH_SCRIPT" "$PROMPT_FILE" "$WORKSPACE" "$AUTO_CODEX_HOME" "$RUNTIME_DIR" "$CODEX_SCRIPT" "$OUTPUT_PATH" "${CODEX_TIMEOUT:-120}" > "$CODEX_LOG" 2>&1 &
 CODEX_PID=$!
 echo "$CODEX_PID" > "$PID_PATH"
 

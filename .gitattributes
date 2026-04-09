@@ -7,3 +7,6 @@
 # Keep JSON and markdown as LF
 *.json text eol=lf
 *.md text eol=lf
+
+# Binary font files
+*.ttf binary

@@ -18,7 +18,7 @@ ls <workspace>/train.py <workspace>/prepare.py
 If missing, run the setup script:
 
 ```bash
-bash "~/.claude/skills/autoresearch/scripts/setup.sh" --workspace <workspace>
+bash "$CLAUDE_PROJECT_DIR/.claude/skills/autoresearch/scripts/setup.sh" --workspace <workspace>
 ```
 
 ## The Experiment Loop

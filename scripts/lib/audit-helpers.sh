@@ -86,11 +86,16 @@ EOF
 
     chmod +x "$stub_dir/codex" "$stub_dir/ask_codex.sh"
 
-    jq -n --arg prompt "$prompt" --arg session_id "audit" '{prompt: $prompt, session_id: $session_id}' |
+    local result
+    result="$(jq -n --arg prompt "$prompt" --arg session_id "audit" '{prompt: $prompt, session_id: $session_id}' |
         PATH="$stub_dir:$PATH" \
         CLAUDE_PROJECT_DIR="$ROOT" \
         AUTO_CODEX_SCRIPT="$stub_dir/ask_codex.sh" \
-        bash "$ROOT/.claude/hooks/auto-codex-trigger.sh"
+        bash "$ROOT/.claude/hooks/auto-codex-trigger.sh")"
+    local exit_status=$?
+    rm -rf "$stub_dir"
+    printf "%s" "$result"
+    return $exit_status
 }
 
 run_check_careful() {
@@ -117,7 +122,7 @@ run_tsc_hook_regression() {
     local tmp_dir
     tmp_dir="$(mktemp -d)"
 
-    mkdir -p "$tmp_dir/.claude/hooks/lib" "$tmp_dir/.claude/tsc-cache/test" "$tmp_dir/app" "$tmp_dir/pkg"
+    mkdir -p "$tmp_dir/.claude/hooks/lib" "$tmp_dir/.claude/skills" "$tmp_dir/.claude/tsc-cache/test" "$tmp_dir/app" "$tmp_dir/pkg"
     cp "$ROOT/.claude/hooks/tsc-check.sh" "$tmp_dir/.claude/hooks/"
     cp "$ROOT/.claude/hooks/lib/utils.sh" "$tmp_dir/.claude/hooks/lib/"
 

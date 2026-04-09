@@ -74,6 +74,9 @@
 /tasks/
 /cache/
 
+# Deleted root-level AGENTS files (prevent re-creation)
+/AGENTS-*.md
+
 # Cache and state files
 /mcp-needs-auth-cache.json
 /stats-cache.json
@@ -131,6 +134,8 @@
 **/node_modules/
 **/bun.lock
 **/bun.lockb
+/package-lock.json
+/yarn.lock
 
 # Curated vendored reference exclusions (the repo publishes only the wired surface it uses)
 /references/gstack/agents/openai.yaml
@@ -152,6 +157,9 @@
 /references/everything-claude-code/docs/*/plugins/
 /references/everything-claude-code/node_modules/
 /references/everything-claude-code/plugins/
+/references/everything-claude-code/package-lock.json
+/references/everything-claude-code/yarn.lock
+/references/everything-claude-code/ecc2/Cargo.lock
 /references/*/.git/
 
 # gstack upstream infrastructure (CI, telemetry, tests, dev scripts)
@@ -160,7 +168,6 @@
 /references/gstack/test/
 /references/gstack/scripts/
 /references/gstack/browse/test/
-/references/gstack/agents/openai.yaml
 
 # gstack SKILL.md template files (rendered SKILL.md already tracked)
 /references/gstack/**/*.tmpl

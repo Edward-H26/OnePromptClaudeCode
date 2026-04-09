@@ -13,7 +13,8 @@ CLAUDE_HOME_DIR="$(resolve_claude_home)"
 HOOK_INPUT=$(cat)
 
 TOOL_NAME=$(echo "$HOOK_INPUT" | jq -r '.tool_name // empty' 2>/dev/null || echo "")
-SESSION_ID=$(echo "$HOOK_INPUT" | jq -r '.session_id // empty' 2>/dev/null || echo "")
+SESSION_ID_RAW=$(echo "$HOOK_INPUT" | jq -r '.session_id // empty' 2>/dev/null || echo "")
+SESSION_ID="$(sanitize_session_id "${SESSION_ID_RAW:-default}")"
 
 if [[ ! "$TOOL_NAME" =~ ^(Edit|MultiEdit|Write)$ ]]; then
     exit 0
@@ -29,7 +30,7 @@ if [[ -z "$FILE_PATHS" ]]; then
     exit 0
 fi
 
-CACHE_DIR="$CLAUDE_HOME_DIR/tsc-cache/${SESSION_ID:-default}"
+CACHE_DIR="$CLAUDE_HOME_DIR/tsc-cache/$SESSION_ID"
 mkdir -p "$CACHE_DIR"
 
 while IFS= read -r file_path; do

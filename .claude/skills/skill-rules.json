@@ -881,7 +881,7 @@
             "type": "domain",
             "enforcement": "suggest",
             "priority": "high",
-            "description": "Autonomous ML research loop based on Karpathy's autoresearch framework. Iteratively modifies train.py, runs training, evaluates improvements, keeps or discards via git.",
+            "description": "Autonomous ML research loop based on Karpathy's autoresearch framework. Iteratively modifies train.py, runs training, evaluates improvements, keeps or discards via local snapshots.",
             "promptTriggers": {
                 "keywords": [
                     "autoresearch",

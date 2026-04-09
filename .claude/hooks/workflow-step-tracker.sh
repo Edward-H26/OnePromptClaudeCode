@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+# Note: set -e intentionally omitted, consistent with other hooks in this directory.
 
 command -v jq >/dev/null 2>&1 || exit 0
 
@@ -10,9 +10,9 @@ source "$SCRIPT_DIR/lib/utils.sh"
 CLAUDE_HOME_DIR="$(resolve_claude_home)"
 
 HOOK_INPUT=$(cat)
-SESSION_ID=$(echo "$HOOK_INPUT" | jq -r '.session_id // empty' 2>/dev/null)
-SESSION_ID="${SESSION_ID:-default}"
-TOOL_NAME=$(echo "$HOOK_INPUT" | jq -r '.tool_name // empty' 2>/dev/null)
+SESSION_ID=$(echo "$HOOK_INPUT" | jq -r '.session_id // empty' 2>/dev/null || echo "")
+SESSION_ID="$(sanitize_session_id "${SESSION_ID:-default}")"
+TOOL_NAME=$(echo "$HOOK_INPUT" | jq -r '.tool_name // empty' 2>/dev/null || echo "")
 
 STEPS_DIR="$CLAUDE_HOME_DIR/tsc-cache/$SESSION_ID/workflow-steps"
 mkdir -p "$STEPS_DIR"

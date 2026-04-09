@@ -16,11 +16,19 @@ function Resolve-ClaudeHome {
 
 function Get-RepoCacheKey {
     param([string]$Repo = ".")
+    if (-not $Repo) { $Repo = "." }
     $normalized = if ($Repo -eq ".") { "root" } else { $Repo }
     $safeName = $normalized -replace "[/\\]", "_" -replace "[^a-zA-Z0-9_.-]", "_"
     $bytes = [System.Text.Encoding]::UTF8.GetBytes($Repo)
-    $hash = [System.BitConverter]::ToString([System.Security.Cryptography.SHA256]::Create().ComputeHash($bytes)).Replace("-","").Substring(0,8)
-    return "${safeName}-${hash}"
+    $crc = 0xFFFFFFFF
+    foreach ($b in $bytes) {
+        $crc = $crc -bxor $b
+        for ($i = 0; $i -lt 8; $i++) {
+            if ($crc -band 1) { $crc = ($crc -shr 1) -bxor 0xEDB88320 } else { $crc = $crc -shr 1 }
+        }
+    }
+    $checksum = ($crc -bxor 0xFFFFFFFF) -band 0xFFFFFFFF
+    return "${safeName}-${checksum}"
 }
 
 function Get-RepoForFile {
@@ -32,12 +40,36 @@ function Get-RepoForFile {
         $fullPath = Join-Path $projectDir $dirPath
         if ((Test-Path "$fullPath/package.json") -or
             (Test-Path "$fullPath/tsconfig.json") -or
+            (Test-Path "$fullPath/tsconfig.app.json") -or
+            (Test-Path "$fullPath/tsconfig.build.json") -or
+            (Test-Path "$fullPath/pyproject.toml") -or
+            (Test-Path "$fullPath/setup.py") -or
+            (Test-Path "$fullPath/requirements.txt") -or
+            (Test-Path "$fullPath/go.mod") -or
+            (Test-Path "$fullPath/Cargo.toml") -or
+            (Test-Path "$fullPath/pom.xml") -or
+            (Test-Path "$fullPath/build.gradle") -or
+            (Test-Path "$fullPath/build.gradle.kts") -or
+            (Test-Path "$fullPath/Gemfile") -or
+            (Test-Path "$fullPath/Makefile") -or
             (Test-Path "$fullPath/.git")) {
             return $dirPath
         }
         $dirPath = Split-Path -Parent $dirPath
     }
-    if ((Test-Path "$projectDir/package.json") -or (Test-Path "$projectDir/.git")) {
+    if ((Test-Path "$projectDir/package.json") -or
+        (Test-Path "$projectDir/tsconfig.json") -or
+        (Test-Path "$projectDir/pyproject.toml") -or
+        (Test-Path "$projectDir/setup.py") -or
+        (Test-Path "$projectDir/requirements.txt") -or
+        (Test-Path "$projectDir/go.mod") -or
+        (Test-Path "$projectDir/Cargo.toml") -or
+        (Test-Path "$projectDir/pom.xml") -or
+        (Test-Path "$projectDir/build.gradle") -or
+        (Test-Path "$projectDir/build.gradle.kts") -or
+        (Test-Path "$projectDir/Gemfile") -or
+        (Test-Path "$projectDir/Makefile") -or
+        (Test-Path "$projectDir/.git")) {
         return "."
     }
     return ""
@@ -60,4 +92,13 @@ function Get-TscCommand {
         return "npx tsc --noEmit"
     }
     return ""
+}
+
+function Test-TscCommand {
+    param([string]$TscCmd)
+    if (-not $TscCmd) { return $false }
+    $allowedPattern = "^(npx\s+tsc|node_modules[\\/]\.bin[\\/]tsc|tsc)(\s+[a-zA-Z0-9_./:@%+=,-]+)*\s*$"
+    if ($TscCmd -match "[;&|<>`\$\(\)]") { return $false }
+    if ($TscCmd -notmatch $allowedPattern) { return $false }
+    return $true
 }

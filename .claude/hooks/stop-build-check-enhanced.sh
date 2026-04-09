@@ -15,8 +15,9 @@ CLAUDE_HOME_DIR="$(resolve_claude_home)"
 EVENT_INFO=$(cat)
 
 SESSION_ID=$(echo "$EVENT_INFO" | jq -r '.session_id // empty' 2>/dev/null || echo "")
+SESSION_ID="$(sanitize_session_id "${SESSION_ID:-default}")"
 
-CACHE_DIR="$CLAUDE_HOME_DIR/tsc-cache/${SESSION_ID:-default}"
+CACHE_DIR="$CLAUDE_HOME_DIR/tsc-cache/$SESSION_ID"
 
 if [[ ! -d "$CACHE_DIR" ]]; then
     exit 0
@@ -129,7 +130,7 @@ $TSC_COMMANDS
 
 ERROR PREVIEW:
 $ERROR_PREVIEW
-$([ "$TOTAL_ERRORS" -gt 5 ] && echo "... and $((TOTAL_ERRORS - 5)) more errors")
+$([ "${TOTAL_ERRORS:-0}" -gt 5 ] && echo "... and $((TOTAL_ERRORS - 5)) more errors")
 
 ================================================================================
 RESOLUTION

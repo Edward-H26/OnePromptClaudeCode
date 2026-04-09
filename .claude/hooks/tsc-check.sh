@@ -1,8 +1,6 @@
 #!/bin/bash
-set -e
-
-# TSC Hook with Visible Output
-# Uses stderr for visibility in Claude Code main interface
+# This hook uses explicit exit-code handling throughout.
+# Do not enable set -e here, because the script intentionally aggregates failures.
 
 command -v jq >/dev/null 2>&1 || exit 0
 
@@ -14,7 +12,7 @@ CLAUDE_HOME_DIR="$(resolve_claude_home)"
 
 HOOK_INPUT=$(cat)
 SESSION_ID=$(echo "$HOOK_INPUT" | jq -r '.session_id // empty' 2>/dev/null || echo "")
-SESSION_ID="${SESSION_ID:-default}"
+SESSION_ID="$(sanitize_session_id "${SESSION_ID:-default}")"
 CACHE_DIR="$CLAUDE_HOME_DIR/tsc-cache/$SESSION_ID"
 
 exit_code=0
@@ -30,10 +28,19 @@ run_tsc_check() {
     local cache_file="$CACHE_DIR/$repo_key-tsc-cmd.cache"
 
     (
-        cd "$repo_path" 2>/dev/null || exit 1
+        cd "$repo_path" 2>/dev/null || exit 2
 
         local tsc_cmd
+        local cache_stale=""
         if [ -f "$cache_file" ] && [ -z "$FORCE_DETECT" ]; then
+            for tsconf in tsconfig.json tsconfig.app.json tsconfig.build.json; do
+                if [ -f "$repo_path/$tsconf" ] && [ "$repo_path/$tsconf" -nt "$cache_file" ]; then
+                    cache_stale=1
+                    break
+                fi
+            done
+        fi
+        if [ -f "$cache_file" ] && [ -z "$FORCE_DETECT" ] && [ -z "$cache_stale" ]; then
             tsc_cmd=$(cat "$cache_file")
         else
             tsc_cmd=$(get_tsc_command "$repo_path")
@@ -84,10 +91,8 @@ if [ -n "$REPOS_TO_CHECK" ]; then
         echo -n "  Checking $repo... " >&2
 
         CHECK_EXIT_CODE=0
-        set +e
         CHECK_OUTPUT=$(run_tsc_check "$repo" 2>&1)
         CHECK_EXIT_CODE=$?
-        set -e
 
         if [ $CHECK_EXIT_CODE -eq 2 ]; then
             echo "⏭ Skipped" >&2

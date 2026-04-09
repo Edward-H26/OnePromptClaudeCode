@@ -11,7 +11,7 @@ CLAUDE_HOME_DIR="$(resolve_claude_home)"
 
 HOOK_INPUT=$(cat)
 SESSION_ID=$(echo "$HOOK_INPUT" | jq -r '.session_id // empty' 2>/dev/null || echo "")
-SESSION_ID="${SESSION_ID:-default}"
+SESSION_ID="$(sanitize_session_id "${SESSION_ID:-default}")"
 
 CACHE_DIR="$CLAUDE_HOME_DIR/tsc-cache/$SESSION_ID"
 STEPS_DIR="$CACHE_DIR/workflow-steps"
@@ -79,6 +79,8 @@ if [[ -n "$MISSING" ]]; then
     } >&2
 fi
 
+# Session tsc-cache uses 14-day retention because it may span multiple sessions.
+# Codex run artifacts use a shorter 7-day retention (see auto-codex-trigger.sh).
 TSC_CACHE_ROOT="$CLAUDE_HOME_DIR/tsc-cache"
 if [[ -d "$TSC_CACHE_ROOT" ]]; then
     while IFS= read -r stale_dir; do

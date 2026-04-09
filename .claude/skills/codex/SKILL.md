@@ -21,19 +21,19 @@ description: Delegate coding tasks to Codex CLI for execution. This repo support
 The script path is:
 
 ```
-~/.claude/skills/codex/scripts/ask_codex.sh
+$CLAUDE_PROJECT_DIR/.claude/skills/codex/scripts/ask_codex.sh
 ```
 
 Minimal invocation:
 
 ```bash
-"~/.claude/skills/codex/scripts/ask_codex.sh" "Your request in natural language"
+"$CLAUDE_PROJECT_DIR/.claude/skills/codex/scripts/ask_codex.sh" "Your request in natural language"
 ```
 
 With file context:
 
 ```bash
-"~/.claude/skills/codex/scripts/ask_codex.sh" "Refactor these components to use the new API" \
+"$CLAUDE_PROJECT_DIR/.claude/skills/codex/scripts/ask_codex.sh" "Refactor these components to use the new API" \
   --file src/components/UserList.tsx \
   --file src/components/UserDetail.tsx
 ```
@@ -41,7 +41,7 @@ With file context:
 Multi-turn conversation (continue a previous session):
 
 ```bash
-"~/.claude/skills/codex/scripts/ask_codex.sh" "Also add retry logic with exponential backoff" \
+"$CLAUDE_PROJECT_DIR/.claude/skills/codex/scripts/ask_codex.sh" "Also add retry logic with exponential backoff" \
   --session <session_id from previous run>
 ```
 
@@ -50,19 +50,19 @@ Multi-turn conversation (continue a previous session):
 The script path is:
 
 ```
-~/.claude/skills/codex/scripts/ask_codex.ps1
+$CLAUDE_PROJECT_DIR/.claude/skills/codex/scripts/ask_codex.ps1
 ```
 
 Minimal invocation:
 
 ```powershell
-& ~/.claude/skills/codex/scripts/ask_codex.ps1 "Your request in natural language"
+& $CLAUDE_PROJECT_DIR/.claude/skills/codex/scripts/ask_codex.ps1 "Your request in natural language"
 ```
 
 With file context:
 
 ```powershell
-& ~/.claude/skills/codex/scripts/ask_codex.ps1 "Refactor these components to use the new API" `
+& $CLAUDE_PROJECT_DIR/.claude/skills/codex/scripts/ask_codex.ps1 "Refactor these components to use the new API" `
   -f src/components/UserList.tsx `
   -f src/components/UserDetail.tsx
 ```
@@ -70,7 +70,7 @@ With file context:
 Multi-turn conversation (continue a previous session):
 
 ```powershell
-& ~/.claude/skills/codex/scripts/ask_codex.ps1 "Also add retry logic with exponential backoff" `
+& $CLAUDE_PROJECT_DIR/.claude/skills/codex/scripts/ask_codex.ps1 "Also add retry logic with exponential backoff" `
   -Session <session_id from previous run>
 ```
 

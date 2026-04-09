@@ -24,7 +24,7 @@ You are working in the project directory: **[DIRECTORY]**
 
 **Type:** [TYPE]
 
-Invoke `/super-ralph` and read the local wrapper at `~/.claude/skills/super-ralph/SKILL.md`. Then use the bundled Super Ralph files under `~/.claude/skills/super-ralph/` and run the full autonomous loop.
+Invoke `/super-ralph` and read the local wrapper at `.claude/skills/super-ralph/SKILL.md`. Then use the bundled Super Ralph files under `.claude/skills/super-ralph/` and run the full autonomous loop.
 
 ### Pre-Launch Context Setup
 
@@ -110,7 +110,7 @@ If [MODE] is **brainstorm**, Ralph asks clarifying questions through its interac
 | Architecture | architect agent, architecture-review-system agent |
 | Debugging | `systematic-debugging`, `investigate` |
 
-Ralph also picks from the 17 local agents (architect, build-error-resolver, code-refactor-master, database-reviewer, frontend-developer, frontend-error-fixer, etc.) and installed plugin agents (code-review, code-simplifier, feature-dev).
+Ralph also picks from the 14 local agents (architect, build-error-resolver, code-refactor-master, database-reviewer, frontend-developer, frontend-error-fixer, etc.) and installed plugin agents (code-review, code-simplifier, feature-dev).
 
 **Phase 0: Pre-Flight** — Locks workspace boundaries, read-only paths, off-limits paths, and MAX_RETRIES. In oneshot mode, uses [DIRECTORY] as writable scope with 6 retries.
 

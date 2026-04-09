@@ -2,16 +2,6 @@
 name: context-manager
 description: Context and conversation management specialist for tracking conversation state, managing file changes, organizing information, and maintaining context across long sessions. Use this agent for summarizing conversations, tracking changes, organizing work, and managing context windows.
 tools: ["Read", "Grep", "Glob"]
-
-<example>
-Context: The conversation is getting long and context needs to be summarized.
-user: "Can you summarize what we've discussed so far?"
-assistant: "I'll use the context-manager agent to create a comprehensive summary"
-<commentary>
-This requires careful review and organization of the entire conversation thread.
-</commentary>
-</example>
-
 color: yellow
 ---
 

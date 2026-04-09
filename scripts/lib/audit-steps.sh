@@ -317,6 +317,10 @@ auditHookSmokes() {
         exit 1
     fi
 
+    for f in "$ASK_ARGS_FILE"; do
+        [[ -n "$f" && -f "$f" ]] && rm -rf "$(dirname "$f")"
+    done
+
     SKILL_OUTPUT="$(run_skill_activation "How do these modules relate to each other?")"
     if printf "%s\n" "$SKILL_OUTPUT" | grep -q "ship"; then
         echo "Unexpected ship activation for relation prompt" >&2
