@@ -58,6 +58,7 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 |---|---|---|
 | `tdd-workflow` | auto on test writing | RED-GREEN-REFACTOR cycle, unit/integration/E2E patterns, 80%+ coverage target. |
 | `e2e-testing` | auto on E2E/Playwright | Playwright patterns, Page Object Model, flaky test strategies, CI/CD. |
+| `python-testing` | auto on pytest/python test | Python testing with pytest: TDD, fixtures, mocking, parametrization, coverage. |
 | `webapp-testing` | ask to test a local webapp | Python-driven Playwright workflow for local app lifecycle, screenshots, and browser verification. |
 | `qa` | `/qa` | Browser-based QA: test app, find bugs, apply minimal fixes, and re-verify. |
 | `qa-only` | `/qa-only` | Same as qa but report-only, no code changes. |
@@ -68,7 +69,6 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 
 | Skill | Trigger | What it does |
 |---|---|---|
-| `systematic-debugging` | auto on bugs/errors | 4-phase root cause methodology with red flags and rationalization checklist. |
 | `investigate` | `/investigate` | Systematic debugging with hypothesis testing. Stops after 3 failed fixes. |
 
 ### Shipping Skills
@@ -194,7 +194,6 @@ Availability depends on the local Claude installation, enabled plugins, ignored 
 | **filesystem** | Read/write files across allowed directories | `read_file`, `write_file`, `search_files` |
 | **memory** | Persistent entity/relation graph | `create_entities`, `search_nodes`, `add_observations` |
 | **chrome** | Chrome browser automation with screenshots | `navigate`, `read_page`, `javascript_tool`, `gif_creator` |
-| **puppeteer** | Headless browser automation (overlaps with Chrome and Playwright; prefer those for new workflows) | `puppeteer_navigate`, `puppeteer_click`, `puppeteer_screenshot` |
 | **context7** | Up-to-date library documentation | `resolve-library-id`, `query-docs` |
 | **Scholar Gateway** | Academic paper search | `semanticSearch` |
 | **PDF Viewer** | Display and read PDFs | `display_pdf`, `read_pdf_bytes` |
@@ -264,9 +263,9 @@ These are repo-local starting points, not hard-gated control flows. They must st
 | **Plan** | plan-eng-review, plan-design-review, design-consultation | `/multi-plan`, `/plan-eng-review`, `/plan-design-review` |
 | **Build** | backend/frontend-dev-guidelines, docker/postgres-patterns | `/build-fix`, `/orchestrate` |
 | **Review** | review, design-review, security-review, codex | `/review-staff`, `/codex review` |
-| **Test** | tdd-workflow, e2e-testing, qa, verification-loop | `/qa`, `/quality-gate` |
+| **Test** | tdd-workflow, e2e-testing, python-testing, qa, verification-loop | `/qa`, `/quality-gate` |
 | **Ship** | ship, document-release | `/ship` |
 | **Reflect** | retro | `/retro` |
 | **Safety** | careful, freeze, guard | `/careful`, `/freeze`, `/guard`, `/unfreeze` |
-| **Debug** | systematic-debugging, investigate | `/investigate` |
+| **Debug** | investigate | `/investigate` |
 | **Autonomous** | super-ralph (brainstorm/oneshot), autonomous-loops | `/super-ralph`, `/orchestrate` |

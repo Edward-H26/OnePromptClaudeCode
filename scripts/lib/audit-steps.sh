@@ -113,8 +113,8 @@ auditHookSmokes() {
     done
 
     SKILL_OUTPUT="$(run_skill_activation "Debug the failing TypeScript route handler and find the root cause of the regression.")"
-    if ! printf "%s\n" "$SKILL_OUTPUT" | grep -q "systematic-debugging"; then
-        echo "Missing expected debug skill activation: systematic-debugging" >&2
+    if ! printf "%s\n" "$SKILL_OUTPUT" | grep -q "investigate"; then
+        echo "Missing expected debug skill activation: investigate" >&2
         exit 1
     fi
 

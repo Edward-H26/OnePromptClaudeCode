@@ -64,9 +64,9 @@ debug.md  code-quality.md  design-to-code.md  gstack-sprint.md  feature-implemen
 
 | Template | Skills Used |
 |----------|------------|
-| **super-ralph.md** | `search-first`, `postgres-patterns`, `systematic-debugging`, `investigate`, `code-refactor`, `security-review`, `security-scan`, `backend-dev-guidelines`, `frontend-dev-guidelines`, `ui-styling`, `ui-ux-pro-max`, `shadcn-ui`, `liquid-glass-design`, `docker-patterns`, `deployment-patterns`, `claude-api`, `tdd-workflow`, `e2e-testing`, `python-testing`, `design-consultation`, `verification-loop` |
+| **super-ralph.md** | `search-first`, `postgres-patterns`, `investigate`, `code-refactor`, `security-review`, `security-scan`, `backend-dev-guidelines`, `frontend-dev-guidelines`, `ui-styling`, `ui-ux-pro-max`, `shadcn-ui`, `liquid-glass-design`, `docker-patterns`, `deployment-patterns`, `claude-api`, `tdd-workflow`, `e2e-testing`, `python-testing`, `design-consultation`, `verification-loop` |
 | **feature-implementation.md** | `search-first`, `frontend-dev-guidelines`, `ui-styling`, `ui-ux-pro-max`, `shadcn-ui`, `backend-dev-guidelines`, `postgres-patterns`, `security-review`, `tdd-workflow`, `e2e-testing`, `verification-loop` |
-| **debug.md** | `systematic-debugging`, `investigate`, `search-first`, `backend-dev-guidelines`, `frontend-dev-guidelines`, `ui-styling`, `security-review`, `security-scan` |
+| **debug.md** | `investigate`, `search-first`, `backend-dev-guidelines`, `frontend-dev-guidelines`, `ui-styling`, `security-review`, `security-scan` |
 | **code-quality.md** | `search-first`, `security-review`, `security-scan`, `code-refactor`, `verification-loop` |
 | **design-to-code.md** | `search-first`, `ui-ux-pro-max`, `frontend-dev-guidelines`, `ui-styling`, `shadcn-ui`, `frontend-design` plugin |
 | **gstack-sprint.md** | `search-first`, plus any skill relevant to the sprint goal (auto-selected per phase) |

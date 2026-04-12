@@ -24,7 +24,7 @@ You are debugging inside **[DIRECTORY]**.
 ### 1. Scope and Reproduce
 
 1. If `[MODULE_DIR]` is present, use `/freeze [MODULE_DIR]`.
-2. Use `systematic-debugging` or `/investigate` to force root-cause analysis before fixing.
+2. Use `/investigate` to force root-cause analysis before fixing.
 3. Reproduce the issue with the smallest reliable command, test, or browser flow.
 4. If the bug is route-related, use `/route-research-for-testing`.
 

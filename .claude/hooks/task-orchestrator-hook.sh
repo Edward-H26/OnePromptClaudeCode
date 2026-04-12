@@ -106,7 +106,6 @@ Helpful skills in this repo:
 - backend-dev-guidelines for backend code
 - frontend-dev-guidelines for React and TypeScript code
 - ui-styling for component styling and layout work
-- systematic-debugging for failures and regressions
 - verification-loop for structured verification
 - security-review and security-scan for auth, secrets, permissions, and workflow audits
 - e2e-testing for browser-driven verification work

@@ -26,7 +26,7 @@ Recommended sequence:
 ### bugfix
 
 Recommended sequence:
-- `systematic-debugging` or `/investigate`
+- `/investigate`
 - `feature-dev:code-explorer` for execution-path tracing when needed
 - `frontend-error-fixer`, `build-error-resolver`, or `architecture-review-system` depending on the failure mode
 - `verification-loop`

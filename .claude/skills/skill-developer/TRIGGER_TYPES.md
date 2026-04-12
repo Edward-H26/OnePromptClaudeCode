@@ -71,7 +71,7 @@ Action-based activation where user describes what they want to do rather than th
 **Debugging Work:**
 - User prompt: "debug the failing workflow hook"
 - Matches: `(debug).*?(hook|workflow|failure)`
-- Activates: `systematic-debugging`, `skill-developer`
+- Activates: `investigate`, `skill-developer`
 
 **Component Creation:**
 - User prompt: "create a dashboard widget"

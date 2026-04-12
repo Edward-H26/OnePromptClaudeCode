@@ -475,42 +475,6 @@
                 "contentPatterns": []
             }
         },
-        "systematic-debugging": {
-            "type": "domain",
-            "enforcement": "suggest",
-            "priority": "high",
-            "description": "4-phase root cause debugging methodology: investigation, pattern analysis, hypothesis testing, implementation",
-            "promptTriggers": {
-                "keywords": [
-                    "fix",
-                    "bug",
-                    "debug",
-                    "error",
-                    "unexpected behavior",
-                    "test failure",
-                    "broken",
-                    "not working",
-                    "issue",
-                    "failing",
-                    "crash",
-                    "wrong output",
-                    "incorrect",
-                    "regression",
-                    "root cause"
-                ],
-                "intentPatterns": [
-                    "(fix|debug|investigate|diagnose).*?(bug|error|issue|problem|failure)",
-                    "(why|what).*?(not working|broken|failing|crashing)",
-                    "(find|identify|locate).*?(root cause|source|origin).*?(bug|error|issue)",
-                    "(unexpected|incorrect|wrong).*?(behavior|output|result)",
-                    "test.*?(fail|failing|broken)"
-                ]
-            },
-            "fileTriggers": {
-                "pathPatterns": [],
-                "contentPatterns": []
-            }
-        },
         "codex": {
             "type": "domain",
             "enforcement": "suggest",

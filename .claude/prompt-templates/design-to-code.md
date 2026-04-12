@@ -51,8 +51,8 @@ You are implementing a design in **[DIRECTORY]**.
 2. Use `ui-styling` for styling, responsive behavior, and accessibility.
 3. Use `ui-ux-pro-max` for stack-specific best practices: `--stack <target_stack>`.
 4. Use the `frontend-design` plugin only when the task truly needs stronger visual direction.
-4. For multi-screen or complex component implementations, use `/super-ralph` to autonomously build, test, and integrate each piece.
-5. Keep the implementation scoped to the described screen, component, or flow.
+5. For multi-screen or complex component implementations, use `/super-ralph` to autonomously build, test, and integrate each piece.
+6. Keep the implementation scoped to the described screen, component, or flow.
 
 ### 4. Verify
 

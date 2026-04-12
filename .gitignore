@@ -95,6 +95,7 @@
 !**/.env.example
 !**/.env.*.example
 *.local
+/.worktreeinclude
 **/__pycache__/
 **/*.pyc
 
@@ -175,6 +176,12 @@
 # everything-claude-code upstream content not needed for reference
 /references/everything-claude-code/tests/
 /references/everything-claude-code/docs/business/
+/references/everything-claude-code/docs/ja-JP/
+/references/everything-claude-code/docs/ko-KR/
+/references/everything-claude-code/docs/pt-BR/
+/references/everything-claude-code/docs/tr/
+/references/everything-claude-code/docs/zh-CN/
+/references/everything-claude-code/docs/zh-TW/
 /references/everything-claude-code/docs/releases/*/linkedin-post.md
 /references/everything-claude-code/docs/releases/*/x-thread.md
 /references/everything-claude-code/docs/releases/*/x-quote-*.md

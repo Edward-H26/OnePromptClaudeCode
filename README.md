@@ -4,7 +4,7 @@
 
 A complete Claude Code workflow that covers the entire software development lifecycle. Clone it, start coding, and never write a prompt from scratch again.
 
-55 skill entries. 30 commands. 14 agents. 8 local hooks. 6 templates. 11+ shared MCP servers. 400+ auto-triggers.
+54 skill entries. 30 commands. 14 agents. 8 local hooks. 6 templates. 11+ shared MCP servers. 400+ auto-triggers.
 
 Built for beginners. Scales for power users.
 
@@ -69,7 +69,7 @@ Zero prompts to write. Minimal repo setup. Machine-local plugin installs and aut
 
 | Component | Count | Description |
 |---|---|---|
-| **Skills** | 55 | Bundled workflow skill entries available directly from the tracked repo |
+| **Skills** | 54 | Bundled workflow skill entries available directly from the tracked repo |
 | **Commands** | 30 | Slash commands for planning, implementation, review, QA, and release handoff |
 | **Agents** | 14 | Specialized local agents for complex tasks |
 | **Hooks** | 10 | Automated safety, tracking, and validation hooks (8 local + 2 gstack) |
@@ -220,8 +220,8 @@ Automated hooks run at every stage of your workflow:
 
 | Hook | When | What it does |
 |---|---|---|
-| `check-careful.sh` | Before Bash | Warns before destructive commands |
-| `check-freeze.sh` | Before Edit/MultiEdit/Write | Blocks edits outside frozen directory |
+| `check-careful.sh` | Before Bash | Warns before destructive commands (gstack skill) |
+| `check-freeze.sh` | Before Edit/MultiEdit/Write | Blocks edits outside frozen directory (gstack skill) |
 | `task-orchestrator-hook.sh` | On prompt | Detects analysis vs coding tasks |
 | `skill-activation-prompt.sh` | On prompt | Suggests skills via 400+ keyword triggers |
 | `auto-codex-trigger.sh` | On prompt | Auto-launches Codex in background for coding tasks |
@@ -280,7 +280,7 @@ Ready-to-use templates at `.claude/prompt-templates/`:
   commands/              # 30 slash commands
   hooks/                 # 8 local hook scripts (+ 2 gstack PreToolUse hooks)
   prompt-templates/      # 6 reusable templates
-  skills/                # 55 skill entries
+  skills/                # 54 skill entries
     skill-rules.json     # 400+ keyword trigger engine
     gstack/              # Bundled gstack workflow content
     super-ralph/         # Bundled Super Ralph wrapper and assets

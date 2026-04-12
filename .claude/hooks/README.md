@@ -144,7 +144,7 @@ Cache artifacts use sanitized repo keys so nested repos such as `packages/app` d
 
 **Purpose:** Emits workflow reminders and cleans stale cache state. It no longer blocks completion for stale, tool-specific workflow steps that may not exist in every environment.
 
-Also cleans up stale `tsc-cache` sessions older than 7 days.
+Also cleans up stale `tsc-cache` sessions older than 14 days.
 
 ---
 
@@ -165,6 +165,7 @@ Also cleans up stale `tsc-cache` sessions older than 7 days.
 - **Codex timeout on macOS**: `auto-codex-trigger.sh` wraps Codex with `timeout` (or `gtimeout`). On macOS systems without GNU coreutils, the timeout guard is skipped and Codex runs without a time limit.
 - **Plugin availability is snapshot-based**: `plugin_available_names()` reads plugin state at hook invocation time. Plugins installed or removed mid-session may not be reflected until the next hook fires.
 - **Pre-commit safety**: Run `git diff --cached` and `bash scripts/audit-workflow.sh` before committing to verify no secrets or unintended files are staged.
+- **PowerShell coverage**: Only `skill-activation-prompt.ps1` and `tsc-check.ps1` have PowerShell variants. The remaining 6 hooks require bash.
 
 ---
 

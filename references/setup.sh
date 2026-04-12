@@ -28,7 +28,7 @@ prune_curated_reference_artifacts() {
             touch "$target_dir/learnings.md"
             ;;
         everything-claude-code)
-            for rel_path in ".env.example" ".opencode/package-lock.json" ".opencode/plugins" "assets" "docs/ja-JP/plugins" "docs/zh-CN/plugins" "node_modules" "plugins"; do
+            for rel_path in ".env.example" ".opencode/package-lock.json" ".opencode/plugins" "assets" "docs/ja-JP" "docs/ko-KR" "docs/pt-BR" "docs/tr" "docs/zh-CN" "docs/zh-TW" "node_modules" "plugins"; do
                 rm -rf "$target_dir/$rel_path"
             done
             ;;

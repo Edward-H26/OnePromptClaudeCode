@@ -50,7 +50,7 @@ The [TYPE] parameter shapes how Ralph decomposes and executes the task:
 **feature** (default): Full build cycle. Ralph decomposes into implementation subtasks, writes tests first, builds, and merges. Uses the standard tester/worker/judge/merger agent pipeline.
 
 **debug**: Root-cause analysis and fix. Before decomposition, Ralph:
-1. Activates `systematic-debugging` or `/investigate` to force root-cause analysis before any fix attempt.
+1. Activates `/investigate` to force root-cause analysis before any fix attempt.
 2. Reproduces the issue with the smallest reliable command, test, or browser flow.
 3. If `[DIRECTORY]` has a specific module at fault, applies `/freeze` to restrict edits.
 4. Decomposes the fix into: reproduce test, root-cause identification, minimal fix, regression test.
@@ -108,7 +108,7 @@ If [MODE] is **brainstorm**, Ralph asks clarifying questions through its interac
 | Security | `security-review`, `security-scan` |
 | Design | `design-consultation`, frontend-design plugin |
 | Architecture | architect agent, architecture-review-system agent |
-| Debugging | `systematic-debugging`, `investigate` |
+| Debugging | `investigate` |
 
 Ralph also picks from the 14 local agents (architect, build-error-resolver, code-refactor-master, database-reviewer, frontend-developer, frontend-error-fixer, etc.) and installed plugin agents (code-review, code-simplifier, feature-dev).
 

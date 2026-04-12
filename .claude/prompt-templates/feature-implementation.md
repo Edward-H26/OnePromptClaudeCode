@@ -87,7 +87,7 @@ Scan the environment for available skills and agents, match them to the brainsto
    - UI styling: `ui-styling`, `shadcn-ui`
    - Design decisions (style, color, typography, UX): `ui-ux-pro-max`
    - Refactors: `code-refactor`
-   - Bugs: `systematic-debugging`
+   - Bugs: `investigate`
    - Security: `security-review`, `security-scan`
    - Research: `deep-research`
    - Verification: `verification-loop`
