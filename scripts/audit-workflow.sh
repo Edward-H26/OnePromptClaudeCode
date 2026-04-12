@@ -74,7 +74,12 @@ for fn in auditShellSyntax auditSymlinkIntegrity auditHookSmokes \
           run_skill_activation run_skill_activation_no_env \
           run_task_orchestrator run_auto_codex_trigger_with_stub \
           run_check_careful run_check_freeze run_tsc_hook_regression \
-          run_ask_codex_with_stub; do
+          run_ask_codex_with_stub \
+          plugin_settings_path plugin_local_settings_path \
+          plugin_installed_path plugin_blocklist_path \
+          plugin_has_install_state plugin_enabled_names \
+          plugin_installed_names plugin_blocklisted_names \
+          plugin_available_names plugin_is_available; do
     if declare -f "$fn" >/dev/null 2>&1; then
         export -f "$fn"
     fi
