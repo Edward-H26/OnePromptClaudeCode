@@ -301,13 +301,26 @@
                     "lighthouse",
                     "inspect element",
                     "debug javascript",
-                    "browser console"
+                    "browser console",
+                    "screenshot",
+                    "browser automation",
+                    "puppeteer",
+                    "headless chrome",
+                    "scrape",
+                    "web scraping",
+                    "capture screenshot",
+                    "automate chrome",
+                    "browser script",
+                    "automate browser"
                 ],
                 "intentPatterns": [
                     "(debug|inspect|profile).*?(browser|chrome|javascript)",
                     "(devtools|developer tools).*?(use|open|how)",
                     "(performance|memory|network).*?(analyze|debug|profile)",
-                    "(lighthouse|audit).*?(run|check|score)"
+                    "(lighthouse|audit).*?(run|check|score)",
+                    "(take|capture|grab).*?screenshot",
+                    "(automate|script|control).*?(browser|chrome)",
+                    "(scrape|extract).*?(website|page|data)"
                 ]
             },
             "fileTriggers": {
@@ -750,7 +763,9 @@
                     "test.describe",
                     "page.goto"
                 ],
-                "pathExclusions": ["**/node_modules/**"]
+                "pathExclusions": [
+                    "**/node_modules/**"
+                ]
             }
         },
         "deep-research": {
@@ -907,8 +922,12 @@
             "priority": "low",
             "description": "Bundled gstack workflow entrypoint exposed through repo-local wrapper skills.",
             "promptTriggers": {
-                "keywords": ["gstack"],
-                "intentPatterns": ["(use|run|open).*gstack"]
+                "keywords": [
+                    "gstack"
+                ],
+                "intentPatterns": [
+                    "(use|run|open).*gstack"
+                ]
             }
         },
         "office-hours": {
@@ -917,8 +936,20 @@
             "priority": "high",
             "description": "Pre-development brainstorming and product reframing. YC Office Hours style forcing questions before writing code.",
             "promptTriggers": {
-                "keywords": ["office hours", "brainstorm idea", "think through", "is this worth building", "product idea", "startup idea", "reframe problem"],
-                "intentPatterns": ["(brainstorm|think through|help me think).*?(idea|feature|product)", "office.*hours", "(is this|should I).*?(build|worth)"]
+                "keywords": [
+                    "office hours",
+                    "brainstorm idea",
+                    "think through",
+                    "is this worth building",
+                    "product idea",
+                    "startup idea",
+                    "reframe problem"
+                ],
+                "intentPatterns": [
+                    "(brainstorm|think through|help me think).*?(idea|feature|product)",
+                    "office.*hours",
+                    "(is this|should I).*?(build|worth)"
+                ]
             }
         },
         "plan-ceo-review": {
@@ -927,8 +958,17 @@
             "priority": "medium",
             "description": "CEO/founder product strategy review with scope modes: expansion, hold, reduction.",
             "promptTriggers": {
-                "keywords": ["ceo review", "product strategy", "scope review", "product review", "founder review"],
-                "intentPatterns": ["(ceo|founder|product).*review", "(strategy|scope).*(review|check)"]
+                "keywords": [
+                    "ceo review",
+                    "product strategy",
+                    "scope review",
+                    "product review",
+                    "founder review"
+                ],
+                "intentPatterns": [
+                    "(ceo|founder|product).*review",
+                    "(strategy|scope).*(review|check)"
+                ]
             }
         },
         "plan-eng-review": {
@@ -937,8 +977,17 @@
             "priority": "medium",
             "description": "Engineering manager architecture review with diagrams, data flow, edge cases, and test matrices.",
             "promptTriggers": {
-                "keywords": ["eng review", "architecture review", "engineering review", "tech review", "plan eng"],
-                "intentPatterns": ["(eng|engineering|architecture|technical).*review", "review.*(architecture|plan|design)"]
+                "keywords": [
+                    "eng review",
+                    "architecture review",
+                    "engineering review",
+                    "tech review",
+                    "plan eng"
+                ],
+                "intentPatterns": [
+                    "(eng|engineering|architecture|technical).*review",
+                    "review.*(architecture|plan|design)"
+                ]
             }
         },
         "plan-design-review": {
@@ -947,8 +996,17 @@
             "priority": "medium",
             "description": "Senior designer evaluation rating design dimensions 0-10, detecting AI slop.",
             "promptTriggers": {
-                "keywords": ["design review", "design audit", "ui review", "design evaluation", "plan design"],
-                "intentPatterns": ["(design|ui|ux).*review", "review.*(design|ui|visual)"]
+                "keywords": [
+                    "design review",
+                    "design audit",
+                    "ui review",
+                    "design evaluation",
+                    "plan design"
+                ],
+                "intentPatterns": [
+                    "(design|ui|ux).*review",
+                    "review.*(design|ui|visual)"
+                ]
             }
         },
         "design-consultation": {
@@ -957,8 +1015,17 @@
             "priority": "medium",
             "description": "Design partner building complete design systems with competitive research and mockups.",
             "promptTriggers": {
-                "keywords": ["design system", "design consultation", "design partner", "build design", "create design system"],
-                "intentPatterns": ["(build|create|design).*design system", "design.*(consultation|partner)"]
+                "keywords": [
+                    "design system",
+                    "design consultation",
+                    "design partner",
+                    "build design",
+                    "create design system"
+                ],
+                "intentPatterns": [
+                    "(build|create|design).*design system",
+                    "design.*(consultation|partner)"
+                ]
             }
         },
         "careful": {
@@ -967,8 +1034,18 @@
             "priority": "high",
             "description": "Safety guardrails for destructive commands: rm -rf, DROP TABLE, force-push, git reset --hard.",
             "promptTriggers": {
-                "keywords": ["careful", "safety mode", "careful mode", "be careful", "prod mode", "production mode"],
-                "intentPatterns": ["(be|activate|enable).*careful", "(safety|careful|prod).*mode"]
+                "keywords": [
+                    "careful",
+                    "safety mode",
+                    "careful mode",
+                    "be careful",
+                    "prod mode",
+                    "production mode"
+                ],
+                "intentPatterns": [
+                    "(be|activate|enable).*careful",
+                    "(safety|careful|prod).*mode"
+                ]
             }
         },
         "freeze": {
@@ -977,8 +1054,17 @@
             "priority": "medium",
             "description": "Restrict file edits to a specific directory for the session to prevent accidental changes.",
             "promptTriggers": {
-                "keywords": ["freeze", "restrict edits", "lock edits", "only edit this folder", "scope edits"],
-                "intentPatterns": ["(freeze|restrict|lock).*edit", "only.*edit.*(this|folder|directory)"]
+                "keywords": [
+                    "freeze",
+                    "restrict edits",
+                    "lock edits",
+                    "only edit this folder",
+                    "scope edits"
+                ],
+                "intentPatterns": [
+                    "(freeze|restrict|lock).*edit",
+                    "only.*edit.*(this|folder|directory)"
+                ]
             }
         },
         "unfreeze": {
@@ -987,8 +1073,14 @@
             "priority": "low",
             "description": "Remove edit restrictions set by /freeze.",
             "promptTriggers": {
-                "keywords": ["unfreeze", "remove restriction", "unlock edits"],
-                "intentPatterns": ["(unfreeze|unlock|remove).*(edit|restriction|freeze)"]
+                "keywords": [
+                    "unfreeze",
+                    "remove restriction",
+                    "unlock edits"
+                ],
+                "intentPatterns": [
+                    "(unfreeze|unlock|remove).*(edit|restriction|freeze)"
+                ]
             }
         },
         "guard": {
@@ -997,8 +1089,16 @@
             "priority": "medium",
             "description": "Combined safety: activates both /careful and /freeze for maximum protection.",
             "promptTriggers": {
-                "keywords": ["guard", "maximum safety", "full safety", "guard mode"],
-                "intentPatterns": ["(guard|maximum|full).*safety", "activate.*guard"]
+                "keywords": [
+                    "guard",
+                    "maximum safety",
+                    "full safety",
+                    "guard mode"
+                ],
+                "intentPatterns": [
+                    "(guard|maximum|full).*safety",
+                    "activate.*guard"
+                ]
             }
         },
         "ship": {
@@ -1007,8 +1107,18 @@
             "priority": "high",
             "description": "Release engineering: sync base, test, coverage audit, version bump, changelog, and release-ready handoff without committing or pushing.",
             "promptTriggers": {
-                "keywords": ["ship", "release", "create pr", "ship it", "deploy", "push and pr"],
-                "intentPatterns": ["(ship|release|deploy).*?(it|this|code|branch)", "(create|open|make).*?(pr|pull request)"]
+                "keywords": [
+                    "ship",
+                    "release",
+                    "create pr",
+                    "ship it",
+                    "deploy",
+                    "push and pr"
+                ],
+                "intentPatterns": [
+                    "(ship|release|deploy).*?(it|this|code|branch)",
+                    "(create|open|make).*?(pr|pull request)"
+                ]
             }
         },
         "document-release": {
@@ -1017,8 +1127,16 @@
             "priority": "medium",
             "description": "Auto-update project documentation to match shipped changes.",
             "promptTriggers": {
-                "keywords": ["document release", "update docs", "sync documentation", "update readme"],
-                "intentPatterns": ["(update|sync|refresh).*?(docs|documentation|readme)", "document.*release"]
+                "keywords": [
+                    "document release",
+                    "update docs",
+                    "sync documentation",
+                    "update readme"
+                ],
+                "intentPatterns": [
+                    "(update|sync|refresh).*?(docs|documentation|readme)",
+                    "document.*release"
+                ]
             }
         },
         "retro": {
@@ -1027,8 +1145,17 @@
             "priority": "medium",
             "description": "Weekly retrospective with metrics, shipping streaks, test health trends.",
             "promptTriggers": {
-                "keywords": ["retro", "retrospective", "weekly review", "sprint review", "what shipped"],
-                "intentPatterns": ["(run|do|start).*retro", "(weekly|sprint).*review"]
+                "keywords": [
+                    "retro",
+                    "retrospective",
+                    "weekly review",
+                    "sprint review",
+                    "what shipped"
+                ],
+                "intentPatterns": [
+                    "(run|do|start).*retro",
+                    "(weekly|sprint).*review"
+                ]
             }
         },
         "investigate": {
@@ -1037,8 +1164,16 @@
             "priority": "high",
             "description": "Systematic root-cause debugging with hypothesis testing. Stops after 3 failed fixes.",
             "promptTriggers": {
-                "keywords": ["investigate", "root cause", "debug systematically", "hypothesis test"],
-                "intentPatterns": ["investigate.*(bug|issue|error)", "(root cause|systematic).*debug"]
+                "keywords": [
+                    "investigate",
+                    "root cause",
+                    "debug systematically",
+                    "hypothesis test"
+                ],
+                "intentPatterns": [
+                    "investigate.*(bug|issue|error)",
+                    "(root cause|systematic).*debug"
+                ]
             }
         },
         "review": {
@@ -1047,8 +1182,16 @@
             "priority": "high",
             "description": "Staff engineer code review finding production bugs that pass CI, with auto-fixes.",
             "promptTriggers": {
-                "keywords": ["staff review", "code review gstack", "review staff", "production review"],
-                "intentPatterns": ["staff.*review", "review.*(production|staff)"]
+                "keywords": [
+                    "staff review",
+                    "code review gstack",
+                    "review staff",
+                    "production review"
+                ],
+                "intentPatterns": [
+                    "staff.*review",
+                    "review.*(production|staff)"
+                ]
             }
         },
         "design-review": {
@@ -1057,8 +1200,16 @@
             "priority": "medium",
             "description": "Design audit with atomic commit fixes and before/after screenshots.",
             "promptTriggers": {
-                "keywords": ["design review fix", "design audit fix", "fix design", "design review with fixes"],
-                "intentPatterns": ["(design|ui).*review.*fix", "fix.*(design|ui).*issues"]
+                "keywords": [
+                    "design review fix",
+                    "design audit fix",
+                    "fix design",
+                    "design review with fixes"
+                ],
+                "intentPatterns": [
+                    "(design|ui).*review.*fix",
+                    "fix.*(design|ui).*issues"
+                ]
             }
         },
         "qa": {
@@ -1067,8 +1218,17 @@
             "priority": "high",
             "description": "Browser-based QA testing with auto-generated regression tests.",
             "promptTriggers": {
-                "keywords": ["qa", "qa test", "browser test", "test in browser", "regression test"],
-                "intentPatterns": ["(qa|browser).*test", "test.*(browser|qa|regression)"]
+                "keywords": [
+                    "qa",
+                    "qa test",
+                    "browser test",
+                    "test in browser",
+                    "regression test"
+                ],
+                "intentPatterns": [
+                    "(qa|browser).*test",
+                    "test.*(browser|qa|regression)"
+                ]
             }
         },
         "qa-only": {
@@ -1077,8 +1237,15 @@
             "priority": "medium",
             "description": "QA reporting without code changes. Same methodology as /qa but report-only.",
             "promptTriggers": {
-                "keywords": ["qa only", "qa report", "test report only"],
-                "intentPatterns": ["qa.*only", "qa.*report.*only"]
+                "keywords": [
+                    "qa only",
+                    "qa report",
+                    "test report only"
+                ],
+                "intentPatterns": [
+                    "qa.*only",
+                    "qa.*report.*only"
+                ]
             }
         },
         "browse": {
@@ -1087,8 +1254,22 @@
             "priority": "medium",
             "description": "Real Chromium browser with ~100ms command latency for QA, dogfooding, and site testing.",
             "promptTriggers": {
-                "keywords": ["browse", "open browser", "chromium", "headless browser", "dogfood", "site test", "gstack browse"],
-                "intentPatterns": ["(open|use|start|navigate).*browser", "browse.*(url|page|site)", "(open|browse|navigate).*headless", "dogfood.*site", "gstack.*browse"]
+                "keywords": [
+                    "browse",
+                    "open browser",
+                    "chromium",
+                    "headless browser",
+                    "dogfood",
+                    "site test",
+                    "gstack browse"
+                ],
+                "intentPatterns": [
+                    "(open|use|start|navigate).*browser",
+                    "browse.*(url|page|site)",
+                    "(open|browse|navigate).*headless",
+                    "dogfood.*site",
+                    "gstack.*browse"
+                ]
             }
         },
         "agentic-engineering": {
@@ -1097,8 +1278,17 @@
             "priority": "medium",
             "description": "Agent development patterns: tool use, agent loops, error handling, context management.",
             "promptTriggers": {
-                "keywords": ["agentic engineering", "agent development", "build agent", "agent patterns", "tool use patterns"],
-                "intentPatterns": ["(build|create|design).*agent", "agent.*(pattern|architecture|development)"]
+                "keywords": [
+                    "agentic engineering",
+                    "agent development",
+                    "build agent",
+                    "agent patterns",
+                    "tool use patterns"
+                ],
+                "intentPatterns": [
+                    "(build|create|design).*agent",
+                    "agent.*(pattern|architecture|development)"
+                ]
             }
         },
         "autonomous-loops": {
@@ -1107,8 +1297,17 @@
             "priority": "medium",
             "description": "Continuous agent loop patterns for self-running, iterative agent workflows.",
             "promptTriggers": {
-                "keywords": ["autonomous loop", "continuous loop", "agent loop", "self-running", "iterative agent"],
-                "intentPatterns": ["(autonomous|continuous|self).*loop", "loop.*(agent|autonomous)"]
+                "keywords": [
+                    "autonomous loop",
+                    "continuous loop",
+                    "agent loop",
+                    "self-running",
+                    "iterative agent"
+                ],
+                "intentPatterns": [
+                    "(autonomous|continuous|self).*loop",
+                    "loop.*(agent|autonomous)"
+                ]
             }
         },
         "claude-api": {
@@ -1117,8 +1316,17 @@
             "priority": "medium",
             "description": "Claude API and Anthropic SDK patterns for programmatic integration.",
             "promptTriggers": {
-                "keywords": ["claude api", "anthropic api", "anthropic sdk", "messages api", "claude sdk"],
-                "intentPatterns": ["(claude|anthropic).*api", "api.*(claude|anthropic)"]
+                "keywords": [
+                    "claude api",
+                    "anthropic api",
+                    "anthropic sdk",
+                    "messages api",
+                    "claude sdk"
+                ],
+                "intentPatterns": [
+                    "(claude|anthropic).*api",
+                    "api.*(claude|anthropic)"
+                ]
             }
         },
         "deployment-patterns": {
@@ -1127,8 +1335,19 @@
             "priority": "medium",
             "description": "Deployment strategies: CI/CD, staging, rollback, blue-green, canary.",
             "promptTriggers": {
-                "keywords": ["deployment", "deploy pattern", "ci/cd", "staging", "rollback", "blue-green", "canary deploy"],
-                "intentPatterns": ["(deploy|deployment).*(pattern|strategy|pipeline)", "(ci|cd|release).*pipeline"]
+                "keywords": [
+                    "deployment",
+                    "deploy pattern",
+                    "ci/cd",
+                    "staging",
+                    "rollback",
+                    "blue-green",
+                    "canary deploy"
+                ],
+                "intentPatterns": [
+                    "(deploy|deployment).*(pattern|strategy|pipeline)",
+                    "(ci|cd|release).*pipeline"
+                ]
             }
         },
         "docker-patterns": {
@@ -1137,8 +1356,18 @@
             "priority": "medium",
             "description": "Docker best practices: Dockerfile, multi-stage builds, compose, image optimization.",
             "promptTriggers": {
-                "keywords": ["docker", "dockerfile", "container", "docker-compose", "docker compose", "image build"],
-                "intentPatterns": ["(docker|container).*(build|pattern|best practice)", "(create|write|optimize).*dockerfile"]
+                "keywords": [
+                    "docker",
+                    "dockerfile",
+                    "container",
+                    "docker-compose",
+                    "docker compose",
+                    "image build"
+                ],
+                "intentPatterns": [
+                    "(docker|container).*(build|pattern|best practice)",
+                    "(create|write|optimize).*dockerfile"
+                ]
             }
         },
         "postgres-patterns": {
@@ -1147,8 +1376,18 @@
             "priority": "medium",
             "description": "PostgreSQL patterns: queries, indexing, migrations, performance, schema design.",
             "promptTriggers": {
-                "keywords": ["postgres", "postgresql", "sql query", "database schema", "migration", "index optimization"],
-                "intentPatterns": ["(postgres|postgresql).*(pattern|query|schema|index)", "(database|sql).*(optimize|migration|schema)"]
+                "keywords": [
+                    "postgres",
+                    "postgresql",
+                    "sql query",
+                    "database schema",
+                    "migration",
+                    "index optimization"
+                ],
+                "intentPatterns": [
+                    "(postgres|postgresql).*(pattern|query|schema|index)",
+                    "(database|sql).*(optimize|migration|schema)"
+                ]
             }
         },
         "eval-harness": {
@@ -1157,8 +1396,17 @@
             "priority": "medium",
             "description": "Evaluation frameworks for testing agent and model quality.",
             "promptTriggers": {
-                "keywords": ["eval harness", "evaluation framework", "benchmark", "model eval", "agent eval"],
-                "intentPatterns": ["(eval|evaluation|benchmark).*(framework|harness|build)", "(test|evaluate).*(agent|model).*quality"]
+                "keywords": [
+                    "eval harness",
+                    "evaluation framework",
+                    "benchmark",
+                    "model eval",
+                    "agent eval"
+                ],
+                "intentPatterns": [
+                    "(eval|evaluation|benchmark).*(framework|harness|build)",
+                    "(test|evaluate).*(agent|model).*quality"
+                ]
             }
         },
         "search-first": {
@@ -1167,8 +1415,20 @@
             "priority": "medium",
             "description": "Search-first development: explore existing code before writing new code.",
             "promptTriggers": {
-                "keywords": ["search first", "search before code", "codebase search", "find existing", "workflow audit", "codebase audit"],
-                "intentPatterns": ["search.*first", "(search|find|explore).*before.*(code|implement)", "(go through|scan|evaluate).*?(every file|codebase|workflow)", "(audit|review|scan).*?(workflow|codebase|repo)"]
+                "keywords": [
+                    "search first",
+                    "search before code",
+                    "codebase search",
+                    "find existing",
+                    "workflow audit",
+                    "codebase audit"
+                ],
+                "intentPatterns": [
+                    "search.*first",
+                    "(search|find|explore).*before.*(code|implement)",
+                    "(go through|scan|evaluate).*?(every file|codebase|workflow)",
+                    "(audit|review|scan).*?(workflow|codebase|repo)"
+                ]
             }
         },
         "liquid-glass-design": {
@@ -1177,8 +1437,18 @@
             "priority": "medium",
             "description": "Modern glassmorphic UI design: translucent layers, depth, frosted glass effects.",
             "promptTriggers": {
-                "keywords": ["liquid glass", "glassmorphism", "frosted glass", "translucent ui", "glass effect", "modern ui design"],
-                "intentPatterns": ["(liquid|glass|frosted).*(design|ui|effect)", "modern.*ui.*design"]
+                "keywords": [
+                    "liquid glass",
+                    "glassmorphism",
+                    "frosted glass",
+                    "translucent ui",
+                    "glass effect",
+                    "modern ui design"
+                ],
+                "intentPatterns": [
+                    "(liquid|glass|frosted).*(design|ui|effect)",
+                    "modern.*ui.*design"
+                ]
             }
         },
         "shadcn-ui": {
@@ -1187,8 +1457,19 @@
             "priority": "high",
             "description": "shadcn/ui component library: CLI, theming, OKLCH colors, composition patterns, registry.",
             "promptTriggers": {
-                "keywords": ["shadcn", "shadcn/ui", "radix ui", "components.json", "tailwind components", "ui components"],
-                "intentPatterns": ["(add|install|use).*shadcn", "(shadcn|radix).*component", "ui.*component.*(library|pattern)"]
+                "keywords": [
+                    "shadcn",
+                    "shadcn/ui",
+                    "radix ui",
+                    "components.json",
+                    "tailwind components",
+                    "ui components"
+                ],
+                "intentPatterns": [
+                    "(add|install|use).*shadcn",
+                    "(shadcn|radix).*component",
+                    "ui.*component.*(library|pattern)"
+                ]
             }
         },
         "web-artifacts-builder": {
@@ -1197,8 +1478,19 @@
             "priority": "medium",
             "description": "Build self-contained HTML artifacts with React, Tailwind, and shadcn/ui. Bundles into single HTML file.",
             "promptTriggers": {
-                "keywords": ["artifact", "html artifact", "self-contained html", "single file app", "web artifact", "bundle html"],
-                "intentPatterns": ["(build|create|generate).*artifact", "(single|self-contained).*html", "bundle.*html"]
+                "keywords": [
+                    "artifact",
+                    "html artifact",
+                    "self-contained html",
+                    "single file app",
+                    "web artifact",
+                    "bundle html"
+                ],
+                "intentPatterns": [
+                    "(build|create|generate).*artifact",
+                    "(single|self-contained).*html",
+                    "bundle.*html"
+                ]
             }
         },
         "webapp-testing": {
@@ -1207,8 +1499,22 @@
             "priority": "medium",
             "description": "Test local web applications using Playwright in Python. Browser screenshots, UI debugging, server lifecycle.",
             "promptTriggers": {
-                "keywords": ["webapp test", "local webapp", "playwright python", "browser test python", "test local app", "ui test python", "browser flow", "capture screenshots"],
-                "intentPatterns": ["test.*webapp", "playwright.*python", "(test|verify).*local.*(app|server|webapp)", "(capture|take).*screenshot"]
+                "keywords": [
+                    "webapp test",
+                    "local webapp",
+                    "playwright python",
+                    "browser test python",
+                    "test local app",
+                    "ui test python",
+                    "browser flow",
+                    "capture screenshots"
+                ],
+                "intentPatterns": [
+                    "test.*webapp",
+                    "playwright.*python",
+                    "(test|verify).*local.*(app|server|webapp)",
+                    "(capture|take).*screenshot"
+                ]
             }
         },
         "gstack-upgrade": {
@@ -1217,8 +1523,15 @@
             "priority": "low",
             "description": "Upgrade gstack to the latest version. Detects install type, shows changelog.",
             "promptTriggers": {
-                "keywords": ["upgrade gstack", "update gstack", "gstack version", "gstack update"],
-                "intentPatterns": ["(upgrade|update).*gstack"]
+                "keywords": [
+                    "upgrade gstack",
+                    "update gstack",
+                    "gstack version",
+                    "gstack update"
+                ],
+                "intentPatterns": [
+                    "(upgrade|update).*gstack"
+                ]
             }
         },
         "setup-browser-cookies": {
@@ -1227,8 +1540,16 @@
             "priority": "low",
             "description": "Import cookies from real browsers into headless browse session for authenticated testing.",
             "promptTriggers": {
-                "keywords": ["browser cookies", "import cookies", "authenticated browse", "cookie setup"],
-                "intentPatterns": ["(import|setup|load).*cookies", "authenticated.*(browse|test)"]
+                "keywords": [
+                    "browser cookies",
+                    "import cookies",
+                    "authenticated browse",
+                    "cookie setup"
+                ],
+                "intentPatterns": [
+                    "(import|setup|load).*cookies",
+                    "authenticated.*(browse|test)"
+                ]
             }
         }
     }

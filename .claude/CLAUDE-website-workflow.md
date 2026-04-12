@@ -38,6 +38,12 @@ Run the most relevant checks:
 npx tsc --noEmit
 npm run build
 npm run lint
+
+# Browser verification, preferred path when chrome-devtools scripts are installed
+node .claude/skills/chrome-devtools/scripts/navigate.js --url http://localhost:3000
+node .claude/skills/chrome-devtools/scripts/screenshot.js --url http://localhost:3000 --output ./docs/screenshots/page.png
+
+# Playwright fallback when cross-browser coverage or the plugin is required
 npx playwright test
 ```
 
@@ -51,7 +57,13 @@ When there is a runnable UI target:
 - check for console or runtime errors
 - confirm responsive behavior for the important breakpoints
 
-Prefer the Playwright plugin tooling when available. If a separate browser connector is configured in the session, it can also be used.
+Preferred order of browser tooling:
+
+1. `chrome-devtools` skill at `.claude/skills/chrome-devtools/scripts/` when Chrome is configured locally. It drives Chrome via Puppeteer, outputs structured JSON, compresses screenshots automatically, and supports chained sessions.
+2. Playwright plugin when cross-browser coverage (Firefox, WebKit) is required, when the chrome-devtools node modules are not installed, or when the target project already uses Playwright specs.
+3. The generic browser MCP connector when neither option is available.
+
+Record which tool was used and why in the final report so future runs stay consistent.
 
 ## Phase 6: Report
 

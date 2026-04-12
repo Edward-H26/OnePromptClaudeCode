@@ -46,14 +46,23 @@ npm run build
 pnpm build
 yarn build
 
-# Browser and UI verification
+# Browser and UI verification, preferred order
+# 1. chrome-devtools skill when Chrome is configured locally
+node .claude/skills/chrome-devtools/scripts/navigate.js --url http://localhost:3000
+node .claude/skills/chrome-devtools/scripts/screenshot.js --url http://localhost:3000 --output ./docs/screenshots/page.png
+# 2. Playwright plugin for cross-browser coverage or existing spec suites
 npx playwright test
 ```
 
 ### 4. Frontend Validation
 - If the task changes visible UI, verify behavior in the browser tooling that is available in the session.
-- Prefer Playwright plugin tooling when configured.
-- If a browser connector is configured separately, it can be used as an alternative.
+- Prefer the `chrome-devtools` skill when Chrome is already configured locally. The Puppeteer scripts at `.claude/skills/chrome-devtools/scripts/` are lighter weight than a full Playwright install and produce structured JSON output.
+- Fall back to the Playwright plugin when Firefox or WebKit coverage is needed, when the project already has Playwright specs, or when chrome-devtools node modules are not installed.
+- Use the generic browser MCP connector only when neither of the first two is available.
+
+### Note on Computer Use
+
+Computer Use is an Anthropic API feature where the model drives the user's desktop with mouse, keyboard, and screenshot primitives. Claude Code CLI does not ship a Computer Use harness, so pixel-level control of native apps or OS dialogs is not available here. The CLI covers the common browser cases through `chrome-devtools` (Puppeteer) and Playwright, which are sufficient for almost every UI verification task a developer needs.
 
 ## Hooks in This Repo
 

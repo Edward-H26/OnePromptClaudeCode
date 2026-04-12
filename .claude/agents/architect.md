@@ -135,9 +135,6 @@ Use Redis Stack with vector search capability.
 
 ## Status
 Accepted
-
-## Date
-2025-01-15
 ```
 
 ## System Design Checklist

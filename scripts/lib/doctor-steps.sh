@@ -467,6 +467,118 @@ doctorGitSurface() {
     fi
 }
 
+doctorBrowserTooling() {
+    local chrome_scripts="$ROOT/.claude/skills/chrome-devtools/scripts"
+    local has_chrome_modules=false
+    local has_playwright_plugin=false
+
+    if [[ -d "$chrome_scripts/node_modules" ]]; then
+        has_chrome_modules=true
+        pass "chrome-devtools Puppeteer scripts are installed ($chrome_scripts/node_modules)"
+    elif [[ -d "$chrome_scripts" ]]; then
+        warn "chrome-devtools scripts exist but node_modules missing; run: cd $chrome_scripts && npm install"
+    fi
+
+    if [[ -f "$ROOT/.claude/settings.json" ]]; then
+        if python3 -c "
+import json, sys
+data = json.loads(open(sys.argv[1]).read())
+plugins = data.get('enabledPlugins', {})
+key = 'playwright@claude-plugins-official'
+sys.exit(0 if plugins.get(key) is True else 1)
+" "$ROOT/.claude/settings.json" 2>/dev/null; then
+            has_playwright_plugin=true
+            pass "Playwright plugin is enabled in shared settings"
+        fi
+    fi
+
+    if [[ -f "$ROOT/.claude/settings.local.json" ]]; then
+        if python3 -c "
+import json, sys
+from pathlib import Path
+p = Path(sys.argv[1])
+if not p.exists():
+    sys.exit(1)
+data = json.loads(p.read_text())
+plugins = data.get('enabledPlugins', {}) or {}
+key = 'playwright@claude-plugins-official'
+sys.exit(0 if plugins.get(key) is True else 1)
+" "$ROOT/.claude/settings.local.json" 2>/dev/null; then
+            has_playwright_plugin=true
+            pass "Playwright plugin is enabled in local settings override"
+        fi
+    fi
+
+    if [[ "$has_chrome_modules" == false ]] && [[ "$has_playwright_plugin" == false ]]; then
+        warn "Neither chrome-devtools scripts nor Playwright plugin is ready; install one before browser verification"
+    fi
+}
+
+doctorSkillsParity() {
+    local skills_dir="$ROOT/.claude/skills"
+    local rules_file="$skills_dir/skill-rules.json"
+
+    if [[ ! -f "$rules_file" ]]; then
+        warn "skill-rules.json missing at $rules_file"
+        return
+    fi
+
+    local parity_output
+    parity_output="$(python3 - "$skills_dir" "$rules_file" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+skills_dir = Path(sys.argv[1])
+rules_path = Path(sys.argv[2])
+
+fs_skills = {p.name for p in skills_dir.iterdir() if p.is_dir() or (p.is_symlink() and p.exists())}
+fs_skills.discard("skill-rules.json")
+
+try:
+    rules = json.loads(rules_path.read_text())
+except json.JSONDecodeError as exc:
+    print(f"FAIL: skill-rules.json is not valid JSON: {exc}")
+    sys.exit(1)
+
+rules_skills = set()
+if isinstance(rules, dict):
+    if "skills" in rules and isinstance(rules["skills"], dict):
+        rules_skills = set(rules["skills"].keys())
+    else:
+        rules_skills = {k for k in rules.keys() if not k.startswith("_")}
+
+missing_on_fs = sorted(rules_skills - fs_skills)
+missing_in_rules = sorted(fs_skills - rules_skills)
+
+if missing_on_fs:
+    print("FAIL: skill-rules.json references skills not present on filesystem:")
+    for name in missing_on_fs:
+        print(f"  - {name}")
+
+if missing_in_rules:
+    print("WARN: filesystem skills not referenced in skill-rules.json:")
+    for name in missing_in_rules:
+        print(f"  - {name}")
+
+if not missing_on_fs and not missing_in_rules:
+    print(f"PASS: {len(fs_skills)} skills match skill-rules.json")
+PY
+    )"
+
+    if [[ -z "$parity_output" ]]; then
+        warn "skills parity check produced no output"
+        return
+    fi
+
+    printf "%s\n" "$parity_output"
+    if printf "%s" "$parity_output" | grep -q "^FAIL:"; then
+        fail "skills filesystem parity mismatch"
+    elif printf "%s" "$parity_output" | grep -q "^WARN:"; then
+        warn "skills filesystem drift (non-fatal)"
+    fi
+}
+
 doctorJsonSafety() {
     local LOCAL_JSON_SAFETY=true
     for local_json in .claude/session-aliases.json plugins/blocklist.json plugins/installed_plugins.json; do
