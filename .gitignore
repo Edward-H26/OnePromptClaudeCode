@@ -115,9 +115,19 @@
 /.claude.json.backup*
 /backups/
 *.bak
+*.bak.*
+*.preremediation.*
+/.claude/**/*.bak.*
+/.claude/**/*.preremediation.*
 
 # Generated lock files for local helper installs
 .claude/skills/chrome-devtools/scripts/package-lock.json
+
+# Per-project retake and local scripts (never commit from a consumer project)
+/.claude/skills/chrome-devtools/scripts/retake_*.js
+/.claude/skills/chrome-devtools/scripts/retake_*.cjs
+/.claude/skills/chrome-devtools/scripts/*.local.js
+/.claude/skills/chrome-devtools/scripts/*.local.cjs
 
 # gstack .env files
 .claude/skills/gstack/.env*
@@ -194,6 +204,13 @@
 # Memory system (auto-generated per user)
 /memory/
 **/MEMORY.md
+
+# Remotion scaffolded video projects (created by the remotion skill)
+/video/
+**/out/*.mp4
+**/out/*.webm
+**/out/*.mov
+**/.remotion/
 
 # Additional runtime artifacts
 *.sqlite

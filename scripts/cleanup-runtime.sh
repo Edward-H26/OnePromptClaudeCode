@@ -8,6 +8,7 @@ EXECUTE=false
 ARCHIVE_DIR=""
 STALE_DAYS_LOCKS=30
 STALE_DAYS_TRANSCRIPTS=60
+STALE_DAYS_RUNTIME_DIRS=14
 
 for arg in "$@"; do
     case "$arg" in
@@ -27,6 +28,8 @@ Options:
 Scope:
   - Removes empty subdirectories under session-env/, .claude/tasks/,
     and plugins/data/
+  - Removes stale runtime directories older than ${STALE_DAYS_RUNTIME_DIRS} days
+    under .claude/runtime/ and .claude/tsc-cache/
   - Truncates .lock and run.log files older than ${STALE_DAYS_LOCKS} days
   - Reports (does not auto-delete) JSONL transcripts older than
     ${STALE_DAYS_TRANSCRIPTS} days under projects/
@@ -89,6 +92,23 @@ remove_empty_dirs() {
     printf "  scanned %s for empty subdirs (%s found)\n" "$base" "$count"
 }
 
+remove_stale_dirs() {
+    local base="$1"
+    local days="$2"
+    [[ -d "$base" ]] || return 0
+    local count=0
+    while IFS= read -r -d '' dir; do
+        if verify_ignored "$dir"; then
+            say "remove stale dir $dir (older than ${days}d)"
+            if [[ "$EXECUTE" == true ]]; then
+                rm -rf "$dir"
+            fi
+            count=$((count + 1))
+        fi
+    done < <(find "$base" -mindepth 1 -maxdepth 1 -type d -mtime +"$days" -print0 2>/dev/null)
+    printf "  scanned %s for dirs older than %sd (%s found)\n" "$base" "$days" "$count"
+}
+
 truncate_stale_files() {
     local base="$1"
     local pattern="$2"
@@ -137,20 +157,24 @@ else
 fi
 printf "\n"
 
-printf "[1/4] Empty subdirectories\n"
+printf "[1/5] Empty subdirectories\n"
 remove_empty_dirs "$ROOT/session-env"
 remove_empty_dirs "$ROOT/.claude/tasks"
 remove_empty_dirs "$ROOT/plugins/data"
 
-printf "\n[2/4] Stale .lock files (older than ${STALE_DAYS_LOCKS}d)\n"
+printf "\n[2/5] Stale runtime directories (older than ${STALE_DAYS_RUNTIME_DIRS}d)\n"
+remove_stale_dirs "$ROOT/.claude/runtime" "$STALE_DAYS_RUNTIME_DIRS"
+remove_stale_dirs "$ROOT/.claude/tsc-cache" "$STALE_DAYS_RUNTIME_DIRS"
+
+printf "\n[3/5] Stale .lock files (older than ${STALE_DAYS_LOCKS}d)\n"
 truncate_stale_files "$ROOT/.claude/tasks" "*.lock" "$STALE_DAYS_LOCKS"
 truncate_stale_files "$ROOT/.claude/skills" "*.lock" "$STALE_DAYS_LOCKS"
 
-printf "\n[3/4] Stale run.log files (older than ${STALE_DAYS_LOCKS}d)\n"
+printf "\n[4/5] Stale run.log files (older than ${STALE_DAYS_LOCKS}d)\n"
 truncate_stale_files "$ROOT/.claude/tasks" "run.log" "$STALE_DAYS_LOCKS"
 truncate_stale_files "$ROOT/.claude/skills" "run.log" "$STALE_DAYS_LOCKS"
 
-printf "\n[4/4] Old JSONL transcripts (older than ${STALE_DAYS_TRANSCRIPTS}d)\n"
+printf "\n[5/5] Old JSONL transcripts (older than ${STALE_DAYS_TRANSCRIPTS}d)\n"
 report_old_transcripts "$ROOT/projects" "$STALE_DAYS_TRANSCRIPTS"
 
 printf "\nDone.\n"

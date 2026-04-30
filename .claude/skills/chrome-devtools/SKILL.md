@@ -8,6 +8,17 @@ license: Apache-2.0
 
 Browser automation via executable Puppeteer scripts. All scripts output JSON for easy parsing.
 
+## Mode
+
+This skill operates in **active mode**. When triggered:
+
+- Claude runs the Puppeteer scripts directly (`node navigate.js`, `node screenshot.js`, etc.) without per-command confirmation
+- Claude writes new custom scripts in `scripts/` when existing ones do not cover the task
+- Claude chains commands with `--close false` to reuse browser sessions without asking
+- Claude pauses and asks only for destructive actions (submitting forms that create/delete records on the live site, navigating to pages that require auth flows not yet configured, installing system-level dependencies)
+
+Safety is provided by the workspace `careful` / `freeze` boundaries, not by per-step prompts.
+
 ## Quick Start
 
 **CRITICAL**: Always check `pwd` before running scripts.

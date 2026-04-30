@@ -118,6 +118,8 @@ local_optional = {
     "figma@claude-plugins-official",
     "github@claude-plugins-official",
     "playwright@claude-plugins-official",
+    "superpowers@claude-plugins-official",
+    "huggingface-skills@claude-plugins-official",
 }
 
 text = plugin_log_path.read_text()
@@ -207,6 +209,8 @@ optional_plugins = {
     "figma@claude-plugins-official",
     "github@claude-plugins-official",
     "playwright@claude-plugins-official",
+    "superpowers@claude-plugins-official",
+    "huggingface-skills@claude-plugins-official",
 }
 
 enabled_local = set()

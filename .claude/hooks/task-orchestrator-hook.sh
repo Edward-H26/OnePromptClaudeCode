@@ -14,6 +14,17 @@ INPUT=$(cat)
 PROMPT=$(echo "$INPUT" | jq -r '.prompt // empty' 2>/dev/null || echo "")
 PROMPT_LOWER=$(echo "$PROMPT" | tr '[:upper:]' '[:lower:]')
 
+cat <<'EOF'
+================================================================================
+SECURITY REVIEW REMINDER
+================================================================================
+Before closing any task that touches auth, secrets, input validation, API
+endpoints, permissions, database queries, file I/O, or external integrations,
+run /security-review and incorporate the findings.
+================================================================================
+
+EOF
+
 prompt_matches() {
     local pattern="$1"
     printf "%s\n" "$PROMPT_LOWER" | grep -qiE "$pattern"
@@ -115,6 +126,10 @@ Vendored workflows:
 - /super-ralph for the bundled autonomous multi-agent workflow
 
 $PLUGIN_SECTION
+Evaluator-optimizer loop:
+- After the implementation is complete and all checks pass, run /refine to close the loop with a generate to critique to apply to re-critique pass (bounded at 3 rounds).
+- Skip /refine only for trivial one-line changes or when the task explicitly forbids it.
+
 Codex is optional:
 - If auto-codex-trigger ran, review its output before finishing.
 - If it did not run, continue normally. Do not invent missing mandatory steps.

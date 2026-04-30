@@ -22,7 +22,8 @@ These are the maintained local agent prompts in this directory:
 
 ## Plugin-Provided Agents
 
-Several workflows in this repo also rely on installed plugin agents that do not live in this directory:
+Plugin-provided agents below become available only when their plugin is installed and enabled. Check the `enabledPlugins` block in `.claude/settings.json` or the local override at `.claude/settings.local.json` before invoking them. If a plugin is not installed, the agent will not resolve and the task should fall back to a local agent or a specialist Explore or Plan dispatch.
+
 - `feature-dev:code-explorer`
 - `feature-dev:code-architect`
 - `feature-dev:code-reviewer`

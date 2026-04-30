@@ -1,7 +1,7 @@
 """[8/9] Ignored sensitive-state summary.
 
-Reports how many ignored files contain credential-like patterns,
-grouped by top-level directory. Advisory only, never fails.
+Scans ignored files for credential-like patterns, grouped by top-level
+directory. Advisory only, never fails.
 """
 import re
 import subprocess
@@ -9,12 +9,10 @@ from collections import Counter
 from pathlib import Path
 
 root = Path(".")
-public_files = set(
-    subprocess.check_output(
-        ["git", "-C", str(root), "ls-files", "-co", "--exclude-standard"],
-        text=True,
-    ).splitlines()
-)
+ignored_files = subprocess.check_output(
+    ["git", "-C", str(root), "ls-files", "-oi", "--exclude-standard"],
+    text=True,
+).splitlines()
 
 patterns = [
     re.compile(r"ghp_[A-Za-z0-9]{36}"),
@@ -29,13 +27,9 @@ patterns = [
 ]
 
 hits = Counter()
-for path in root.rglob("*"):
+for rel_path in ignored_files:
+    path = root / rel_path
     if not path.is_file():
-        continue
-    rel_path = path.as_posix()
-    if rel_path.startswith("./"):
-        rel_path = rel_path[2:]
-    if rel_path in public_files or rel_path.startswith(".git/"):
         continue
     try:
         text = path.read_text(errors="ignore")

@@ -170,9 +170,9 @@ run_step() {
 }
 
 if [[ "$FAST_MODE" == true ]]; then
-    TOTAL_STEPS=11
+    TOTAL_STEPS=12
 else
-    TOTAL_STEPS=14
+    TOTAL_STEPS=15
 fi
 
 run_step "Shell syntax" auditShellSyntax
@@ -196,6 +196,8 @@ run_step "Ignored sensitive-state summary" python3 "$ROOT/scripts/lib/audit-igno
 run_step "Public surface summary" python3 "$ROOT/scripts/lib/audit-surface.py"
 
 run_step "README parity (filesystem counts)" python3 "$ROOT/scripts/lib/audit-readme-parity.py"
+
+run_step "Harness coverage scorecard" python3 "$ROOT/scripts/lib/audit-harness-scorecard.py"
 
 if [[ "$FAST_MODE" == false ]]; then
     run_step "Browser tooling consistency" python3 "$ROOT/scripts/lib/audit-browser-tooling.py"

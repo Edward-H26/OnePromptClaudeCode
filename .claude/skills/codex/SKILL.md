@@ -147,12 +147,12 @@ If `NOT_FOUND`: tell the user to install via `npm install -g @openai/codex`.
 Run an independent code review against the current branch diff.
 
 ```bash
-codex review --base <base-branch> -c 'model_reasoning_effort="xhigh"' --enable web_search_cached
+codex review --base <base-branch> -c 'model_reasoning_effort="xhigh"' --search
 ```
 
 With custom focus (e.g., security):
 ```bash
-codex review "focus on security" --base <base-branch> -c 'model_reasoning_effort="xhigh"' --enable web_search_cached
+codex review "focus on security" --base <base-branch> -c 'model_reasoning_effort="xhigh"' --search
 ```
 
 **Gate logic**: If output contains `[P1]`, the gate is **FAIL**. Otherwise **PASS**.
@@ -180,7 +180,7 @@ CROSS-MODEL ANALYSIS:
 Codex tries to break your code, finding edge cases, race conditions, security holes.
 
 ```bash
-codex exec "<adversarial prompt>" -s read-only -c 'model_reasoning_effort="xhigh"' --enable web_search_cached
+codex exec "<adversarial prompt>" -s read-only -c 'model_reasoning_effort="xhigh"' --search
 ```
 
 Default prompt: "Review the changes on this branch. Your job is to find ways this code will fail in production. Think like an attacker and a chaos engineer. Find edge cases, race conditions, security holes, resource leaks, failure modes, and silent data corruption paths. Be adversarial. Be thorough."
@@ -191,12 +191,12 @@ Ask Codex anything with session continuity for follow-ups.
 
 New session:
 ```bash
-codex exec "<prompt>" -s read-only -c 'model_reasoning_effort="xhigh"' --enable web_search_cached
+codex exec "<prompt>" -s read-only -c 'model_reasoning_effort="xhigh"' --search
 ```
 
 Resume session:
 ```bash
-codex exec resume <session-id> "<prompt>" -s read-only -c 'model_reasoning_effort="xhigh"' --enable web_search_cached
+codex exec resume <session-id> "<prompt>" -s read-only -c 'model_reasoning_effort="xhigh"' --search
 ```
 
 ### When to use which mode
@@ -213,4 +213,4 @@ codex exec resume <session-id> "<prompt>" -s read-only -c 'model_reasoning_effor
 - Never modify files. These modes are read-only.
 - Present output verbatim. Do not truncate or summarize.
 - Add synthesis after, not instead of, the raw output.
-- 5-minute timeout on all Bash calls to codex.
+- Use the longest practical timeout for heavy Codex review and challenge runs. In this repo, the background Codex bridge defaults to `AUTO_CODEX_TIMEOUT_SECONDS=3600` (1 hour).

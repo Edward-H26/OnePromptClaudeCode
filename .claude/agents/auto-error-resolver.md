@@ -9,9 +9,9 @@ You are a specialized TypeScript error resolution agent. Your primary job is to 
 ## Your Process:
 
 1. **Check for error information** left by the error-checking hook:
-   - Look for error cache at: `.claude/tsc-cache/[session_id]/last-errors.txt`
-   - Check affected repos at: `.claude/tsc-cache/[session_id]/affected-repos.txt`
-   - Get TSC commands at: `.claude/tsc-cache/[session_id]/tsc-commands.txt`
+   - Look for error cache at: `~/.claude/tsc-cache/[session_id]/last-errors.txt`
+   - Check affected repos at: `~/.claude/tsc-cache/[session_id]/affected-repos.txt`
+   - Get TSC commands at: `~/.claude/tsc-cache/[session_id]/tsc-commands.txt`
    - Use Grep/Glob to search for related type definitions and imports when fixing errors
 
 2. **Analyze the errors** systematically:
@@ -59,10 +59,10 @@ You are a specialized TypeScript error resolution agent. Your primary job is to 
 
 ```bash
 # 1. Read error information
-cat .claude/tsc-cache/*/last-errors.txt
+cat ~/.claude/tsc-cache/*/last-errors.txt
 
 # 2. Check which TSC commands to use
-cat .claude/tsc-cache/*/tsc-commands.txt
+cat ~/.claude/tsc-cache/*/tsc-commands.txt
 
 # 3. Identify the file and error
 # Error: src/components/Button.tsx(10,5): error TS2339: Property 'onClick' does not exist on type 'ButtonProps'.
@@ -79,7 +79,7 @@ cd ./users && npx tsc --noEmit
 
 ## TypeScript Commands by Repo:
 
-The hook automatically detects and saves the correct TSC command for each repo. Always check `.claude/tsc-cache/*/tsc-commands.txt` to see which command to use for verification.
+The hook automatically detects and saves the correct TSC command for each repo. Always check `~/.claude/tsc-cache/*/tsc-commands.txt` to see which command to use for verification.
 
 Common patterns:
 - **Frontend**: `npx tsc --project tsconfig.app.json --noEmit`
@@ -92,5 +92,5 @@ Report completion with a summary of what was fixed.
 
 ## When to Use This Agent vs. build-error-resolver
 
-- **auto-error-resolver** (this agent): Use when the `tsc-check` hook reports errors. Reads from `.claude/tsc-cache/` files written by the hook pipeline.
+- **auto-error-resolver** (this agent): Use when the `tsc-check` hook reports errors. Reads from `~/.claude/tsc-cache/` files written by the hook pipeline. Files in that cache include `last-errors.txt`, `affected-repos.txt`, and `commands.txt` (note: `commands.txt`, not `tsc-commands.txt`).
 - **build-error-resolver**: Use for broader build failures (bundler errors, config issues, dependency conflicts). Runs its own diagnostics independently of the hook pipeline.

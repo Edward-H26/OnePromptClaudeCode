@@ -768,6 +768,55 @@
                 ]
             }
         },
+        "huggingface": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Hugging Face Hub workflows, model/dataset/space publishing, TRL training jobs, Gradio demos, evaluations, Trackio logging",
+            "promptTriggers": {
+                "keywords": [
+                    "huggingface",
+                    "hugging face",
+                    "hf hub",
+                    "hf_hub",
+                    "transformers library",
+                    "datasets library",
+                    "gradio",
+                    "trackio",
+                    "hf jobs",
+                    "model card",
+                    "hf cli"
+                ],
+                "intentPatterns": [
+                    "(push|publish|upload).*(model|dataset|space)",
+                    "(fine.?tune|train).*(transformer|vision|llm)",
+                    "(run|launch).*hf.*job",
+                    "(log|track).*training.*metric",
+                    "(build|create).*gradio.*(app|demo)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "**/model_card.md",
+                    "**/trainer.py",
+                    "**/*_sft.py",
+                    "**/*_dpo.py",
+                    "**/space.yaml",
+                    "**/gradio_app.py"
+                ],
+                "contentPatterns": [
+                    "from transformers",
+                    "from datasets",
+                    "from huggingface_hub",
+                    "HfApi(",
+                    "import gradio"
+                ],
+                "pathExclusions": [
+                    "**/node_modules/**",
+                    "**/__pycache__/**"
+                ]
+            }
+        },
         "deep-research": {
             "type": "domain",
             "enforcement": "suggest",
@@ -1173,6 +1222,79 @@
                 "intentPatterns": [
                     "investigate.*(bug|issue|error)",
                     "(root cause|systematic).*debug"
+                ]
+            }
+        },
+        "refine": {
+            "type": "workflow",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Evaluator-optimizer loop: generate, critique, apply, re-critique (bounded at 3 rounds).",
+            "promptTriggers": {
+                "keywords": [
+                    "refine",
+                    "refinement loop",
+                    "evaluator optimizer",
+                    "iterate on",
+                    "iteratively improve",
+                    "polish the",
+                    "tighten up",
+                    "close the loop"
+                ],
+                "intentPatterns": [
+                    "(refine|polish|iterate on|tighten).*?(file|feature|change|PR|patch)",
+                    "(review.*?then.*?fix|evaluator.*?optimizer).*?"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [],
+                "contentPatterns": []
+            }
+        },
+        "remotion": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Active-mode skill for programmatic video creation with Remotion (React-based video framework). Scaffolds projects via create-video, writes compositions, renders MP4s, and generates Veo clips via the Gemini API without per-step confirmation.",
+            "promptTriggers": {
+                "keywords": [
+                    "remotion",
+                    "create-video",
+                    "render video",
+                    "video composition",
+                    "scaffold a video",
+                    "make a video",
+                    "animate frames",
+                    "programmatic video",
+                    "veo",
+                    "veo clip",
+                    "build:veo",
+                    "npm run veo",
+                    "full pipeline",
+                    "render with veo"
+                ],
+                "intentPatterns": [
+                    "(create|render|generate|scaffold|build).*?(video|composition|mp4|clip|pipeline)",
+                    "(remotion|react).*?(video|animate|render)",
+                    "(intro|outro|animation).*?(scene|video|mp4)",
+                    "(veo|gemini).*?(video|clip|generate|render)",
+                    "(render|build).*?(with|using).*?veo"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "**/remotion/**",
+                    "**/video/**",
+                    "**/*Composition*.tsx",
+                    "**/remotion.config.ts",
+                    "**/generate-veo.mjs"
+                ],
+                "contentPatterns": [
+                    "from \"remotion\"",
+                    "useCurrentFrame(",
+                    "<Composition",
+                    "veo-3.1",
+                    "predictLongRunning"
                 ]
             }
         },

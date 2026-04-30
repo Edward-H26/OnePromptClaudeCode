@@ -191,16 +191,18 @@ auditHookSmokes() {
         exit 1
     fi
 
-    local TMP_SPACE_DIR
-    TMP_SPACE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/freeze test.XXXXXX")"
+    local TMP_SPACE_PARENT TMP_SPACE_DIR
+    TMP_SPACE_PARENT="$(mktemp -d "${TMPDIR:-/tmp}/freeze-test.XXXXXX")"
+    TMP_SPACE_DIR="$TMP_SPACE_PARENT/with space"
+    mkdir -p "$TMP_SPACE_DIR"
     printf "%s/\n" "$TMP_SPACE_DIR" > "$TMP_GSTACK_STATE/freeze-dir.txt"
     FREEZE_OUTPUT="$(run_check_freeze "{\"tool_input\":{\"file_path\":\"$TMP_SPACE_DIR/example.ts\"}}" "$TMP_GSTACK_STATE")"
     if [[ "$FREEZE_OUTPUT" != "{}" ]]; then
         echo "freeze hook should preserve boundaries that contain spaces" >&2
-        rm -rf "$TMP_SPACE_DIR"
+        rm -rf "$TMP_SPACE_PARENT"
         exit 1
     fi
-    rm -rf "$TMP_SPACE_DIR"
+    rm -rf "$TMP_SPACE_PARENT"
 
     rm -rf "$TMP_GSTACK_STATE"
 
@@ -228,8 +230,12 @@ auditHookSmokes() {
 
     local TASK_OUTPUT
     TASK_OUTPUT="$(run_task_orchestrator "What is the current plan?")"
-    if [[ -n "$TASK_OUTPUT" ]]; then
-        echo "Pure informational question should not trigger coding guidance" >&2
+    if printf "%s\n" "$TASK_OUTPUT" | grep -q "TASK ORCHESTRATOR ACTIVE$"; then
+        echo "Pure informational question should not trigger full coding guidance" >&2
+        exit 1
+    fi
+    if ! printf "%s\n" "$TASK_OUTPUT" | grep -q "SECURITY REVIEW REMINDER"; then
+        echo "Every prompt should surface the always-on security review reminder" >&2
         exit 1
     fi
 
@@ -259,9 +265,11 @@ auditHookSmokes() {
         }
     fi
 
-    local AUTO_OUTPUT_ONE AUTO_OUTPUT_TWO AUTO_PATH_ONE AUTO_PATH_TWO AUTO_DIR_ONE AUTO_DIR_TWO
-    AUTO_OUTPUT_ONE="$(run_auto_codex_trigger_with_stub "Update the hook scripts and settings.json to harden the workflow.")"
-    AUTO_OUTPUT_TWO="$(run_auto_codex_trigger_with_stub "Update the hook scripts and settings.json to harden the workflow.")"
+    local AUTO_OUTPUT_ONE AUTO_OUTPUT_TWO AUTO_PATH_ONE AUTO_PATH_TWO AUTO_DIR_ONE AUTO_DIR_TWO AUDIT_NONCE AUTO_SESSION
+    AUDIT_NONCE="$(date +%s%N)-$$"
+    AUTO_SESSION="audit-${AUDIT_NONCE}"
+    AUTO_OUTPUT_ONE="$(run_auto_codex_trigger_with_stub "Update the hook scripts and settings.json to harden the workflow audit-${AUDIT_NONCE}-a." "$AUTO_SESSION")"
+    AUTO_OUTPUT_TWO="$(run_auto_codex_trigger_with_stub "Refactor the hook scripts to harden the workflow audit surface audit-${AUDIT_NONCE}-b." "$AUTO_SESSION")"
     AUTO_PATH_ONE="$(printf "%s\n" "$AUTO_OUTPUT_ONE" | awk -F': ' '/Output will be at:/ {print $2}')"
     AUTO_PATH_TWO="$(printf "%s\n" "$AUTO_OUTPUT_TWO" | awk -F': ' '/Output will be at:/ {print $2}')"
     AUTO_DIR_ONE="$(dirname "$AUTO_PATH_ONE")"
@@ -279,6 +287,22 @@ auditHookSmokes() {
             exit 1
         fi
     done
+
+    if ! printf "%s\n%s\n" "$AUTO_OUTPUT_ONE" "$AUTO_OUTPUT_TWO" | grep -q "Required Codex feedback handoff"; then
+        echo "auto-codex-trigger.sh should print the required Codex feedback handoff" >&2
+        exit 1
+    fi
+
+    local AUTO_CACHE_DIR AUTO_GATE_OUTPUT
+    AUTO_CACHE_DIR="$ROOT/.claude/tsc-cache/$AUTO_SESSION"
+    mkdir -p "$AUTO_CACHE_DIR"
+    printf "audit\tREADME.md\n" > "$AUTO_CACHE_DIR/edited-files.log"
+    AUTO_GATE_OUTPUT="$(jq -n --arg session_id "$AUTO_SESSION" '{session_id: $session_id}' |
+        CLAUDE_PROJECT_DIR="$ROOT" bash "$ROOT/.claude/hooks/workflow-completion-gate.sh" 2>&1)"
+    if ! printf "%s\n" "$AUTO_GATE_OUTPUT" | grep -q "stub codex feedback"; then
+        echo "workflow-completion-gate.sh should surface completed background Codex feedback" >&2
+        exit 1
+    fi
 
     local ASK_OUTPUT ASK_PATH ASK_ARGS_FILE
     ASK_OUTPUT="$(run_ask_codex_with_stub "Summarize the repo layout" --read-only -o "$ROOT/.claude/runtime/codex/audit-smoke.md")"

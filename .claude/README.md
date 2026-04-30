@@ -15,7 +15,7 @@ This directory contains the maintained workflow source for this `agent/claude` e
 - `.claude/settings.json` is the canonical shared config for this workspace.
 - `.claude/settings.local.json` is for machine-local overrides only.
 - `.claude/settings.local.example.json` is the tracked starting point for optional local plugin enablement and leaves those optional plugins disabled by default.
-- Auth-sensitive or duplicate plugin integrations belong in `.claude/settings.local.json`, not the shared tracked config.
+- Auth-sensitive, duplicate, or machine-fragile plugin integrations belong in `.claude/settings.local.json`, not the shared tracked config.
 - `.claude/CLAUDE*.md`, `.claude/hooks/`, `.claude/commands/`, `.claude/prompt-templates/`, `.claude/agents/`, and `.claude/skills/` are maintained source files.
 - `.claude/skills/` is the published workflow surface in this repo, including the bundled `gstack` and `super-ralph` content.
 - Repo-local orchestration commands should rely on bundled scripts and installed plugins, not personal wrapper tooling in a machine-local Claude home directory.
@@ -33,7 +33,7 @@ This directory contains the maintained workflow source for this `agent/claude` e
 - Prompt templates live in `.claude/prompt-templates/`.
 - `.claude/skills/` contains the maintained local skills and bundled workflow content used at runtime.
 - Project hooks are registered through [settings.json](./settings.json).
-- The shared tracked plugin set is intentionally smaller than a power-user local setup so fresh clones avoid duplicate MCP servers and missing-auth breakage.
+- The shared tracked plugin set is intentionally smaller than a power-user local setup so fresh clones avoid duplicate MCP servers, missing-auth breakage, and plugin install failures tied to a specific machine's Claude home.
 - The published source intentionally includes the workflow code it needs at runtime, plus bundled `ui-styling` font assets.
 - Run `bash references/setup.sh` only when you want to refresh the tracked vendored sources under `references/`.
 - Run `bash scripts/audit-workflow.sh` after changing hooks, skills, commands, or vendored reference wiring.

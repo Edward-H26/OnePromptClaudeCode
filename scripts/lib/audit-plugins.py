@@ -94,6 +94,10 @@ bad.extend(
     path for path in public_files
     if any(path.endswith(ext) for ext in disallowed_extensions)
 )
+bad.extend(
+    path for path in public_files
+    if Path(path).name in {".DS_Store", "Thumbs.db", "Desktop.ini"}
+)
 
 LARGE_FILE_THRESHOLD = 500_000
 KNOWN_LARGE_DATA_FILES = {

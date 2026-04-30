@@ -15,15 +15,16 @@ SESSION_ID="$(sanitize_session_id "${SESSION_ID:-default}")"
 
 CACHE_DIR="$CLAUDE_HOME_DIR/tsc-cache/$SESSION_ID"
 STEPS_DIR="$CACHE_DIR/workflow-steps"
+CODEX_FEEDBACK_DIR="$STEPS_DIR/codex-feedback"
 
-if [[ ! -f "$CACHE_DIR/affected-repos.txt" ]]; then
+if [[ ! -d "$CODEX_FEEDBACK_DIR" ]] && [[ ! -f "$CACHE_DIR/affected-repos.txt" ]]; then
     if [[ ! -f "$CACHE_DIR/edited-files.log" ]]; then
         safe_rm_cache "$CACHE_DIR"
         exit 0
     fi
 fi
 
-if [[ ! -f "$CACHE_DIR/commands.txt" ]] && [[ ! -f "$CACHE_DIR/edited-files.log" ]]; then
+if [[ ! -d "$CODEX_FEEDBACK_DIR" ]] && [[ ! -f "$CACHE_DIR/commands.txt" ]] && [[ ! -f "$CACHE_DIR/edited-files.log" ]]; then
     safe_rm_cache "$CACHE_DIR"
     exit 0
 fi
@@ -78,6 +79,51 @@ if [[ -n "$MISSING" ]]; then
         echo ""
     } >&2
 fi
+
+surface_codex_feedback() {
+    [[ -d "$CODEX_FEEDBACK_DIR" ]] || return 0
+
+    local records=()
+    local record
+    for record in "$CODEX_FEEDBACK_DIR"/*.json; do
+        [[ -f "$record" ]] || continue
+        records+=("$record")
+    done
+
+    [[ ${#records[@]} -gt 0 ]] || return 0
+
+    {
+        for record in "${records[@]}"; do
+            local output_path log_path pid_path pid
+            output_path=$(jq -r '.output_path // ""' "$record" 2>/dev/null || echo "")
+            log_path=$(jq -r '.log_path // ""' "$record" 2>/dev/null || echo "")
+            pid_path=$(jq -r '.pid_path // ""' "$record" 2>/dev/null || echo "")
+            pid=$(jq -r '.pid // ""' "$record" 2>/dev/null || echo "")
+
+            if [[ -n "$output_path" ]] && [[ -s "$output_path" ]]; then
+                echo ""
+                echo "Codex background feedback:"
+                echo "Source: $output_path"
+                echo "----- BEGIN CODEX FEEDBACK -----"
+                cat "$output_path"
+                echo "----- END CODEX FEEDBACK -----"
+                mv "$record" "$record.shown" 2>/dev/null || true
+            else
+                echo ""
+                echo "Codex background feedback is still pending."
+                [[ -n "$output_path" ]] && echo "Expected output: $output_path"
+                [[ -n "$log_path" ]] && echo "Run log: $log_path"
+                if [[ -n "$pid_path" ]] && [[ -f "$pid_path" ]]; then
+                    echo "PID: $(cat "$pid_path" 2>/dev/null)"
+                elif [[ -n "$pid" ]]; then
+                    echo "PID: $pid"
+                fi
+            fi
+        done
+    } >&2
+}
+
+surface_codex_feedback
 
 # Session tsc-cache uses 14-day retention because it may span multiple sessions.
 # Codex run artifacts use a shorter 7-day retention (see auto-codex-trigger.sh).

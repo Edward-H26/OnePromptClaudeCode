@@ -22,6 +22,8 @@ patterns = [
     re.compile(r"mysql://[^@\s]+:[^@\s]+@"),
     re.compile(r"hf_[A-Za-z0-9]{30,}"),
     re.compile(r"sk-ant-[A-Za-z0-9_-]{20,}"),
+    re.compile(r"glpat-[A-Za-z0-9_-]{20,}"),
+    re.compile(r"AIza[0-9A-Za-z\\-_]{35}"),
 ]
 
 allow_paths = {"scripts/audit-workflow.sh", "scripts/lib/audit-secrets.py"}

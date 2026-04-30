@@ -27,14 +27,19 @@ Hooks are scripts that run at specific points in Claude's workflow:
 
 Hooks fire in the order they appear in `.claude/settings.json`:
 
+**PreToolUse (mcp__.*):**
+1. `check-mcp.sh` - Records MCP tool invocations for the hook-metrics audit trail
+
 **UserPromptSubmit:**
 1. `task-orchestrator-hook.sh` - Detects analysis vs coding tasks, injects concise workflow reminders
 2. `auto-codex-trigger.sh` - Optionally launches Codex in background for coding tasks
 3. `skill-activation-prompt.sh` - Suggests relevant skills based on prompt keywords
+4. `memory-bootstrap.sh` - Surfaces the memory index when the user prompt would benefit from it
 
 **PostToolUse (Edit|MultiEdit|Write):**
 1. `post-tool-use-tracker.sh` - Records file changes, detects project structure
 2. `tsc-check.sh` - Runs TypeScript compilation check on modified repos
+3. `lint-check.sh` - Runs the native linter on edited files and surfaces violations
 
 **PostToolUse (Bash|Skill|Chrome MCP):**
 1. `workflow-step-tracker.sh` - Tracks optional workflow signals such as Codex kickoff, read-only Codex review, simplification review, and browser verification
@@ -73,7 +78,7 @@ Shared plugin state helpers sourced by task-orchestrator-hook.sh and audit tooli
 - `plugin_available_names()` - Lists plugins both enabled and locally available
 - `plugin_is_available(name)` - Checks whether a plugin should be treated as available
 
-The shared tracked config keeps the baseline plugin set intentionally small. Auth-sensitive or duplicate plugin integrations should be added in `.claude/settings.local.json` so repo health checks stay reproducible.
+The shared tracked config keeps the baseline plugin set intentionally small. Auth-sensitive, duplicate, or machine-fragile plugin integrations should be added in `.claude/settings.local.json` so repo health checks stay reproducible.
 
 ### `lib/runtime-state.sh`
 Shared repo-local runtime path helpers:
@@ -82,6 +87,11 @@ Shared repo-local runtime path helpers:
 - `gstack_analytics_dir()` - Resolves repo-local careful and freeze analytics
 - `codex_home_dir()` - Resolves the repo-local Codex home
 - `codex_runs_dir()` - Resolves repo-local Codex artifact storage
+
+### `lib/hook-metrics.sh`
+Shared instrumentation helpers sourced by `check-mcp.sh`, `lint-check.sh`, and `memory-bootstrap.sh`:
+- `record_hook_invocation(hook_name)` - Appends a single JSONL line to `.claude/runtime/hook-metrics.jsonl`
+- `resolve_claude_home()` - Resolves the correct `~/.claude` path regardless of the caller's working directory
 
 ---
 
@@ -146,6 +156,22 @@ Cache artifacts use sanitized repo keys so nested repos such as `packages/app` d
 
 Also cleans up stale `tsc-cache` sessions older than 14 days.
 
+### check-mcp (PreToolUse, mcp__.*)
+
+**Purpose:** Records every MCP tool invocation to `.claude/runtime/hook-metrics.jsonl`. Silent on success so it does not add noise to normal MCP use.
+
+Silent fallbacks: exits 0 if `jq` is missing. Always writes the metric line on a best-effort basis so a failing append never blocks the MCP call.
+
+### lint-check (PostToolUse, Edit|MultiEdit|Write)
+
+**Purpose:** Detects the native linter for each edited file (ruff, flake8, eslint, biome, shellcheck) by walking the file's parent directories for a matching config. Runs the linter on the edited file only and surfaces violations so the model can self-correct on the next turn.
+
+Silent when no linter is configured or when none of the edited files are lintable. Required binaries (eslint, biome) can be provided via `npx --no-install`.
+
+### memory-bootstrap (UserPromptSubmit)
+
+**Purpose:** Surfaces the auto-memory index from the memory store when the prompt would benefit from prior-session context. No output when the memory file is absent or empty.
+
 ---
 
 ## Environment Variables
@@ -155,6 +181,7 @@ Also cleans up stale `tsc-cache` sessions older than 14 days.
 | `CLAUDE_PROJECT_DIR` | `$PWD` | All hooks | Root project directory |
 | `SESSION_ID` | `default` | All hooks | Session identifier for cache isolation |
 | `AUTO_ERROR_THRESHOLD` | `5` | stop-build-check-enhanced | Errors >= threshold triggers auto-error-resolver agent |
+| `AUTO_CODEX_TIMEOUT_SECONDS` | `3600` | auto-codex-trigger | External timeout guard for repo-local background Codex runs |
 | `FORCE_DETECT` | (unset) | tsc-check | When set, bypasses cached TSC command and re-detects |
 
 ---
@@ -162,7 +189,7 @@ Also cleans up stale `tsc-cache` sessions older than 14 days.
 ## Known Limitations
 
 - **TSC cache staleness**: The cached TSC command per repo does not auto-invalidate when tsconfig.json changes. Set `FORCE_DETECT=1` to force re-detection after config changes.
-- **Codex timeout on macOS**: `auto-codex-trigger.sh` wraps Codex with `timeout` (or `gtimeout`). On macOS systems without GNU coreutils, the timeout guard is skipped and Codex runs without a time limit.
+- **Codex timeout behavior**: `auto-codex-trigger.sh` now enforces a portable external timeout using `timeout`, `gtimeout`, or a Perl fallback. Tune the limit with `AUTO_CODEX_TIMEOUT_SECONDS` if your review or implementation tasks need a different ceiling.
 - **Plugin availability is snapshot-based**: `plugin_available_names()` reads plugin state at hook invocation time. Plugins installed or removed mid-session may not be reflected until the next hook fires.
 - **Pre-commit safety**: Run `git diff --cached` and `bash scripts/audit-workflow.sh` before committing to verify no secrets or unintended files are staged.
 - **PowerShell coverage**: Only `skill-activation-prompt.ps1` and `tsc-check.ps1` have PowerShell variants. The remaining 6 hooks require bash.

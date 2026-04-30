@@ -10,7 +10,7 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 **Repo-local multi-model flow**: `/multi-plan` and `/multi-execute` use the bundled Codex bridge plus installed plugin agents. The Codex bridge now writes repo-local runtime state under `.claude/runtime/codex/`.
 **Published surface**: This repo tracks the workflow content it runs, including bundled `super-ralph`, bundled `ui-styling` assets, repo-local wrapper skills, and the vendored upstream sources under `references/` that those wrappers and a smaller set of vendored passthrough skills may consult. Reference refreshes are curated and prune upstream runtime-only artifacts that are not part of this repo's published workflow surface.
 **Live readiness**: Use `bash scripts/doctor-workflow.sh` for plugin, MCP, and Codex runtime checks. Use `bash scripts/audit-workflow.sh` for static repo-surface validation.
-**Plugin split**: The tracked shared config enables only the repo-stable baseline. Auth-sensitive or duplicate integrations such as GitHub, context7, or plugin-provided Figma/Playwright MCP servers belong in `.claude/settings.local.json`. Use `.claude/settings.local.example.json` as the tracked starting point for those local overrides; it lists the optional plugins but leaves them disabled until a local machine explicitly enables them. If `bash scripts/doctor-workflow.sh` warns about enabled plugins that are also blocklisted in ignored local state, clear the stale local blocklist entry before relying on that plugin.
+**Plugin split**: The tracked shared config enables only the repo-stable baseline. Auth-sensitive, duplicate, or machine-fragile integrations such as GitHub, context7, plugin-provided Figma/Playwright MCP servers, `superpowers`, and `huggingface-skills` belong in `.claude/settings.local.json`. Use `.claude/settings.local.example.json` as the tracked starting point for those local overrides; it lists the optional plugins but leaves them disabled until a local machine explicitly enables them. If `bash scripts/doctor-workflow.sh` warns about enabled plugins that are also blocklisted in ignored local state, clear the stale local blocklist entry before relying on that plugin.
 
 ---
 
@@ -51,6 +51,8 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 | `design-review` | `/design-review` or ask for "design review fix" | Design audit with repo-local fixes and before/after screenshots when available. |
 | `security-review` | auto on security changes | OWASP patterns: secrets, input validation, SQL injection, XSS, CSRF, auth, rate limiting. |
 | `security-scan` | ask for "security scan" | Claude Code config audit using AgentShield or manual checklist. Severity grades A-F. |
+| `refine` | `/refine` or ask to "refine the code" | Evaluator-optimizer loop: generate, critique, apply, re-critique. Bounded at 3 rounds. |
+| `remotion` | `/remotion` or ask to "create a video" / "render a composition" | Active-mode skill for programmatic video with Remotion. Scaffolds via `create-video`, writes React compositions, renders MP4s without per-step confirmation. Optional media-mcp + mcp-app integrations. |
 
 ### Testing Skills
 
@@ -97,12 +99,13 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 | `agentic-engineering` | ask about "agent development" | Agent development patterns: tool use, loops, error handling, context management. |
 | `autonomous-loops` | ask about "autonomous loop" | Continuous agent loop patterns for self-running iterative workflows. |
 | `claude-api` | ask about "Claude API" | Claude API and Anthropic SDK patterns for programmatic integration. |
+| `huggingface` | ask about Hugging Face Hub | Repo-local wrapper that routes to the plugin-provided `huggingface-skills` family for hub operations, training, datasets. |
 
 ### Research and Content Skills
 
 | Skill | Trigger | What it does |
 |---|---|---|
-| `deep-research` | ask for "deep research" | Multi-source research workflow using WebFetch/WebSearch with synthesis rules. |
+| `deep-research` | `/deep-research` or ask for "deep research" | Multi-source research workflow using WebFetch/WebSearch with synthesis rules. |
 | `autoresearch` | `/autoresearch` | Karpathy's autoresearch framework: iterative train.py modification, hypothesis testing, result logging. |
 | `professional-research-writing` | always active | Writing style guide: participial phrases, sentence construction, paragraph structure. Dash prohibition. |
 | `pdf-processing-pro` | auto on PDF work | PDF text extraction, form analysis, table extraction, OCR. |
@@ -140,6 +143,8 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 | `/plan-eng-review` | Architecture plan review | `/plan-eng-review <plan or prompt>` |
 | `/plan-design-review` | Design plan review | `/plan-design-review <plan or prompt>` |
 | `/review-staff` | Staff engineer review | `/review-staff <focus area>` |
+| `/refine` | Evaluator-optimizer refinement loop | `/refine <scope>` |
+| `/remotion` | Scaffold / edit / render Remotion video | `/remotion <instruction>` |
 | `/investigate` | Root-cause debugging | `/investigate <bug description>` |
 | `/retro` | Retrospective | `/retro <period>` |
 | `/document-release` | Update docs | `/document-release` |
@@ -204,7 +209,7 @@ Availability depends on the local Claude installation, enabled plugins, ignored 
 
 | Plugin | What it provides |
 |---|---|
-| `superpowers` | Brainstorming, writing plans, TDD, debugging, dispatching agents, code review, verification |
+| `superpowers` | Optional local plugin for brainstorming, writing plans, TDD, debugging, dispatching agents, code review, verification |
 | `feature-dev` | Guided feature development with codebase exploration and architecture agents |
 | `code-review` | PR-style code review with confidence-based filtering. Local blocklist state can make it unavailable even when enabled in tracked config. |
 | `code-simplifier` | Code simplification for clarity and maintainability |
@@ -212,7 +217,7 @@ Availability depends on the local Claude installation, enabled plugins, ignored 
 | `figma` | Optional local plugin when you want the plugin variant instead of the already-configured `claude.ai Figma` connector |
 | `github` | Optional local plugin for GitHub issue, PR, and repository workflows. Requires local GitHub auth when used. |
 | `playwright` | Optional local browser automation plugin when you want the plugin MCP instead of the repo-local/browser tooling already available |
-| `huggingface-skills` | HF model training, dataset management, Gradio apps |
+| `huggingface-skills` | Optional local plugin for HF model training, dataset management, and Gradio apps |
 | `context7` | Optional local library documentation lookup plugin |
 | `pyright-lsp` | Python type checking |
 | `typescript-lsp` | TypeScript language server |
@@ -221,20 +226,26 @@ Availability depends on the local Claude installation, enabled plugins, ignored 
 
 ## Hooks System
 
-The 8 locally-maintained hook scripts live in `.claude/hooks/`. The 2 PreToolUse hooks below are provided by the bundled gstack workflow under `.claude/skills/gstack/`, but this repo now keeps their activation state under `.claude/runtime/gstack/`.
+The 11 locally-maintained hook scripts live in `.claude/hooks/`. The 2 PreToolUse hooks below are provided by the bundled gstack workflow under `.claude/skills/gstack/`, but this repo now keeps their activation state under `.claude/runtime/gstack/`.
 
 | Hook | When | What it does |
 |---|---|---|
 | **PreToolUse** | Before Bash | `check-careful.sh` (gstack): Warns before destructive commands when `.claude/runtime/gstack/careful-mode.txt` is active |
 | **PreToolUse** | Before Edit/MultiEdit/Write | `check-freeze.sh` (gstack): Blocks edits outside the repo-local freeze boundary in `.claude/runtime/gstack/freeze-dir.txt` |
+| **PreToolUse** | Before MCP tools | `check-mcp.sh`: Records every MCP invocation to hook-metrics.jsonl for audit trail |
 | **UserPromptSubmit** | On prompt | `task-orchestrator-hook.sh`: Detects analysis vs coding, injects guidance |
 | **UserPromptSubmit** | On prompt | `auto-codex-trigger.sh`: Auto-launches Codex in background for coding tasks |
 | **UserPromptSubmit** | On prompt | `skill-activation-prompt.sh`: Suggests skills based on keyword matching |
+| **UserPromptSubmit** | On prompt | `memory-bootstrap.sh`: Surfaces memory index when prompt would benefit from prior session context |
 | **PostToolUse** | After Edit/MultiEdit/Write | `post-tool-use-tracker.sh`: Tracks edited files for downstream hooks |
 | **PostToolUse** | After Edit/MultiEdit/Write | `tsc-check.sh`: Runs TypeScript checks on modified files |
+| **PostToolUse** | After Edit/MultiEdit/Write | `lint-check.sh`: Runs native linter (ruff/eslint/biome/shellcheck) on edited files |
 | **PostToolUse** | After Bash/Skill/MCP | `workflow-step-tracker.sh`: Marks workflow completion markers |
 | **Stop** | Session end | `stop-build-check-enhanced.sh`: Re-runs TSC checks at session end |
 | **Stop** | Session end | `workflow-completion-gate.sh`: Advisory reminders, cleans stale cache |
+| **SessionStart** | New session | `session-start.sh`: Validates required local tools, logs session id to `runtime/sessions.jsonl` |
+| **SessionEnd** | Session close | `session-end.sh`: Appends session-close summary, rotates sessions log |
+| **PreCompact** | Before context compaction | `pre-compact.sh`: Snapshots in-progress state to `runtime/last-precompact.md` so important context survives auto-compaction |
 
 ---
 

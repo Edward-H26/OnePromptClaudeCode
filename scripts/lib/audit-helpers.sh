@@ -54,6 +54,7 @@ run_task_orchestrator() {
 
 run_auto_codex_trigger_with_stub() {
     local prompt="$1"
+    local session_id="${2:-audit}"
     local stub_dir
     stub_dir="$(mktemp -d)"
 
@@ -80,20 +81,30 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -n "$output_path" ]]; then
-    printf "stub\n" > "$output_path"
+    printf "stub codex feedback\n" > "$output_path"
 fi
 EOF
 
     chmod +x "$stub_dir/codex" "$stub_dir/ask_codex.sh"
 
     local result
-    result="$(jq -n --arg prompt "$prompt" --arg session_id "audit" '{prompt: $prompt, session_id: $session_id}' |
+    result="$(jq -n --arg prompt "$prompt" --arg session_id "$session_id" '{prompt: $prompt, session_id: $session_id}' |
         PATH="$stub_dir:$PATH" \
         CLAUDE_PROJECT_DIR="$ROOT" \
         AUTO_CODEX_SCRIPT="$stub_dir/ask_codex.sh" \
         bash "$ROOT/.claude/hooks/auto-codex-trigger.sh")"
     local exit_status=$?
-    rm -rf "$stub_dir"
+    local output_path codex_pid i
+    output_path="$(printf "%s\n" "$result" | awk -F': ' '/Output will be at:/ {print $2}')"
+    codex_pid="$(printf "%s\n" "$result" | awk -F': ' '/PID:/ {print $2}')"
+    for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
+        [[ -n "$output_path" ]] && [[ -s "$output_path" ]] && break
+        [[ -n "$codex_pid" ]] && ! kill -0 "$codex_pid" 2>/dev/null && break
+        sleep 0.1
+    done
+    if [[ -z "$codex_pid" ]] || ! kill -0 "$codex_pid" 2>/dev/null || [[ -s "$output_path" ]]; then
+        rm -rf "$stub_dir"
+    fi
     printf "%s" "$result"
     return $exit_status
 }

@@ -1,13 +1,22 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "cleanupPeriodDays": 30,
-  "includeGitInstructions": true,
-  "plansDirectory": "./plans",
   "env": {
-    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "64000",
-    "MAX_THINKING_TOKENS": "128000",
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "32000",
+    "MAX_THINKING_TOKENS": "32000",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_NO_FLICKER": "1",
+    "AUTO_CODEX_TIMEOUT_SECONDS": "3600",
+    "CLAUDE_CODE_EFFORT_LEVEL": "max",
+    "BASH_DEFAULT_TIMEOUT_MS": "1800000",
+    "BASH_MAX_TIMEOUT_MS": "7200000",
+    "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "1800000"
   },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "includeGitInstructions": true,
   "permissions": {
     "allow": [
       "WebFetch(domain:github.com)",
@@ -193,6 +202,15 @@
             "statusMessage": "Checking freeze boundary..."
           }
         ]
+      },
+      {
+        "matcher": "mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/check-mcp.sh"
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
@@ -209,6 +227,10 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/skill-activation-prompt.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/memory-bootstrap.sh"
           }
         ]
       }
@@ -224,6 +246,10 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/tsc-check.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/lint-check.sh"
           }
         ]
       },
@@ -268,29 +294,53 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/session-start.sh"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/session-end.sh"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/pre-compact.sh"
+          }
+        ]
+      }
     ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.claude/statusline.sh"
   },
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
     "frontend-design@claude-plugins-official": true,
     "feature-dev@claude-plugins-official": true,
-    "superpowers@claude-plugins-official": true,
     "code-review@claude-plugins-official": true,
-    "code-simplifier@claude-plugins-official": true,
-    "huggingface-skills@claude-plugins-official": true
+    "code-simplifier@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {},
+  "outputStyle": "Explanatory",
   "alwaysThinkingEnabled": true,
   "promptSuggestionEnabled": true,
-  "effortLevel": "max",
-  "statusLine": {
-    "type": "command",
-    "command": "bash ~/.claude/statusline.sh"
-  },
-  "outputStyle": "Explanatory",
-  "attribution": {
-    "commit": "",
-    "pr": ""
-  }
+  "plansDirectory": "./plans"
 }

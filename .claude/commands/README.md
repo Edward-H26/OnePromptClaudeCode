@@ -28,6 +28,8 @@ Available commands:
 - `qa.md`
 - `qa-only.md`
 - `quality-gate.md`
+- `refine.md`
+- `remotion.md`
 - `retro.md`
 - `review-staff.md`
 - `route-research-for-testing.md`

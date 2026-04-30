@@ -30,6 +30,8 @@ optional_example_plugins = {
     "figma@claude-plugins-official",
     "github@claude-plugins-official",
     "playwright@claude-plugins-official",
+    "superpowers@claude-plugins-official",
+    "huggingface-skills@claude-plugins-official",
 }
 enabled_example_plugins = {
     name
