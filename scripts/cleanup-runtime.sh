@@ -26,11 +26,12 @@ Options:
   --help                   Show this help
 
 Scope:
-  - Removes empty subdirectories under session-env/, .claude/tasks/,
+  - Removes empty subdirectories under session-env/, tasks/, .claude/tasks/,
     and plugins/data/
   - Removes stale runtime directories older than ${STALE_DAYS_RUNTIME_DIRS} days
     under .claude/runtime/ and .claude/tsc-cache/
-  - Truncates .lock and run.log files older than ${STALE_DAYS_LOCKS} days
+  - Truncates .lock, .highwatermark, and run.log files older than
+    ${STALE_DAYS_LOCKS} days
   - Reports (does not auto-delete) JSONL transcripts older than
     ${STALE_DAYS_TRANSCRIPTS} days under projects/
 
@@ -159,6 +160,7 @@ printf "\n"
 
 printf "[1/5] Empty subdirectories\n"
 remove_empty_dirs "$ROOT/session-env"
+remove_empty_dirs "$ROOT/tasks"
 remove_empty_dirs "$ROOT/.claude/tasks"
 remove_empty_dirs "$ROOT/plugins/data"
 
@@ -167,6 +169,8 @@ remove_stale_dirs "$ROOT/.claude/runtime" "$STALE_DAYS_RUNTIME_DIRS"
 remove_stale_dirs "$ROOT/.claude/tsc-cache" "$STALE_DAYS_RUNTIME_DIRS"
 
 printf "\n[3/5] Stale .lock files (older than ${STALE_DAYS_LOCKS}d)\n"
+truncate_stale_files "$ROOT/tasks" ".lock" "$STALE_DAYS_LOCKS"
+truncate_stale_files "$ROOT/tasks" ".highwatermark" "$STALE_DAYS_LOCKS"
 truncate_stale_files "$ROOT/.claude/tasks" "*.lock" "$STALE_DAYS_LOCKS"
 truncate_stale_files "$ROOT/.claude/skills" "*.lock" "$STALE_DAYS_LOCKS"
 

@@ -73,6 +73,7 @@ for fn in auditShellSyntax auditSymlinkIntegrity auditHookSmokes \
           auditPluginAlignment expect_match expect_no_match expect_true \
           run_skill_activation run_skill_activation_no_env \
           run_task_orchestrator run_auto_codex_trigger_with_stub \
+          run_git_guard run_session_start_smoke run_session_rules_reinject_smoke \
           run_check_careful run_check_freeze run_tsc_hook_regression \
           run_ask_codex_with_stub \
           plugin_settings_path plugin_local_settings_path \
@@ -170,7 +171,7 @@ run_step() {
 }
 
 if [[ "$FAST_MODE" == true ]]; then
-    TOTAL_STEPS=12
+    TOTAL_STEPS=13
 else
     TOTAL_STEPS=15
 fi
@@ -187,10 +188,7 @@ fi
 run_step "Local stale-reference scan" python3 "$ROOT/scripts/lib/audit-stale-refs.py"
 run_step "Plugin alignment and public surface" bash -c "auditPluginAlignment && python3 $ROOT/scripts/lib/audit-plugins.py"
 run_step "Secret-pattern scan on public surface" python3 "$ROOT/scripts/lib/audit-secrets.py"
-
-if [[ "$FAST_MODE" == false ]]; then
-    run_step "Ghost-tracked file audit" python3 "$ROOT/scripts/lib/audit-ghost-tracked.py"
-fi
+run_step "Ghost-tracked file audit" python3 "$ROOT/scripts/lib/audit-ghost-tracked.py"
 
 run_step "Ignored sensitive-state summary" python3 "$ROOT/scripts/lib/audit-ignored.py"
 run_step "Public surface summary" python3 "$ROOT/scripts/lib/audit-surface.py"
@@ -205,11 +203,13 @@ fi
 
 run_step "Cross-validation summary" python3 -c "
 from pathlib import Path
+import subprocess
 root = Path('.')
+tracked = set(subprocess.check_output(['git', 'ls-files'], text=True).splitlines())
 skills = {p.name for p in (root / '.claude' / 'skills').iterdir() if (p.is_dir() or p.is_symlink()) and (p.name != 'skill-rules.json')}
 agents = {p.stem for p in (root / '.claude' / 'agents').glob('*.md') if p.name != 'README.md'}
 commands = {p.stem for p in (root / '.claude' / 'commands').glob('*.md') if p.name != 'README.md'}
-hooks = list((root / '.claude' / 'hooks').glob('*.sh'))
+hooks = [p for p in (root / '.claude' / 'hooks').glob('*.sh') if p.as_posix() in tracked]
 templates = {p.stem for p in (root / '.claude' / 'prompt-templates').glob('*.md') if p.name != 'README.md'}
 print(f'  Skills: {len(skills)}, Agents: {len(agents)}, Commands: {len(commands)}, Hooks: {len(hooks)}, Templates: {len(templates)}')
 "

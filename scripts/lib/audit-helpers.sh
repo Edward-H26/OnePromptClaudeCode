@@ -52,6 +52,57 @@ run_task_orchestrator() {
         CLAUDE_PROJECT_DIR="$ROOT" bash "$ROOT/.claude/hooks/task-orchestrator-hook.sh"
 }
 
+run_git_guard() {
+    local command="$1"
+    jq -n \
+        --arg command "$command" \
+        '{tool_name:"Bash", tool_input:{command:$command}}' |
+        CLAUDE_PROJECT_DIR="$ROOT" bash "$ROOT/.claude/hooks/git-guard.sh"
+}
+
+run_session_start_smoke() {
+    local source="${1:-}"
+    local tmp_dir
+    tmp_dir="$(mktemp -d)"
+    mkdir -p "$tmp_dir/.claude/hooks/lib" "$tmp_dir/.claude/runtime" "$tmp_dir/.claude/skills"
+    cp "$ROOT/.claude/hooks/session-start.sh" "$tmp_dir/.claude/hooks/"
+    cp "$ROOT/.claude/hooks/lib/utils.sh" "$tmp_dir/.claude/hooks/lib/"
+    cp "$ROOT/.claude/hooks/lib/hook-metrics.sh" "$tmp_dir/.claude/hooks/lib/"
+    cp "$ROOT/.claude/settings.local.example.json" "$tmp_dir/.claude/"
+
+    cat > "$tmp_dir/.claude/MEMORY.md" <<'EOF'
+# Repo Memory
+Use repo-local workflow files.
+EOF
+
+    cat > "$tmp_dir/.claude/runtime/last-precompact.md" <<'EOF'
+# Pre-compact snapshot
+- edited: README.md
+EOF
+
+    local hook_input
+    hook_input="$(jq -n --arg session_id "audit" --arg source "$source" '{session_id:$session_id, source:$source}')"
+    local output
+    output="$(
+        CLAUDE_PROJECT_DIR="$tmp_dir" \
+        bash "$tmp_dir/.claude/hooks/session-start.sh" <<< "$hook_input"
+    )"
+    local status=$?
+    if [[ "$status" -ne 0 ]]; then
+        rm -rf "$tmp_dir"
+        return "$status"
+    fi
+
+    if [[ ! -f "$tmp_dir/.claude/settings.local.json" ]]; then
+        echo "session-start should bootstrap settings.local.json in a fresh clone" >&2
+        rm -rf "$tmp_dir"
+        exit 1
+    fi
+
+    printf '%s\n' "$output"
+    rm -rf "$tmp_dir"
+}
+
 run_auto_codex_trigger_with_stub() {
     local prompt="$1"
     local session_id="${2:-audit}"
@@ -107,26 +158,6 @@ EOF
     fi
     printf "%s" "$result"
     return $exit_status
-}
-
-run_check_careful() {
-    local input="$1"
-    local state_dir="$2"
-
-    printf "%s" "$input" |
-        CLAUDE_PROJECT_DIR="$ROOT" \
-        CLAUDE_PLUGIN_DATA="$state_dir" \
-        bash "$ROOT/.claude/skills/gstack/careful/bin/check-careful.sh"
-}
-
-run_check_freeze() {
-    local input="$1"
-    local state_dir="$2"
-
-    printf "%s" "$input" |
-        CLAUDE_PROJECT_DIR="$ROOT" \
-        CLAUDE_PLUGIN_DATA="$state_dir" \
-        bash "$ROOT/.claude/skills/gstack/freeze/bin/check-freeze.sh"
 }
 
 run_tsc_hook_regression() {

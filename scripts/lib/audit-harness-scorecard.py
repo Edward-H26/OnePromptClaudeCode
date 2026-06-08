@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+import shlex
 import sys
 from pathlib import Path
 from subprocess import check_output
@@ -46,12 +47,6 @@ SENSORS = [
         "file_types": {"*"},
         "purpose": "MCP invocation audit",
     },
-    {
-        "name": "memory-bootstrap",
-        "hook_name": "memory-bootstrap.sh",
-        "file_types": {"*"},
-        "purpose": "Memory index injection",
-    },
 ]
 
 TRACKED_EXTENSIONS = {
@@ -77,8 +72,17 @@ def load_hooks() -> dict[str, list[str]]:
             matcher = entry.get("matcher", "*")
             for hook in entry.get("hooks", []):
                 cmd = hook.get("command", "")
-                basename = cmd.strip().split("/")[-1].split()[0]
-                wired.setdefault(basename, []).append(f"{event}[{matcher}]")
+                try:
+                    tokens = shlex.split(cmd)
+                except ValueError:
+                    tokens = cmd.strip().split()
+                basename = ""
+                for token in tokens:
+                    if token.endswith(".sh"):
+                        basename = Path(token).name
+                        break
+                if basename:
+                    wired.setdefault(basename, []).append(f"{event}[{matcher}]")
     return wired
 
 

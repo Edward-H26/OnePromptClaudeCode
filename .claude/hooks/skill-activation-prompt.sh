@@ -19,37 +19,96 @@ if [[ ! -f "$RULES_PATH" ]]; then
     exit 0
 fi
 
-MATCHES=$(jq -r --arg prompt "$PROMPT_LOWER" '
-    def regex_escape:
-        gsub("([][(){}.*+?^$|\\\\-])"; "\\\\\\1");
-    def keyword_match($prompt; $keyword):
-        ("(^|[^[:alnum:]_])" + ($keyword | ascii_downcase | regex_escape) + "([^[:alnum:]_]|$)") as $pattern |
-        try ($prompt | test($pattern; "i")) catch false;
-    .skills | to_entries[] |
-    select(.value.promptTriggers != null) |
-    {
-        name: .key,
-        priority: .value.priority,
-        keywords: (.value.promptTriggers.keywords // []),
-        patterns: (.value.promptTriggers.intentPatterns // []),
-        excludeKeywords: (.value.promptTriggers.keywordExclusions // []),
-        alwaysActive: (.value.alwaysActive // false)
-    } |
-    select(
-        (.alwaysActive == true) or
-        (
+if command -v python3 >/dev/null 2>&1; then
+    MATCHES=$(PROMPT_LOWER="$PROMPT_LOWER" RULES_PATH="$RULES_PATH" python3 - <<'PYEOF'
+import json
+import os
+import re
+import sys
+
+prompt = os.environ.get("PROMPT_LOWER", "").lower()
+rules_path = os.environ.get("RULES_PATH", "")
+
+try:
+    with open(rules_path) as f:
+        data = json.load(f)
+except Exception:
+    sys.exit(0)
+
+def keyword_hit(kw, text):
+    kw_lower = kw.lower()
+    if kw_lower not in text:
+        return False
+    pat = r"(?:^|[^a-z0-9_])" + re.escape(kw_lower) + r"(?:[^a-z0-9_]|$)"
+    return re.search(pat, text) is not None
+
+def pattern_hit(pat, text):
+    try:
+        return re.search(pat, text, re.IGNORECASE) is not None
+    except re.error:
+        return False
+
+lines = []
+for name, rule in data.get("skills", {}).items():
+    pt = rule.get("promptTriggers")
+    if pt is None and not rule.get("alwaysActive", False):
+        continue
+    priority = rule.get("priority", "low")
+    keywords = (pt or {}).get("keywords", [])
+    patterns = (pt or {}).get("intentPatterns", [])
+    excludes = (pt or {}).get("keywordExclusions", [])
+
+    always = rule.get("alwaysActive", False)
+    matched = False
+    if always:
+        matched = True
+    else:
+        for kw in keywords:
+            if keyword_hit(kw, prompt):
+                matched = True
+                break
+        if not matched:
+            for p in patterns:
+                if pattern_hit(p, prompt):
+                    matched = True
+                    break
+
+    if not matched:
+        continue
+
+    if excludes:
+        excluded = False
+        for ek in excludes:
+            if keyword_hit(ek, prompt):
+                excluded = True
+                break
+        if excluded:
+            continue
+
+    lines.append(f"{priority}|{name}")
+
+sys.stdout.write("\n".join(lines))
+PYEOF
+)
+else
+    MATCHES=$(jq -r --arg prompt "$PROMPT_LOWER" '
+        def regex_escape:
+            gsub("([][(){}.*+?^$|\\\\-])"; "\\\\\\1");
+        def keyword_match($prompt; $keyword):
+            ("(^|[^[:alnum:]_])" + ($keyword | ascii_downcase | regex_escape) + "([^[:alnum:]_]|$)") as $pattern |
+            try ($prompt | test($pattern; "i")) catch false;
+        .skills | to_entries[] |
+        select(.value.promptTriggers != null) |
+        select(
+            (.value.alwaysActive // false) or
             (
-                (.keywords | any(. as $kw | keyword_match($prompt; $kw))) or
-                (.patterns | any(. as $pat | try ($prompt | test($pat; "i")) catch false))
-            ) and
-            (
-                (.excludeKeywords | length == 0) or
-                (.excludeKeywords | all(. as $ek | keyword_match($prompt; $ek) | not))
+                ((.value.promptTriggers.keywords // []) | any(. as $kw | keyword_match($prompt; $kw))) or
+                ((.value.promptTriggers.intentPatterns // []) | any(. as $pat | try ($prompt | test($pat; "i")) catch false))
             )
-        )
-    ) |
-    "\(.priority)|\(.name)"
-' "$RULES_PATH" 2>/dev/null)
+        ) |
+        "\(.value.priority)|\(.key)"
+    ' "$RULES_PATH" 2>/dev/null)
+fi
 
 if [[ -z "$MATCHES" ]]; then
     exit 0

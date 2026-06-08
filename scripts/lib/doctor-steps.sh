@@ -4,35 +4,28 @@
 # (failures, warnings), and helper functions (pass, warn, fail,
 # require_cmd, print_file_head) to be defined in the caller scope.
 
-doctorDeployToHome() {
-    local target="$HOME/.claude"
-    local deployed=0
-
+doctorRepoLocalSurface() {
+    local missing=0
     for dir in hooks skills agents commands prompt-templates; do
-        if [[ -d "$ROOT/.claude/$dir" ]]; then
-            mkdir -p "$target/$dir"
-            rsync -a --delete "$ROOT/.claude/$dir/" "$target/$dir/" 2>/dev/null && deployed=$((deployed + 1))
+        if [[ ! -d "$ROOT/.claude/$dir" ]]; then
+            printf "  Missing repo-local directory: %s\n" "$ROOT/.claude/$dir"
+            missing=1
         fi
     done
 
-    for f in CLAUDE.md CLAUDE-testing.md CLAUDE-website-workflow.md CLAUDE-skills.md WORKFLOW-REFERENCE.md README.md; do
-        if [[ -f "$ROOT/.claude/$f" ]]; then
-            cp "$ROOT/.claude/$f" "$target/$f" 2>/dev/null
+    for f in settings.json CLAUDE.md CLAUDE-testing.md CLAUDE-website-workflow.md CLAUDE-skills.md WORKFLOW-REFERENCE.md README.md; do
+        if [[ ! -f "$ROOT/.claude/$f" ]]; then
+            printf "  Missing repo-local file: %s\n" "$ROOT/.claude/$f"
+            missing=1
         fi
     done
 
-    if [[ -f "$ROOT/.claude/settings.json" ]] && [[ ! -f "$target/settings.json" ]]; then
-        cp "$ROOT/.claude/settings.json" "$target/settings.json"
-        pass "Deployed settings.json to $target (first install)"
-    elif [[ -f "$ROOT/.claude/settings.json" ]] && [[ -f "$target/settings.json" ]]; then
-        pass "Existing $target/settings.json preserved (update manually if needed)"
+    if [[ "$missing" -ne 0 ]]; then
+        fail "Repo-local workflow surface is incomplete"
+        return 1
     fi
 
-    if [[ "$deployed" -gt 0 ]]; then
-        pass "Deployed $deployed directories to $target"
-    else
-        fail "Could not deploy to $target"
-    fi
+    pass "Repo-local workflow surface is present; no \$HOME/.claude sync required"
 }
 
 doctorStaticAudit() {
@@ -318,13 +311,16 @@ enabled = {
     for name, value in json.loads(settings_path.read_text()).get("enabledPlugins", {}).items()
     if value is True
 }
+enabled_mcp_servers = set(json.loads(settings_path.read_text()).get("enabledMcpjsonServers") or [])
 
 if local_settings_path.exists():
+    local_settings = json.loads(local_settings_path.read_text())
     enabled |= {
         name
-        for name, value in json.loads(local_settings_path.read_text()).get("enabledPlugins", {}).items()
+        for name, value in local_settings.get("enabledPlugins", {}).items()
         if value is True
     }
+    enabled_mcp_servers |= set(local_settings.get("enabledMcpjsonServers") or [])
 
 plugin_keys = {
     "plugin:context7:context7:": "context7@claude-plugins-official",
@@ -333,9 +329,27 @@ plugin_keys = {
     "plugin:playwright:playwright:": "playwright@claude-plugins-official",
 }
 
+direct_mcp_plugins = {
+    "context7": "context7@claude-plugins-official",
+    "github": "github@claude-plugins-official",
+    "playwright": "playwright@claude-plugins-official",
+}
+
 optional_claude_ai = {
     "claude.ai Google Calendar",
     "claude.ai Gmail",
+    "claude.ai Scholar Gateway",
+    "claude.ai Tavily",
+}
+
+optional_plugin_prefixes = {
+    "plugin:chrome-devtools-mcp:chrome-devtools:",
+    "plugin:greptile:greptile:",
+}
+
+optional_direct_mcp = {
+    "remotion-docs",
+    "remotion-app",
 }
 
 def plugin_key_for_line(line: str):
@@ -344,8 +358,35 @@ def plugin_key_for_line(line: str):
             return plugin_name
     return None
 
+def direct_server_for_line(line: str) -> str | None:
+    if ":" not in line:
+        return None
+    name = line.split(":", 1)[0].strip()
+    if name.startswith("claude.ai ") or name.startswith("plugin"):
+        return None
+    return name or None
+
 def is_optional_claude_ai(line: str) -> bool:
     return any(line.startswith(prefix) for prefix in optional_claude_ai)
+
+def is_enabled_direct_server(line: str) -> bool:
+    name = direct_server_for_line(line)
+    if not name:
+        return False
+    plugin_name = direct_mcp_plugins.get(name)
+    if plugin_name and plugin_name in enabled:
+        return True
+    return name in enabled_mcp_servers
+
+def direct_hint(line: str) -> str:
+    name = direct_server_for_line(line)
+    if name == "context7":
+        return " (local docs MCP; web lookup remains available when this server is down)"
+    if name == "playwright":
+        return " (local browser MCP; chrome-devtools or browser tooling can still work)"
+    if name in optional_direct_mcp:
+        return " (project-scoped optional MCP; only needed for Remotion workflows)"
+    return ""
 
 text = mcp_log_path.read_text().splitlines()
 failures = []
@@ -361,13 +402,22 @@ for line in text:
         plugin_name = plugin_key_for_line(line)
         if plugin_name is not None and plugin_name not in enabled:
             continue
+        if plugin_name is None and any(prefix in line for prefix in optional_plugin_prefixes):
+            notes.append(f"{line} (installed outside the repo-declared plugin set)")
+            continue
+        if direct_server_for_line(line) and not is_enabled_direct_server(line):
+            notes.append(f"{line} (not enabled by this repo)")
+            continue
         if is_optional_claude_ai(line):
             notes.append(f"{line} (optional, authenticate via claude.ai account settings)")
         else:
-            warnings.append(line)
+            warnings.append(f"{line}{direct_hint(line)}")
     elif "plugin:" in line and " - ✗ Failed to connect" in line:
         plugin_name = plugin_key_for_line(line)
         if plugin_name is not None and plugin_name not in enabled:
+            continue
+        if plugin_name is None and any(prefix in line for prefix in optional_plugin_prefixes):
+            notes.append(f"{line} (installed outside the repo-declared plugin set)")
             continue
         hint = ""
         if "plugin:github:github:" in line:
@@ -377,11 +427,16 @@ for line in text:
         elif "plugin:context7:context7:" in line:
             hint = " (optional plugin MCP; web lookup remains available even when this plugin is down)"
         warnings.append(f"{line}{hint}")
+    elif direct_server_for_line(line) and " - ✗ Failed to connect" in line:
+        if is_enabled_direct_server(line):
+            warnings.append(f"{line}{direct_hint(line)}")
+        else:
+            notes.append(f"{line} (not enabled by this repo)")
     elif line.startswith("claude.ai ") and " - ✗ Failed to connect" in line:
         if is_optional_claude_ai(line):
             notes.append(f"{line} (optional)")
         else:
-            failures.append(line)
+            warnings.append(line)
 
 for line in passes:
     print(f"PASS: {line}")
@@ -417,7 +472,8 @@ PY
 }
 
 doctorCodexSmoke() {
-    if ! require_cmd codex; then
+    if ! command -v codex >/dev/null 2>&1; then
+        warn "Codex CLI not installed; optional Codex workflow unavailable"
         return
     fi
 
@@ -448,9 +504,10 @@ doctorCodexSmoke() {
             print_file_head "$codex_output"
         fi
     else
-        fail "Codex read-only smoke test failed"
+        warn "Codex read-only smoke test failed; optional Codex workflow unavailable until authenticated/configured"
         echo "  Diagnostics:"
         echo "  - Verify OPENAI_API_KEY or ANTHROPIC_API_KEY is set"
+        echo "  - Or run: CODEX_HOME=\"$codex_runtime_root/home\" codex --login"
         echo "  - Run: codex --version"
         echo "  - Run: codex 'Reply with ok' --read-only"
         print_file_head "$codex_stderr"

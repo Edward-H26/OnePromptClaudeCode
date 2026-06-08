@@ -124,21 +124,16 @@ export const RemotionRoot = () => (
 
 ## AI-Generated Media
 
-### MCP servers (no auth, enabled by default)
+### MCP servers (no auth, project-scoped)
 
-Two MCP servers are declared in `.claude/settings.local.example.json` and should be copied into `.claude/settings.local.json` on first use:
+Two MCP servers are declared in the tracked project [`.mcp.json`](/Users/edwardhu/Desktop/agent/claude/.mcp.json):
 
 | MCP | Purpose | Auth |
 |---|---|---|
 | `remotion-docs` (`@remotion/mcp`) | Official Remotion docs indexed for AI lookup | none |
 | `remotion-app` (`remotion-mcp-server`) | Interactive live-preview composition builder | none |
 
-To activate on a fresh machine:
-
-```bash
-cp .claude/settings.local.example.json .claude/settings.local.json
-# restart Claude Code so the MCP servers boot
-```
+They are approved through `.claude/settings.json` via `enabledMcpjsonServers`, so a fresh clone can use them without copying machine-local settings. Restart Claude Code if you add or change `.mcp.json`.
 
 ### Veo video generation via direct Gemini API
 

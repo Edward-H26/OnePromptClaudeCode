@@ -1,7 +1,7 @@
 ---
 name: ui-ux-designer
 description: UI/UX design specialist focused on user experience, interface design, design systems, accessibility, and usability. Use this agent for designing interfaces, creating design systems, improving user flows, accessibility audits, and translating designs into code.
-tools: ["Read", "Grep", "Glob"]
+tools: ["Read", "Grep", "Glob", "Bash", "WebSearch", "WebFetch"]
 color: magenta
 ---
 

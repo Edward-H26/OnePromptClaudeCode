@@ -11,6 +11,7 @@ DEPS_MODE=false
 STEP_TIMEOUT_SECONDS="${DOCTOR_STEP_TIMEOUT:-180}"
 REPORT_DIR="$ROOT/.claude/runtime"
 REPORT_PATH="$REPORT_DIR/doctor-report.json"
+LOG_DIR="$REPORT_DIR/doctor-logs"
 RESULTS_FILE="$(mktemp -t doctor-results.XXXXXX)"
 trap 'rm -f "$RESULTS_FILE"' EXIT
 
@@ -123,6 +124,7 @@ run_step() {
     local label="$1"
     local fn="$2"
     step_counter=$((step_counter + 1))
+    local log_path="$LOG_DIR/step-${step_counter}.log"
     local step_start
     step_start=$(date +%s)
 
@@ -130,9 +132,9 @@ run_step() {
 
     set +e
     if declare -f "$fn" >/dev/null 2>&1; then
-        "$fn"
+        "$fn" >"$log_path" 2>&1
     else
-        run_with_timeout "$STEP_TIMEOUT_SECONDS" bash -c "$fn" 2>&1
+        run_with_timeout "$STEP_TIMEOUT_SECONDS" bash -c "$fn" >"$log_path" 2>&1
     fi
     local rc=$?
     set -e
@@ -140,6 +142,10 @@ run_step() {
     local step_end
     step_end=$(date +%s)
     local duration=$((step_end - step_start))
+
+    if [[ "$JSON_MODE" == false ]] && [[ -f "$log_path" ]]; then
+        sed -n '1,120p' "$log_path"
+    fi
 
     if [[ "$rc" -eq 124 ]]; then
         fail "Step '$label' timed out after ${STEP_TIMEOUT_SECONDS}s"
@@ -154,7 +160,7 @@ run_step() {
 
 preflight() {
     local missing=0
-    for cmd in bash python3 git jq node rsync; do
+    for cmd in bash python3 git jq node; do
         if ! command -v "$cmd" >/dev/null 2>&1; then
             printf "PREFLIGHT FAIL: required command '%s' not in PATH\n" "$cmd" >&2
             missing=$((missing + 1))
@@ -168,7 +174,12 @@ preflight() {
         printf "PREFLIGHT FAIL: %s/.claude directory is missing\n" "$ROOT" >&2
         exit 2
     fi
-    mkdir -p "$REPORT_DIR"
+    mkdir -p "$REPORT_DIR" "$LOG_DIR"
+    if [[ -f "$ROOT/.claude/settings.local.example.json" ]]; then
+        if ! bash "$ROOT/scripts/merge-local-settings.sh" --yes >/dev/null 2>&1; then
+            printf "PREFLIGHT WARN: could not auto-bootstrap .claude/settings.local.json from the tracked example\n" >&2
+        fi
+    fi
 }
 
 preflight
@@ -234,7 +245,7 @@ doctorDependencyAudit() {
 }
 
 doctorHookMetrics() {
-    local claude_home="${CLAUDE_HOME_DIR:-$HOME/.claude}"
+    local claude_home="${CLAUDE_HOME_DIR:-$ROOT/.claude}"
     local metrics_file="$claude_home/runtime/hook-metrics.jsonl"
     if [[ ! -f "$metrics_file" ]]; then
         pass "Hook metrics file not yet created (no instrumented hook has fired this session)"
@@ -264,7 +275,7 @@ print(len(seen))
 
 source "$ROOT/scripts/lib/doctor-steps.sh"
 
-run_step "Deploy to \$HOME/.claude" doctorDeployToHome
+run_step "Repo-local workflow surface" doctorRepoLocalSurface
 run_step "Static audit" doctorStaticAudit
 run_step "Skill symlink health" doctorSymlinkHealth
 run_step "Hook executable permissions" doctorHookPermissions

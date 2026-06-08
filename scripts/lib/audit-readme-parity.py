@@ -10,12 +10,16 @@ Exits 0 when everything matches, 1 on any mismatch.
 from __future__ import annotations
 
 import re
+import subprocess
 import sys
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
 README = ROOT / "README.md"
+TRACKED_FILES = set(
+    subprocess.check_output(["git", "-C", str(ROOT), "ls-files"], text=True).splitlines()
+)
 
 
 def count_skills() -> int:
@@ -26,9 +30,7 @@ def count_skills() -> int:
     for item in skills_dir.iterdir():
         if item.name == "skill-rules.json":
             continue
-        if item.is_dir():
-            entries.append(item.name)
-        elif item.is_symlink() and item.exists():
+        if (item.is_dir() or item.is_symlink()) and (item / "SKILL.md").exists():
             entries.append(item.name)
     return len(entries)
 
@@ -49,7 +51,15 @@ def count_agents() -> int:
 
 def count_hooks() -> tuple[int, int]:
     local_dir = ROOT / ".claude" / "hooks"
-    local = len(list(local_dir.glob("*.sh"))) if local_dir.exists() else 0
+    local = (
+        sum(
+            1
+            for path in local_dir.glob("*.sh")
+            if path.relative_to(ROOT).as_posix() in TRACKED_FILES
+        )
+        if local_dir.exists()
+        else 0
+    )
     gstack_dir = ROOT / ".claude" / "skills" / "gstack"
     gstack = 0
     if gstack_dir.exists():
@@ -118,6 +128,7 @@ def main() -> int:
     }
 
     mismatches = []
+    missing_or_untracked_scripts = []
 
     if not summary:
         print("WARN: Could not parse README top-of-file count summary.")
@@ -142,6 +153,20 @@ def main() -> int:
                     f"README 'At a Glance' claims {expected} {key} but filesystem has {got}"
                 )
 
+    script_refs = set(
+        re.findall(r"(?:^|[`\\s])((?:scripts|references)/[A-Za-z0-9._/-]+\.(?:sh|py))(?:$|[`\\s])", text)
+    )
+    for rel_path in sorted(script_refs):
+        full_path = ROOT / rel_path
+        if not full_path.exists():
+            missing_or_untracked_scripts.append(
+                f"{rel_path} is referenced in README.md but missing from the repo"
+            )
+        elif rel_path not in TRACKED_FILES:
+            missing_or_untracked_scripts.append(
+                f"{rel_path} is referenced in README.md but not tracked in git"
+            )
+
     print(
         "Filesystem counts: "
         f"skills={actual['skills']} commands={actual['commands']} "
@@ -155,6 +180,12 @@ def main() -> int:
         for msg in mismatches:
             print(f"  - {msg}")
         print("\nUpdate README.md to match filesystem or justify the deliberate difference.")
+        return 1
+
+    if missing_or_untracked_scripts:
+        print("\nREADME references missing or untracked repo-local scripts:")
+        for msg in missing_or_untracked_scripts:
+            print(f"  - {msg}")
         return 1
 
     print("README counts match filesystem inventory.")

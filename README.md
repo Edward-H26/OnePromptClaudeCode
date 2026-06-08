@@ -4,7 +4,7 @@
 
 A complete Claude Code workflow that covers the entire software development lifecycle. Clone it, start coding, and never write a prompt from scratch again.
 
-57 skill entries. 32 commands. 14 agents. 14 local hooks. 6 templates. 11+ shared MCP servers. 600+ auto-triggers.
+26 skill entries. 20 commands. 14 agents. 10 local hooks. 4 templates. 11+ shared MCP servers. 600+ auto-triggers.
 
 Built for beginners. Scales for power users.
 
@@ -18,7 +18,7 @@ Every Claude Code user hits the same wall:
 2. Finding great community tools (gstack, Superpowers, everything-claude-code) but struggling to combine them
 3. Missing features they don't even know exist
 
-OnePromptClaudeCode solves all three. It integrates the best of the Claude Code ecosystem into one workflow with a 400+ keyword trigger engine that activates the right skills automatically.
+OnePromptClaudeCode solves all three. It integrates the best of the Claude Code ecosystem into one workflow with a 600+ keyword trigger engine that activates the right skills automatically.
 
 ---
 
@@ -27,11 +27,11 @@ OnePromptClaudeCode solves all three. It integrates the best of the Claude Code 
 ```bash
 git clone https://github.com/Edward-H26/OnePromptClaudeCode.git
 cd OnePromptClaudeCode
-bash scripts/doctor-workflow.sh
+bash scripts/doctor-workflow.sh        # verify hooks, skills, and settings
 claude
 ```
 
-That is the repo setup. The tracked baseline enables only the repo-stable plugin set; auth-sensitive, duplicate, or machine-fragile integrations such as GitHub, context7, Figma plugin MCP, Playwright plugin MCP, `superpowers`, and `huggingface-skills` should be added in `.claude/settings.local.json` only when the local machine is actually configured for them. Start from `.claude/settings.local.example.json`, which lists the optional plugins but leaves them disabled until you flip the specific ones you need to `true`. Run `bash scripts/doctor-workflow.sh` on a fresh clone to confirm the live workflow is ready, and clear any stale local plugin blocklist test entries if the doctor warns about them. `references/setup.sh` is optional, but it refreshes the curated vendored upstream content under `references/` that some repo-local wrappers and vendored passthrough skills consult as background material. After workflow changes, run `bash scripts/audit-workflow.sh`.
+That is the repo setup. `bash scripts/doctor-workflow.sh` auto-creates or merges `.claude/settings.local.json` from the tracked `.claude/settings.local.example.json`, so a fresh clone does not require a manual local-settings copy step. Shared Remotion MCP servers now live in the tracked [`.mcp.json`](/Users/edwardhu/Desktop/agent/claude/.mcp.json), which keeps project-scoped tool wiring out of machine-local settings. The tracked baseline still enables only the repo-stable plugin set; auth-sensitive, duplicate, or machine-fragile integrations such as GitHub, context7, Figma plugin MCP, Playwright plugin MCP, and `superpowers` stay disabled in the example until the local machine is actually configured for them. Run `bash scripts/doctor-workflow.sh` on a fresh clone to confirm the live workflow is ready, and clear any stale local plugin blocklist test entries if the doctor warns about them. After workflow changes, run `bash scripts/audit-workflow.sh`.
 
 ---
 
@@ -46,7 +46,6 @@ The workflow watches what you do and activates the right tools automatically:
 | Touch auth code | `security-review` |
 | Open a Playwright spec | `e2e-testing` |
 | Ask about Docker | `docker-patterns` |
-| Type `/ship` | Release-readiness handoff |
 
 Zero prompts to write. Minimal repo setup. Machine-local plugin installs and auth still need to be healthy.
 
@@ -56,10 +55,19 @@ Zero prompts to write. Minimal repo setup. Machine-local plugin installs and aut
 
 - Install the shared Claude Code baseline plugin set once on the machine that uses this repo.
 - Add auth-sensitive, duplicate, or machine-fragile plugin integrations in `.claude/settings.local.json`, not the shared tracked config.
-- Use `.claude/settings.local.example.json` as the starting point for optional local plugin enablement, then flip only the plugins you actually need to `true`.
+- `bash scripts/doctor-workflow.sh` auto-seeds `.claude/settings.local.json` from the tracked example on first run, then preserves local overrides on later merges.
 - Ensure required MCP connectors and auth are healthy for the tools you actually use.
 - If you want the optional Codex background workflow, make sure `codex` is installed and authenticated.
 - Run `bash scripts/doctor-workflow.sh` after clone, and again after workflow or plugin changes.
+
+### Utility scripts
+
+| Script | Purpose |
+|---|---|
+| `scripts/doctor-workflow.sh` | Full health check of hooks, skills, MCP servers, plugins; auto-seeds `settings.local.json` from the example. |
+| `scripts/audit-workflow.sh` | Audit pass: lint hooks, scan permissions, verify gitignore coverage. Run after workflow changes. |
+| `scripts/merge-local-settings.sh` | Merge `settings.local.example.json` into `settings.local.json` (user values win on conflict, new blocks added, timestamped backup). Use `--yes` to skip the diff prompt. |
+| `scripts/cleanup-runtime.sh` | Garbage-collect stale runtime artifacts (locks > 30d, transcripts > 60d, runtime dirs > 14d). Dry-run by default; `--execute` to apply; `--archive=DIR` to move instead of delete. |
 
 ---
 
@@ -69,11 +77,11 @@ Zero prompts to write. Minimal repo setup. Machine-local plugin installs and aut
 
 | Component | Count | Description |
 |---|---|---|
-| **Skills** | 57 | Bundled workflow skill entries available directly from the tracked repo |
-| **Commands** | 32 | Slash commands for planning, implementation, review, QA, and release handoff |
+| **Skills** | 26 | Bundled workflow skill entries available directly from the tracked repo |
+| **Commands** | 20 | Slash commands for planning, implementation, review, QA, and release handoff |
 | **Agents** | 14 | Specialized local agents for complex tasks |
-| **Hooks** | 16 | Automated safety, tracking, and validation hooks (14 local + 2 gstack) |
-| **Templates** | 6 | Reusable prompt templates for common workflows |
+| **Hooks** | 10 | Automated safety, tracking, and validation hooks (all local) |
+| **Templates** | 4 | Reusable prompt templates for common workflows |
 | **MCP Servers** | 11+ | Figma, GitHub, Playwright, HuggingFace, and other shared or user-scoped connectors |
 
 ### Development Lifecycle
@@ -82,13 +90,10 @@ The workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Te
 
 | Phase | What happens | Key commands |
 |---|---|---|
-| **Think** | YC-style brainstorming, product strategy review | `/office-hours` |
-| **Plan** | Architecture review, design consultation, eng review | `/plan-eng-review`, `/plan-design-review` |
-| **Build** | Auto-skills for React, Node, Python, Docker, PostgreSQL | `/build-fix`, `/orchestrate` |
+| **Think** | YC-style brainstorming | `/office-hours` |
+| **Plan** | Architecture review and design plan review | `/plan-eng-review`, `/plan-design-review` |
 | **Review** | Staff engineer code review, OWASP security scanning | `/review-staff`, `/codex review` |
-| **Test** | TDD, Playwright E2E, browser QA that fixes what it finds | `/qa`, `/quality-gate` |
-| **Ship** | Release-readiness handoff with changelog | `/ship` |
-| **Reflect** | Weekly retrospectives with shipping metrics | `/retro` |
+| **Test** | Browser QA, webapp-testing | `/qa-only` (report-only) or invoke the `qa` skill via keyword |
 
 ### Safety
 
@@ -108,10 +113,8 @@ The workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Te
 | Skill | Trigger | What it does |
 |---|---|---|
 | `office-hours` | `/office-hours` | YC Office Hours forcing questions before code |
-| `plan-ceo-review` | ask for "ceo review" | Product strategy review with 4 scope modes |
 | `plan-eng-review` | ask for "eng review" | Architecture review with diagrams and test matrices |
 | `plan-design-review` | ask for "design review" | Design evaluation rated 0-10 |
-| `design-consultation` | ask for "design consultation" | Full design system generation |
 
 ### Development
 
@@ -149,7 +152,6 @@ The workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Te
 | `codex` (oiloil) | `/codex` and optional background auto-trigger | Delegate coding to Codex CLI via `ask_codex.sh`, plus cross-model review (review/challenge/consult) |
 | `gstack codex` | internal to `/review-staff` | Enhanced cross-model review with telemetry, platform detection, and plan file integration |
 | `autoresearch` | `/autoresearch` | Karpathy-style ML experiment loops |
-| `autonomous-loops` | ask about "autonomous loop" | Continuous agent loop patterns |
 | `agentic-engineering` | ask about "agent development" | Agent development patterns |
 
 ### Research and Content
@@ -165,29 +167,24 @@ The workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Te
 
 ## Selected Commands
 
-The repo tracks 32 slash commands. Common entry points are listed below.
+The repo tracks 20 slash commands. Common entry points are listed below.
 
 | Command | Purpose |
 |---|---|
 | `/office-hours` | Pre-dev brainstorming |
-| `/ship` | Release readiness pipeline |
 | `/qa` | Browser QA testing + bug fixing |
 | `/review-staff` | Staff engineer code review |
 | `/investigate` | Root-cause debugging |
 | `/codex` | Cross-model review (review/challenge/consult) |
 | `/super-ralph` | Autonomous multi-agent execution (brainstorm or oneshot) |
-| `/orchestrate` | Sequential agent orchestration |
 | `/autoresearch` | ML experiment loop |
 | `/careful` | Safety guardrails |
 | `/freeze` | Restrict edit scope |
 | `/guard` | Enable careful + freeze |
-| `/retro` | Weekly retrospective |
 | `/build-fix` | Auto-fix build errors |
 | `/quality-gate` | Quality gating |
 | `/checkpoint` | Session checkpoint |
 | `/dev-docs` | Generate dev docs |
-| `/multi-plan` | Multi-model planning |
-| `/multi-execute` | Multi-model execution |
 
 ---
 
@@ -224,14 +221,14 @@ Automated hooks run at every stage of your workflow:
 | `check-freeze.sh` | Before Edit/MultiEdit/Write | Blocks edits outside frozen directory (gstack skill) |
 | `check-mcp.sh` | Before MCP tools | Records every MCP invocation, warns on mutating endpoints |
 | `task-orchestrator-hook.sh` | On prompt | Detects analysis vs coding tasks |
-| `skill-activation-prompt.sh` | On prompt | Suggests skills via 400+ keyword triggers |
+| `skill-activation-prompt.sh` | On prompt | Suggests skills via 600+ keyword triggers |
 | `auto-codex-trigger.sh` | On prompt | Auto-launches Codex in background for coding tasks |
-| `memory-bootstrap.sh` | On prompt | Surfaces repo MEMORY.md so durable context lands without waiting for global auto-memory |
+| `memory-bootstrap.sh` | On prompt | Surfaces repo-local memory when it exists |
 | `post-tool-use-tracker.sh` | After Edit/MultiEdit/Write | Tracks edited files |
 | `tsc-check.sh` | After Edit/MultiEdit/Write | Runs TypeScript checks |
 | `lint-check.sh` | After Edit/MultiEdit/Write | Runs project-native linter (ruff/eslint/biome/shellcheck) on edited files |
 | `workflow-step-tracker.sh` | After Bash/Skill/MCP | Marks workflow completion |
-| `session-start.sh` | Session start | Validates required local tools, logs session id |
+| `session-start.sh` | Session start | Validates required local tools, bootstraps local settings, and injects baseline repo context |
 | `session-end.sh` | Session close | Appends session-close summary, rotates sessions log |
 | `pre-compact.sh` | Before context compaction | Snapshots in-progress state to `runtime/last-precompact.md` |
 | `stop-build-check-enhanced.sh` | Session stop | Re-runs all checks |
@@ -283,29 +280,14 @@ Ready-to-use templates at `.claude/prompt-templates/`:
   settings.json          # Permissions, hooks, plugins, env
   runtime/               # Repo-local ignored runtime state for safety and Codex
   agents/                # 14 local agent definitions
-  commands/              # 32 slash commands
-  hooks/                 # 14 local hook scripts (+ 2 gstack PreToolUse hooks)
-  prompt-templates/      # 6 reusable templates
-  skills/                # 57 skill entries
+  commands/              # 20 slash commands
+  hooks/                 # 10 local hook scripts
+  prompt-templates/      # 4 reusable templates
+  skills/                # 26 skill entries
     skill-rules.json     # 400+ keyword trigger engine
-    gstack/              # Bundled gstack workflow content
-    super-ralph/         # Bundled Super Ralph wrapper and assets
-    [local skills]       # Backend, frontend, testing, and utility skills
-references/              # Tracked vendored upstream workflow sources and refresh scripts
+    [local skills]       # Backend, frontend, testing, research, and utility skills
 social/                  # Social media assets and demo video
 ```
-
----
-
-## Updating External References
-
-Use `references/` when you want to refresh the tracked vendored upstream sources:
-
-```bash
-bash references/setup.sh
-```
-
-This refreshes the tracked upstream snapshots in `references/`. Several bundled entries in `.claude/skills/` resolve through these vendored sources, so they are part of the published workflow surface. The refresh is curated, not a raw mirror: runtime-only and irrelevant upstream artifacts are pruned so the published surface stays deterministic.
 
 ---
 

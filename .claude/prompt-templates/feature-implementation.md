@@ -43,9 +43,9 @@ Context:
 
 This phase is interactive. Use `AskUserQuestion` prehook gates, one question at a time, each with a "Chat about this" escape hatch. After this phase completes, the pipeline runs autonomously with zero user interaction until the Phase 1 checkpoint.
 
-### Step 0.1: Brainstorm (superpowers:brainstorming)
+### Step 0.1: Brainstorm
 
-Explore the user's intent through Socratic conversation before scoping any work.
+Explore the user's intent through Socratic conversation before scoping any work. Use `superpowers:brainstorming` only when the Superpowers plugin is enabled locally; otherwise ask the questions directly.
 
 1. Restate the query in 2-3 sentences to surface misunderstandings early.
 2. Ask 2-5 clarifying questions using `AskUserQuestion` covering intent, scope, edge cases, users, constraints, and existing work.
@@ -96,7 +96,7 @@ Scan the environment for available skills and agents, match them to the brainsto
    - Claude API: `claude-api`
    - Postgres: `postgres-patterns`
    - Docker/deploy: `docker-patterns`, `deployment-patterns`
-   - Superpowers plugin skills:
+   - Superpowers plugin skills, only when enabled locally:
      - `superpowers:brainstorming`, `superpowers:writing-plans`, `superpowers:test-driven-development`
      - `superpowers:executing-plans`, `superpowers:subagent-driven-development`
      - `superpowers:dispatching-parallel-agents`, `superpowers:using-git-worktrees`
@@ -123,7 +123,7 @@ Store as `WORKSPACE_RULES` and inject into every sub-agent prompt.
 
 Activate `search-first`. If the task touches hooks, skills, templates, commands, agents, plugins, or `.claude/settings.json`, also activate `skill-developer`.
 
-Run Agents 1 and 2 in parallel using `superpowers:dispatching-parallel-agents`. Agent 3 depends on their output. Agent 4 depends on all three.
+Run Agents 1 and 2 in parallel using `superpowers:dispatching-parallel-agents` when the Superpowers plugin is enabled locally. Otherwise launch available local or plugin agents directly, or use `/orchestrate`. Agent 3 depends on their output. Agent 4 depends on all three.
 
 ### Agent 1: Explorer (Deep Codebase Analysis)
 
@@ -152,7 +152,7 @@ Output: a changelog analysis with feature evolution, dependency changes, and dom
 
 ### Agent 3: Critical Reviewer (Requirements Gap Analysis)
 
-Launch a Plan subagent or use `code-review:code-review` and `superpowers:requesting-code-review`.
+Launch a Plan subagent or use `code-review:code-review`. If Superpowers is enabled locally, use `superpowers:requesting-code-review` as an additional review path.
 
 - Receive the codebase map from Agent 1 and the changelog analysis from Agent 2.
 - Check every requirement in `[REQUIREMENTS]` against the current codebase state.
@@ -164,7 +164,7 @@ Output: a gap report listing fulfilled requirements, unfulfilled requirements wi
 
 ### Agent 4: Architect (Task Decomposition and Design)
 
-Launch a Plan subagent or use `superpowers:writing-plans` and `feature-dev:code-architect`.
+Launch a Plan subagent or use `feature-dev:code-architect`. If Superpowers is enabled locally, use `superpowers:writing-plans` as an additional planning path.
 
 - Synthesize output from Agents 1, 2, and 3.
 - Break the remaining work into detailed, ordered subtasks (2-5 minutes each).
@@ -345,7 +345,7 @@ Launch a general-purpose subagent or use `verification-loop`, `webapp-testing`, 
 - Re-run all regression evals defined in Phase 2.
 - If `[TARGET_URL]` is available, use Playwright MCP to navigate every major page and verify functionality.
 - Report any regressions introduced by the changes.
-- Run `superpowers:verification-before-completion` to require evidence before any success claims.
+- If Superpowers is enabled locally, run `superpowers:verification-before-completion`; otherwise use `verification-loop` and require concrete evidence before any success claims.
 
 Output: a test report with post-change results, eval results, and any regressions.
 
@@ -375,9 +375,9 @@ When `[TARGET_URL]` is available and the task affects visible UI:
   - Make targeted CSS/component fixes.
   - Re-navigate and re-screenshot to verify the fix.
 - For responsive testing, use `browser_resize` to check multiple viewport sizes.
-- If any feature fails, dispatch a sub-agent to fix it using `superpowers:dispatching-parallel-agents` for independent fixes.
+- If any feature fails, dispatch a sub-agent to fix it. Use `superpowers:dispatching-parallel-agents` for independent fixes only when the Superpowers plugin is enabled locally.
 - If stuck after 3 attempts on any issue, auto-skip and log.
-- Use `/qa` for structured browser QA testing when comprehensive coverage is needed.
+- Use the `qa` skill for structured browser QA testing when comprehensive coverage is needed.
 
 Output: an end-to-end test report with evidence (screenshots, GIF recordings) showing all features working.
 
@@ -431,7 +431,7 @@ Status: SHIP IT / NEEDS WORK
 
 ### Step 5.4: Documentation Update
 
-Launch the `documentation-system` agent or use `/document-release`.
+Launch the `documentation-system` agent or use the `frontend-dev` skill.
 
 - Update README, ARCHITECTURE, CONTRIBUTING, and project-specific documentation.
 - Add setup instructions for new dependencies or configuration.
@@ -440,7 +440,7 @@ Launch the `documentation-system` agent or use `/document-release`.
 
 ### Step 5.5: Branch Finalization
 
-Use `superpowers:finishing-a-development-branch` to handle merge/PR decisions and cleanup.
+If Superpowers is enabled locally, use `superpowers:finishing-a-development-branch` for branch cleanup guidance. Otherwise run the `/multi-execute` workflow and leave merge, commit, push, and PR creation to the user.
 
 ---
 
@@ -476,7 +476,7 @@ Phase 5 (merge and deliver):
   ralph-merger -> JUDGE -> Eval Report -> Documenter -> Branch Finalization
 ```
 
-Use `superpowers:dispatching-parallel-agents` for Agents 1 and 2. Use `superpowers:subagent-driven-development` for the Phase 4 sequential pipeline. Use `superpowers:verification-before-completion` before declaring Phase 4 complete.
+Use the Superpowers dispatching and verification skills in this pipeline only when the plugin is enabled locally. Otherwise use the repo-local agents, `/orchestrate`, `/super-ralph`, and `verification-loop` equivalents for the same roles.
 
 ---
 

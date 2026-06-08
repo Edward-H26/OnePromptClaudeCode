@@ -20,9 +20,55 @@ for path in [root / ".claude" / "settings.json", root / ".claude" / "settings.lo
     with path.open() as handle:
         parsed_json[path.name] = json.load(handle)
 
+enabled_mcpjson_servers = parsed_json["settings.json"].get("enabledMcpjsonServers") or []
+if enabled_mcpjson_servers:
+    mcp_json_path = root / ".mcp.json"
+    if not mcp_json_path.exists():
+        print("settings.json enables project MCP servers, but .mcp.json is missing.")
+        raise SystemExit(1)
+    with mcp_json_path.open() as handle:
+        mcp_json = json.load(handle)
+    declared_mcp_servers = set((mcp_json.get("mcpServers") or {}).keys())
+    missing_mcp_servers = sorted(set(enabled_mcpjson_servers) - declared_mcp_servers)
+    if missing_mcp_servers:
+        print("settings.json enables project MCP servers that are absent from .mcp.json:")
+        for server_name in missing_mcp_servers:
+            print(f"  {server_name}")
+        raise SystemExit(1)
+
+tracked_files = subprocess.check_output(["git", "ls-files"], text=True).splitlines()
+tracked_file_set = set(tracked_files)
+
 settings_local_example = parsed_json["settings.local.example.json"]
 if "permissions" in settings_local_example:
     print(".claude/settings.local.example.json should not carry machine-local permission overrides.")
+    raise SystemExit(1)
+
+machine_local_path_pattern = re.compile(r"(/Users/|/home/|[A-Za-z]:\\\\Users\\\\)")
+
+
+def find_machine_local_path(value, path="root"):
+    if isinstance(value, dict):
+        for key, item in value.items():
+            hit = find_machine_local_path(item, f"{path}.{key}")
+            if hit:
+                return hit
+    elif isinstance(value, list):
+        for index, item in enumerate(value):
+            hit = find_machine_local_path(item, f"{path}[{index}]")
+            if hit:
+                return hit
+    elif isinstance(value, str) and machine_local_path_pattern.search(value):
+        return path
+    return None
+
+
+machine_local_hit = find_machine_local_path(settings_local_example)
+if machine_local_hit:
+    print(
+        ".claude/settings.local.example.json should not embed machine-local absolute paths:"
+        f" {machine_local_hit}"
+    )
     raise SystemExit(1)
 
 optional_example_plugins = {
@@ -53,9 +99,8 @@ skill_dirs = {
     if (path.is_dir() or path.is_symlink()) and (path / "SKILL.md").exists()
 }
 
-manual_only = {"super-ralph"}
-missing_rules = sorted(skill_dirs - rule_skills - manual_only)
-missing_dirs = sorted(rule_skills - skill_dirs - manual_only)
+missing_rules = sorted(skill_dirs - rule_skills)
+missing_dirs = sorted(rule_skills - skill_dirs)
 
 if missing_rules:
     print("Tracked skills missing skill-rules entries:")
@@ -70,36 +115,28 @@ if missing_dirs:
     raise SystemExit(1)
 
 for required in [
-    skills_dir / "gstack" / "SKILL.md",
-    skills_dir / "super-ralph" / "SKILL.md",
     skills_dir / "codex" / "scripts" / "ask_codex.sh",
     skills_dir / "codex" / "scripts" / "ask_codex.ps1",
-    skills_dir / "web-artifacts-builder" / "scripts" / "init.sh",
-    skills_dir / "web-artifacts-builder" / "scripts" / "bundle.sh",
     skills_dir / "webapp-testing" / "scripts" / "browser_navigate.py",
     skills_dir / "webapp-testing" / "scripts" / "with_server.py",
 ]:
     if not required.exists():
         print(f"Missing required local skill entry: {required.as_posix()}")
         raise SystemExit(1)
-
-reference_dirs = [
-    root / "references" / "gstack",
-    root / "references" / "super-ralph",
-    root / "references" / "everything-claude-code",
-]
-missing_references = [path for path in reference_dirs if not path.exists()]
-if missing_references:
-    print("Missing required vendored reference directories:")
-    for path in missing_references:
-        print(f"  {path.as_posix()}")
-    print("Run bash references/setup.sh to restore the tracked vendored workflow sources.")
-    raise SystemExit(1)
+    rel_required = required.relative_to(root).as_posix()
+    if rel_required not in tracked_file_set:
+        print(f"Required workflow file exists locally but is not tracked in git: {rel_required}")
+        raise SystemExit(1)
 
 readme = (root / "README.md").read_text()
 command_count = len([path for path in (root / ".claude" / "commands").glob("*.md") if path.name != "README.md"])
 agent_count = len([path for path in (root / ".claude" / "agents").glob("*.md") if path.name != "README.md"])
-hook_count = len(list((root / ".claude" / "hooks").glob("*.sh")))
+hook_count = len(
+    [
+        path for path in (root / ".claude" / "hooks").glob("*.sh")
+        if path.as_posix() in tracked_file_set
+    ]
+)
 template_count = len([path for path in (root / ".claude" / "prompt-templates").glob("*.md") if path.name != "README.md"])
 skill_count = len(skill_dirs)
 
@@ -117,7 +154,29 @@ for fragment in expected_fragments:
         print(f"README.md is missing expected inventory text: {fragment}")
         raise SystemExit(1)
 
-tracked_files = subprocess.check_output(["git", "ls-files"], text=True).splitlines()
+permissions = parsed_json["settings.json"].get("permissions") or {}
+permission_buckets = {
+    "allow": set(permissions.get("allow") or []),
+    "ask": set(permissions.get("ask") or []),
+    "deny": set(permissions.get("deny") or []),
+}
+
+overlaps = []
+bucket_names = sorted(permission_buckets)
+for index, left in enumerate(bucket_names):
+    for right in bucket_names[index + 1:]:
+        shared = sorted(permission_buckets[left] & permission_buckets[right])
+        if shared:
+            overlaps.append((left, right, shared))
+
+if overlaps:
+    print("Permission rules must not be duplicated across allow/ask/deny buckets:")
+    for left, right, shared in overlaps:
+        print(f"  {left} vs {right}:")
+        for rule in shared:
+            print(f"    {rule}")
+    raise SystemExit(1)
+
 placeholder_hits = []
 for rel_path in tracked_files:
     path = root / rel_path

@@ -6,15 +6,5 @@
     "playwright@claude-plugins-official": false,
     "superpowers@claude-plugins-official": false,
     "huggingface-skills@claude-plugins-official": false
-  },
-  "mcpServers": {
-    "remotion-docs": {
-      "command": "npx",
-      "args": ["-y", "@remotion/mcp@latest"]
-    },
-    "remotion-app": {
-      "command": "npx",
-      "args": ["-y", "remotion-mcp-server@latest"]
-    }
   }
 }

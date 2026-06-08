@@ -102,13 +102,6 @@
 # Image cache (not tracked)
 /image-cache/
 
-# gstack runtime artifacts
-.claude/skills/gstack/.git/
-.claude/skills/gstack/node_modules/
-.claude/skills/gstack/bin/browse
-.claude/skills/gstack/browse/test/fixtures/
-.claude/skills/gstack/.github/
-/.gstack/
 
 # Claude runtime state (session data, not user config)
 /.claude.json
@@ -129,8 +122,6 @@
 /.claude/skills/chrome-devtools/scripts/*.local.js
 /.claude/skills/chrome-devtools/scripts/*.local.cjs
 
-# gstack .env files
-.claude/skills/gstack/.env*
 
 # Settings file (contains machine-specific data)
 /settings.json
@@ -140,6 +131,10 @@
 /.claude/checkpoints.log
 /.claude/checkpoints/
 /.claude/plan/
+/.claude/scheduled_tasks.lock
+/.claude/hooks/git-guard.sh
+/.claude/hooks/session-rules-reinject.sh
+/scripts/install.sh
 
 # Node modules and lock files anywhere
 **/node_modules/
@@ -148,60 +143,13 @@
 /package-lock.json
 /yarn.lock
 
-# Curated vendored reference exclusions (the repo publishes only the wired surface it uses)
-/references/gstack/agents/openai.yaml
-/references/gstack/browse/dist/
-/references/gstack/bin/gstack-global-discover
-/references/gstack/bun.lock
-/references/gstack/docs/images/
-/references/gstack/node_modules/
-/references/gstack/.env
-/references/gstack/.env.*
-/references/super-ralph/learnings.md
-/references/super-ralph/node_modules/
-/references/codex/node_modules/
-/references/codex/.runtime/
-/references/everything-claude-code/.env.example
-/references/everything-claude-code/.opencode/package-lock.json
-/references/everything-claude-code/.opencode/plugins/
-/references/everything-claude-code/assets/
-/references/everything-claude-code/docs/*/plugins/
-/references/everything-claude-code/node_modules/
-/references/everything-claude-code/plugins/
-/references/everything-claude-code/package-lock.json
-/references/everything-claude-code/yarn.lock
-/references/everything-claude-code/ecc2/Cargo.lock
-/references/*/.git/
 
-# gstack upstream infrastructure (CI, telemetry, tests, dev scripts)
-/references/gstack/.github/
-/references/gstack/supabase/
-/references/gstack/test/
-/references/gstack/scripts/
-/references/gstack/browse/test/
 
-# gstack SKILL.md template files (rendered SKILL.md already tracked)
-/references/gstack/**/*.tmpl
 
-# everything-claude-code upstream content not needed for reference
-/references/everything-claude-code/tests/
-/references/everything-claude-code/docs/business/
-/references/everything-claude-code/docs/ja-JP/
-/references/everything-claude-code/docs/ko-KR/
-/references/everything-claude-code/docs/pt-BR/
-/references/everything-claude-code/docs/tr/
-/references/everything-claude-code/docs/zh-CN/
-/references/everything-claude-code/docs/zh-TW/
-/references/everything-claude-code/docs/releases/*/linkedin-post.md
-/references/everything-claude-code/docs/releases/*/x-thread.md
-/references/everything-claude-code/docs/releases/*/x-quote-*.md
 
-# Vendored reference credential examples
-# The references/ directory contains upstream documentation with placeholder
 # API keys and example .env content. These are NOT real credentials.
 # audit-secrets.py flags them as informational notes.
 
-# Memory system (auto-generated per user)
 /memory/
 **/MEMORY.md
 
@@ -216,6 +164,9 @@
 *.sqlite
 *.sqlite3
 *.db
+*.tsbuildinfo
+.eslintcache
+**/.eslintcache
 **/.pytest_cache/
 **/.mypy_cache/
 **/.ruff_cache/

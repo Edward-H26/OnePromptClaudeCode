@@ -164,23 +164,18 @@ if (!config.tokens.jwt) {
 host = localhost
 port = 3306
 username = root
-password = password1
 database = blog_dev
 
 [server]
 port = 3002
-sessionSecret = your-secret-here
 
 [tokens]
-jwt = your-jwt-secret
 inactivity = 30m
-internal = internal-api-token
 
 [keycloak]
 realm = myapp
 client = myapp-client
 baseUrl = http://localhost:8080
-secret = keycloak-client-secret
 
 [sentry]
 dsn = https://your-sentry-dsn
@@ -188,12 +183,15 @@ environment = development
 tracesSampleRate = 0.1
 ```
 
+Keep passwords, session secrets, JWT material, internal API tokens, and
+client secrets in untracked local overrides or a real secret manager instead of
+committed example config.
+
 ### Environment Overrides
 
 ```bash
 # .env file (optional overrides)
 DB_HOST=production-db.example.com
-DB_PASSWORD=secure-password
 PORT=80
 ```
 

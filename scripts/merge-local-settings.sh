@@ -6,11 +6,34 @@ set -euo pipefail
 #   - User's existing values WIN on conflict (example is fill-in only)
 #   - New top-level blocks (like mcpServers) get added if not present
 #   - Always writes a timestamped backup before replacing
-#   - Always shows the diff before applying
+#   - Shows the diff before applying unless --yes is used
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 EXAMPLE="${REPO_ROOT}/.claude/settings.local.example.json"
 ACTIVE="${REPO_ROOT}/.claude/settings.local.json"
+AUTO_APPLY=false
+
+for arg in "$@"; do
+  case "$arg" in
+    --yes|--auto|--apply)
+      AUTO_APPLY=true
+      ;;
+    --help|-h)
+      cat <<EOF
+Usage: $0 [--yes]
+
+Options:
+  --yes, --auto, --apply   Merge non-interactively
+  --help                   Show this help
+EOF
+      exit 0
+      ;;
+    *)
+      echo "error: unknown argument: ${arg}" >&2
+      exit 1
+      ;;
+  esac
+done
 
 if ! command -v jq >/dev/null 2>&1; then
   echo "error: jq is required. Install with: brew install jq" >&2
@@ -29,11 +52,6 @@ if [[ ! -f "${ACTIVE}" ]]; then
   exit 0
 fi
 
-timestamp="$(date +%Y%m%d-%H%M%S)"
-backup="${ACTIVE}.bak.${timestamp}"
-cp "${ACTIVE}" "${backup}"
-echo "backup: ${backup}"
-
 # jq -s '.[0] * .[1]' does a RECURSIVE deep merge where the right file wins on conflict.
 # We pass example first, active second, so existing user values override example defaults.
 merged="$(jq -s '.[0] * .[1]' "${EXAMPLE}" "${ACTIVE}")"
@@ -47,14 +65,28 @@ if [[ ! -s "${tmp}" ]]; then
   exit 1
 fi
 
+if cmp -s "${ACTIVE}" "${tmp}"; then
+  echo "up to date: ${ACTIVE}"
+  exit 0
+fi
+
 echo ""
 echo "=== diff (active -> merged) ==="
 diff -u "${ACTIVE}" "${tmp}" || true
 echo "=== end diff ==="
 echo ""
 
-read -r -p "Apply this merge? (y/N) " reply
+if [[ "${AUTO_APPLY}" == true ]]; then
+  reply="y"
+else
+  read -r -p "Apply this merge? (y/N) " reply
+fi
+
 if [[ "${reply}" =~ ^[Yy]$ ]]; then
+  timestamp="$(date +%Y%m%d-%H%M%S)"
+  backup="${ACTIVE}.bak.${timestamp}"
+  cp "${ACTIVE}" "${backup}"
+  echo "backup: ${backup}"
   mv "${tmp}" "${ACTIVE}"
   trap - EXIT
   echo "merged: ${ACTIVE}"

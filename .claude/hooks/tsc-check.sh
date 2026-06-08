@@ -117,11 +117,12 @@ $CHECK_OUTPUT"
         done
         atomic_sort_unique "$CACHE_DIR/affected-repos.txt"
 
-        echo "# TSC Commands by Repo" > "$CACHE_DIR/tsc-commands.txt"
+        echo "# Commands by Repo" > "$CACHE_DIR/commands.txt"
         for repo in $FAILED_REPOS; do
             repo_key="$(repo_cache_key "$repo")"
             cmd=$(cat "$CACHE_DIR/$repo_key-tsc-cmd.cache" 2>/dev/null || echo "npx tsc --noEmit")
-            echo "$repo: $cmd" >> "$CACHE_DIR/tsc-commands.txt"
+            repo_path="$CLAUDE_PROJECT_DIR/$repo"
+            printf "%s\ttsc\tcd \"%s\" && %s\n" "$repo" "$repo_path" "$cmd" >> "$CACHE_DIR/commands.txt"
         done
 
         {

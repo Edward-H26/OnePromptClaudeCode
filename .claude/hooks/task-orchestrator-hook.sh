@@ -14,20 +14,26 @@ INPUT=$(cat)
 PROMPT=$(echo "$INPUT" | jq -r '.prompt // empty' 2>/dev/null || echo "")
 PROMPT_LOWER=$(echo "$PROMPT" | tr '[:upper:]' '[:lower:]')
 
-cat <<'EOF'
-================================================================================
-SECURITY REVIEW REMINDER
-================================================================================
-Before closing any task that touches auth, secrets, input validation, API
-endpoints, permissions, database queries, file I/O, or external integrations,
-run /security-review and incorporate the findings.
-================================================================================
-
-EOF
-
 prompt_matches() {
     local pattern="$1"
     printf "%s\n" "$PROMPT_LOWER" | grep -qiE "$pattern"
+}
+
+security_review_needed() {
+    prompt_matches "(^|[^[:alnum:]_])(auth|authentication|authorization|secret|secrets|token|tokens|credential|credentials|api key|permission|permissions|database|sql|query|queries|file i/o|filesystem|external integration|mcp|webhook|oauth|session|cookie|cookies|input validation|endpoint|endpoints)([^[:alnum:]_]|$)"
+}
+
+print_security_review_reminder() {
+    cat <<'EOF'
+================================================================================
+SECURITY REVIEW REMINDER
+================================================================================
+This task appears to touch auth, secrets, input validation, API endpoints,
+permissions, database queries, file I/O, or external integrations.
+Use /security-review when the final change would benefit from a security pass.
+================================================================================
+
+EOF
 }
 
 HAS_EXPLICIT_IMPLEMENTATION=false
@@ -53,11 +59,19 @@ if prompt_matches "$ANALYSIS_PATTERN"; then
     fi
 fi
 
+if prompt_matches "$MEMORY_OR_PREFERENCE_PATTERN" &&
+    [[ "$HAS_EXPLICIT_IMPLEMENTATION" != "true" ]]; then
+    exit 0
+fi
+
 if [[ "$IS_PURE_INFORMATIONAL" == "true" ]] && [[ "$IS_ANALYSIS_ONLY" != "true" ]]; then
     exit 0
 fi
 
 if [[ "$IS_ANALYSIS_ONLY" == "true" ]]; then
+if security_review_needed; then
+    print_security_review_reminder
+fi
 cat << 'EOF'
 
 ================================================================================
@@ -69,6 +83,10 @@ Focus on exploration, source-backed findings, and clear recommendations.
 
 EOF
 exit 0
+fi
+
+if security_review_needed; then
+    print_security_review_reminder
 fi
 
 PLUGIN_LINES=""

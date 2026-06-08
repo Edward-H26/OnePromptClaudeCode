@@ -29,6 +29,17 @@ for ignored_path in [".claude/runtime/", ".claude/settings.local.json", ".creden
         print(f"Missing gitignore coverage for {ignored_path}")
         raise SystemExit(1)
 
+for generated_path in ["tsconfig.tsbuildinfo", ".eslintcache"]:
+    gitignore_check = subprocess.run(
+        ["git", "-C", str(root), "check-ignore", generated_path],
+        text=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    if gitignore_check.returncode != 0:
+        print(f"Missing gitignore coverage for generated artifact {generated_path}")
+        raise SystemExit(1)
+
 intentional_reference_ignores = {
     "references/everything-claude-code/.env.example": ["/references/everything-claude-code/.env.example"],
     "references/everything-claude-code/.opencode/plugins/index.ts": ["/references/everything-claude-code/.opencode/plugins/"],
@@ -73,26 +84,53 @@ public_files = subprocess.check_output(
     ["git", "-C", str(root), "ls-files", "-co", "--exclude-standard"],
     text=True,
 ).splitlines()
+ghost_tracked_files = subprocess.check_output(
+    ["git", "-C", str(root), "ls-files", "--cached", "-i", "--exclude-standard"],
+    text=True,
+).splitlines()
 
 disallowed_prefixes = [
     ".credentials.json",
     "social/",
     ".claude.json",
     ".claude/ide/",
+    ".claude/metrics/",
+    ".claude/runtime/",
+    ".claude/session-data/",
     "plugins/",
     "projects/",
     "sessions/",
+    "session-env/",
     "file-history/",
     "history.jsonl",
     "backups/",
+    "cache/",
+    "chrome/",
+    "paste-cache/",
+    "plans/",
+    "tasks/",
+    "telemetry/",
+    "video/",
+    "mcp-needs-auth-cache.json",
+    "settings.json",
+    "shell-snapshots/",
 ]
 
 bad = [path for path in public_files if any(path.startswith(prefix) for prefix in disallowed_prefixes)]
+bad.extend(
+    f"{path} (tracked but ignored)"
+    for path in ghost_tracked_files
+    if path.strip()
+)
 
 disallowed_extensions = {".mp4", ".mov", ".avi", ".mkv", ".webm", ".zip", ".tar", ".gz"}
 bad.extend(
     path for path in public_files
     if any(path.endswith(ext) for ext in disallowed_extensions)
+)
+bad.extend(
+    path for path in public_files
+    if path.endswith(".tsbuildinfo") or path.endswith("/.eslintcache") or path == ".eslintcache"
 )
 bad.extend(
     path for path in public_files

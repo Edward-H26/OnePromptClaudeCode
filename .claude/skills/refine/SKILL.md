@@ -1,6 +1,7 @@
 ---
 name: refine
 description: Repo-local wrapper for the evaluator-optimizer refinement loop. Review, apply, verify, and re-critique in bounded rounds instead of making ad-hoc fixes.
+disable-model-invocation: true
 ---
 
 # Refine

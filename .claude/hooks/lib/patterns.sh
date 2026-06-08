@@ -6,6 +6,8 @@ CODING_PATTERN="(^|[^[:alnum:]_])(fix|implement|add|change|update|refactor|build
 
 PURE_QUESTION_PATTERN="^(what is|what are|what does|how does|why does|can you explain|tell me about|describe|show me|list all|where is|who is|is there|should I|would you|can I)"
 
+MEMORY_OR_PREFERENCE_PATTERN="(^|[^[:alnum:]_])(remember|memory|preference|preferences|note this|save this|keep in mind)([^[:alnum:]_]|$)"
+
 CODING_CONTEXT_PATTERN="(\.(ts|tsx|js|jsx|py|css|scss|html|json|yaml|yml|sh|sql|go|rs|java|rb|php|swift|kt)|function|class|component|module|api|endpoint|route|schema|database|query|table|migration|hook|middleware|controller|service|model|view|template|layout|page|screen|button|form|input|modal|dialog|menu|navbar|sidebar|footer|header|card|grid|flex|container|wrapper|workflow|plugin|plugins|permission|permissions|gitignore|setting|settings)"
 
 EXPLICIT_IMPLEMENTATION_PATTERN="((edit|modify|change|update|fix|implement|refactor|remove|delete|rename|patch|wire|configure|create).*(file|files|code|script|scripts|hook|hooks|config|configs|setting|settings|command|commands|template|templates|function|functions|module|modules|component|components|class|classes|test|tests))|(\.(ts|tsx|js|jsx|py|css|scss|html|json|yaml|yml|sh|sql|go|rs|java|rb|php|swift|kt)([^[:alnum:]_]|$))|(make the changes|apply the changes|implement the plan|fix it now|ship it|edit the files|update the files)"

@@ -13,7 +13,7 @@ patterns = [
     re.compile(r"ghp_[A-Za-z0-9]{36}"),
     re.compile(r"github_pat_[A-Za-z0-9_]{82}"),
     re.compile(r"AKIA[0-9A-Z]{16}"),
-    re.compile(r"sk-[A-Za-z0-9]{20,}"),
+    re.compile(r"sk-[A-Za-z0-9_-]{20,}"),
     re.compile(r"-----BEGIN (RSA|DSA|EC|OPENSSH|PRIVATE KEY)-----"),
     re.compile(r"xoxb-[0-9]+-[0-9]+-[A-Za-z0-9]+"),
     re.compile(r"xoxp-[0-9]+-[0-9]+-[0-9]+-[a-f0-9]+"),
@@ -27,15 +27,34 @@ patterns = [
 ]
 
 allow_paths = {"scripts/audit-workflow.sh", "scripts/lib/audit-secrets.py"}
+allowed_vendored_example_paths = {
+    "references/everything-claude-code/.kiro/skills/deployment-patterns/SKILL.md",
+    "references/everything-claude-code/.kiro/skills/docker-patterns/SKILL.md",
+    "references/everything-claude-code/commands/update-docs.md",
+    "references/everything-claude-code/examples/django-api-CLAUDE.md",
+    "references/everything-claude-code/examples/go-microservice-CLAUDE.md",
+    "references/everything-claude-code/examples/rust-api-CLAUDE.md",
+    "references/everything-claude-code/skills/deployment-patterns/SKILL.md",
+    "references/everything-claude-code/skills/django-verification/SKILL.md",
+    "references/everything-claude-code/skills/docker-patterns/SKILL.md",
+}
 
 public_files = subprocess.check_output(
     ["git", "-C", str(root), "ls-files", "-co", "--exclude-standard"],
     text=True,
 ).splitlines()
+ghost_tracked_files = subprocess.check_output(
+    ["git", "-C", str(root), "ls-files", "--cached", "-i", "--exclude-standard"],
+    text=True,
+).splitlines()
+scan_files = sorted({*public_files, *ghost_tracked_files})
 
 first_party_hits = []
-vendored_hits = []
-for rel_path in public_files:
+allowed_vendored_hits = []
+unexpected_vendored_hits = []
+ghost_tracked_hits = []
+ghost_tracked_set = {path for path in ghost_tracked_files if path.strip()}
+for rel_path in scan_files:
     if rel_path in allow_paths:
         continue
     if rel_path.startswith(".claude/skills/gstack/test/"):
@@ -51,18 +70,34 @@ for rel_path in public_files:
         continue
     for pattern in patterns:
         if pattern.search(text):
-            if rel_path.startswith("references/"):
-                vendored_hits.append(rel_path)
+            if rel_path in ghost_tracked_set:
+                ghost_tracked_hits.append(rel_path)
+            elif rel_path in allowed_vendored_example_paths:
+                allowed_vendored_hits.append(rel_path)
+            elif rel_path.startswith("references/"):
+                unexpected_vendored_hits.append(rel_path)
             else:
                 first_party_hits.append(rel_path)
             break
 
-if vendored_hits:
-    print("Note: vendored reference content contains credential-like example material:")
-    for rel_path in vendored_hits[:40]:
+if allowed_vendored_hits:
+    print("Allowed vendored reference files contain credential-like example material:")
+    for rel_path in allowed_vendored_hits[:40]:
         print(f"  {rel_path}")
-    if len(vendored_hits) > 40:
-        print(f"  ... and {len(vendored_hits) - 40} more")
+    if len(allowed_vendored_hits) > 40:
+        print(f"  ... and {len(allowed_vendored_hits) - 40} more")
+
+if unexpected_vendored_hits:
+    print("Unexpected credential-like hits in vendored references:")
+    for rel_path in unexpected_vendored_hits:
+        print(f"  {rel_path}")
+    raise SystemExit(1)
+
+if ghost_tracked_hits:
+    print("Credential-like hits in tracked-but-ignored files:")
+    for rel_path in ghost_tracked_hits:
+        print(f"  {rel_path}")
+    raise SystemExit(1)
 
 if first_party_hits:
     print("Secret-pattern hits in first-party workflow files:")

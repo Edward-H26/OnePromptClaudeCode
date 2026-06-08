@@ -119,7 +119,11 @@ SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // empty')
 SESSION_ID="$(sanitize_session_id "${SESSION_ID:-default}")"
 STEPS_DIR="$CLAUDE_HOME_DIR/tsc-cache/$SESSION_ID/workflow-steps"
 mkdir -p "$STEPS_DIR"
-mkdir -p "$STEPS_DIR/codex-kickoff" 2>/dev/null || true
+AUTO_CODEX_STEP="codex-kickoff"
+if [[ "${AUTO_CODEX_READ_ONLY:-0}" == "1" ]]; then
+    AUTO_CODEX_STEP="codex-eval"
+fi
+mkdir -p "$STEPS_DIR/$AUTO_CODEX_STEP" 2>/dev/null || true
 
 PROMPT_FILE="$(mktemp)" || { echo "Failed to create temp file" >&2; exit 1; }
 LAUNCH_SCRIPT="$(mktemp)" || { rm -f "$PROMPT_FILE"; echo "Failed to create temp file" >&2; exit 1; }
@@ -129,7 +133,11 @@ cat > "$LAUNCH_SCRIPT" <<'LAUNCH'
 export CLAUDE_PROJECT_DIR="$1"
 export AUTO_CODEX_HOME="$2"
 export AUTO_CODEX_RUNTIME_DIR="$3"
-"$4" -t "$(cat "$5")" -w "$1" -o "$6"
+codex_mode_args=(--full-auto)
+if [[ "${AUTO_CODEX_READ_ONLY:-0}" == "1" ]]; then
+    codex_mode_args=(--read-only)
+fi
+"$4" "${codex_mode_args[@]}" -t "$(cat "$5")" -w "$1" -o "$6"
 LAUNCH
 chmod +x "$LAUNCH_SCRIPT"
 nohup /bin/bash -c '
