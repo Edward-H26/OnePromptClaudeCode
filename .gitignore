@@ -51,7 +51,6 @@
 /tsc-cache/
 /.claude/tsc-cache/
 /.claude/runtime/
-/.claude/skills/codex/.runtime/
 /.claude/skills/super-ralph/.git/
 /.claude/skills/chrome-devtools/scripts/node_modules/
 /.claude/skills/chrome-devtools/scripts/docs/

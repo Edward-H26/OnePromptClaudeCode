@@ -37,13 +37,13 @@ expect_true() {
 run_skill_activation() {
     local prompt="$1"
     jq -n --arg prompt "$prompt" --arg session_id "audit" '{prompt: $prompt, session_id: $session_id}' |
-        CLAUDE_PROJECT_DIR="$ROOT" bash "$ROOT/.claude/hooks/skill-activation-prompt.sh"
+        CLAUDE_PROJECT_DIR="$ROOT" bash "$ROOT/.claude/hooks/task-orchestrator-hook.sh"
 }
 
 run_skill_activation_no_env() {
     local prompt="$1"
     jq -n --arg prompt "$prompt" --arg session_id "audit" '{prompt: $prompt, session_id: $session_id}' |
-        env -u CLAUDE_PROJECT_DIR bash "$ROOT/.claude/hooks/skill-activation-prompt.sh"
+        env -u CLAUDE_PROJECT_DIR bash "$ROOT/.claude/hooks/task-orchestrator-hook.sh"
 }
 
 run_task_orchestrator() {
@@ -103,69 +103,12 @@ EOF
     rm -rf "$tmp_dir"
 }
 
-run_auto_codex_trigger_with_stub() {
-    local prompt="$1"
-    local session_id="${2:-audit}"
-    local stub_dir
-    stub_dir="$(mktemp -d)"
-
-    cat > "$stub_dir/codex" <<'EOF'
-#!/bin/bash
-exit 0
-EOF
-
-    cat > "$stub_dir/ask_codex.sh" <<'EOF'
-#!/bin/bash
-set -e
-
-output_path=""
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        -o|--output)
-            output_path="${2:-}"
-            shift 2
-            ;;
-        *)
-            shift
-            ;;
-    esac
-done
-
-if [[ -n "$output_path" ]]; then
-    printf "stub codex feedback\n" > "$output_path"
-fi
-EOF
-
-    chmod +x "$stub_dir/codex" "$stub_dir/ask_codex.sh"
-
-    local result
-    result="$(jq -n --arg prompt "$prompt" --arg session_id "$session_id" '{prompt: $prompt, session_id: $session_id}' |
-        PATH="$stub_dir:$PATH" \
-        CLAUDE_PROJECT_DIR="$ROOT" \
-        AUTO_CODEX_SCRIPT="$stub_dir/ask_codex.sh" \
-        bash "$ROOT/.claude/hooks/auto-codex-trigger.sh")"
-    local exit_status=$?
-    local output_path codex_pid i
-    output_path="$(printf "%s\n" "$result" | awk -F': ' '/Output will be at:/ {print $2}')"
-    codex_pid="$(printf "%s\n" "$result" | awk -F': ' '/PID:/ {print $2}')"
-    for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
-        [[ -n "$output_path" ]] && [[ -s "$output_path" ]] && break
-        [[ -n "$codex_pid" ]] && ! kill -0 "$codex_pid" 2>/dev/null && break
-        sleep 0.1
-    done
-    if [[ -z "$codex_pid" ]] || ! kill -0 "$codex_pid" 2>/dev/null || [[ -s "$output_path" ]]; then
-        rm -rf "$stub_dir"
-    fi
-    printf "%s" "$result"
-    return $exit_status
-}
-
 run_tsc_hook_regression() {
     local tmp_dir
     tmp_dir="$(mktemp -d)"
 
     mkdir -p "$tmp_dir/.claude/hooks/lib" "$tmp_dir/.claude/skills" "$tmp_dir/.claude/tsc-cache/test" "$tmp_dir/app" "$tmp_dir/pkg"
-    cp "$ROOT/.claude/hooks/tsc-check.sh" "$tmp_dir/.claude/hooks/"
+    cp "$ROOT/.claude/hooks/post-edit-check.sh" "$tmp_dir/.claude/hooks/"
     cp "$ROOT/.claude/hooks/lib/utils.sh" "$tmp_dir/.claude/hooks/lib/"
 
     cat > "$tmp_dir/jq" <<'EOF'
@@ -200,19 +143,19 @@ EOF
     set +e
     PATH="$tmp_dir:$PATH" \
         CLAUDE_PROJECT_DIR="$tmp_dir" \
-        bash "$tmp_dir/.claude/hooks/tsc-check.sh" <<< "$hook_input" >/dev/null 2>"$tmp_dir/stderr.log"
+        bash "$tmp_dir/.claude/hooks/post-edit-check.sh" <<< "$hook_input" >/dev/null 2>"$tmp_dir/stderr.log"
     local hook_status=$?
     set -e
 
     if [[ "$hook_status" -eq 0 ]]; then
-        echo "tsc-check regression hook should fail when stubbed tsc reports errors" >&2
+        echo "post-edit-check regression hook should fail when stubbed tsc reports errors" >&2
         rm -rf "$tmp_dir"
         exit 1
     fi
 
     local affected_path="$tmp_dir/.claude/tsc-cache/test/affected-repos.txt"
     if [[ ! -f "$affected_path" ]]; then
-        echo "tsc-check regression hook did not write affected-repos.txt" >&2
+        echo "post-edit-check regression hook did not write affected-repos.txt" >&2
         rm -rf "$tmp_dir"
         exit 1
     fi
@@ -222,7 +165,7 @@ EOF
     local expected
     expected="$(printf "app\npkg")"
     if [[ "$affected_contents" != "$expected" ]]; then
-        echo "tsc-check should persist one repo per line in affected-repos.txt" >&2
+        echo "post-edit-check should persist one repo per line in affected-repos.txt" >&2
         printf 'Expected:\n%s\nActual:\n%s\n' "$expected" "$affected_contents" >&2
         rm -rf "$tmp_dir"
         exit 1
@@ -231,36 +174,3 @@ EOF
     rm -rf "$tmp_dir"
 }
 
-run_ask_codex_with_stub() {
-    local stub_dir
-    stub_dir="$(mktemp -d)"
-    mkdir -p "$stub_dir/source-home"
-
-    cat > "$stub_dir/codex" <<'EOF'
-#!/bin/bash
-set -e
-printf '%s\n' "$*" > "${STUB_ARGS_FILE:?}"
-if [[ "${1:-}" == "exec" && "${2:-}" == "resume" ]]; then
-    printf "resume response\n"
-    exit 0
-fi
-cat <<'JSON'
-{"type":"thread.started","thread_id":"stub-thread"}
-{"type":"item.completed","item":{"type":"agent_message","text":"stub response"}}
-JSON
-EOF
-    chmod +x "$stub_dir/codex"
-
-    local output
-    output="$(
-        PATH="$stub_dir:$PATH" \
-        STUB_ARGS_FILE="$stub_dir/args.txt" \
-        CLAUDE_PROJECT_DIR="$ROOT" \
-        AUTO_CODEX_HOME="$stub_dir/codex-home" \
-        AUTO_CODEX_RUNTIME_DIR="$stub_dir/runs" \
-        AUTO_CODEX_SOURCE_HOME="$stub_dir/source-home" \
-        bash "$ROOT/.claude/skills/codex/scripts/ask_codex.sh" "$@"
-    )"
-
-    printf '%s\nARGS_FILE=%s/args.txt\n' "$output" "$stub_dir"
-}

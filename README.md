@@ -4,7 +4,7 @@
 
 A complete Claude Code workflow that covers the entire software development lifecycle. Clone it, start coding, and never write a prompt from scratch again.
 
-26 skill entries. 20 commands. 14 agents. 10 local hooks. 4 templates. 11+ shared MCP servers. 600+ auto-triggers.
+71 skill entries. 66 commands. 14 agents. 4 local hooks. 4 templates. 11+ shared MCP servers. 600+ auto-triggers.
 
 Built for beginners. Scales for power users.
 
@@ -57,7 +57,6 @@ Zero prompts to write. Minimal repo setup. Machine-local plugin installs and aut
 - Add auth-sensitive, duplicate, or machine-fragile plugin integrations in `.claude/settings.local.json`, not the shared tracked config.
 - `bash scripts/doctor-workflow.sh` auto-seeds `.claude/settings.local.json` from the tracked example on first run, then preserves local overrides on later merges.
 - Ensure required MCP connectors and auth are healthy for the tools you actually use.
-- If you want the optional Codex background workflow, make sure `codex` is installed and authenticated.
 - Run `bash scripts/doctor-workflow.sh` after clone, and again after workflow or plugin changes.
 
 ### Utility scripts
@@ -77,10 +76,10 @@ Zero prompts to write. Minimal repo setup. Machine-local plugin installs and aut
 
 | Component | Count | Description |
 |---|---|---|
-| **Skills** | 26 | Bundled workflow skill entries available directly from the tracked repo |
-| **Commands** | 20 | Slash commands for planning, implementation, review, QA, and release handoff |
+| **Skills** | 71 | Bundled workflow skill entries available directly from the tracked repo |
+| **Commands** | 66 | Slash commands for planning, implementation, review, QA, and release handoff |
 | **Agents** | 14 | Specialized local agents for complex tasks |
-| **Hooks** | 10 | Automated safety, tracking, and validation hooks (all local) |
+| **Hooks** | 4 | Automated skill activation, type/lint checks, and workflow hooks (all local) |
 | **Templates** | 4 | Reusable prompt templates for common workflows |
 | **MCP Servers** | 11+ | Figma, GitHub, Playwright, HuggingFace, and other shared or user-scoped connectors |
 
@@ -92,7 +91,7 @@ The workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Te
 |---|---|---|
 | **Think** | YC-style brainstorming | `/office-hours` |
 | **Plan** | Architecture review and design plan review | `/plan-eng-review`, `/plan-design-review` |
-| **Review** | Staff engineer code review, OWASP security scanning | `/review-staff`, `/codex review` |
+| **Review** | Staff engineer code review, OWASP security scanning | `/review-staff` |
 | **Test** | Browser QA, webapp-testing | `/qa-only` (report-only) or invoke the `qa` skill via keyword |
 
 ### Safety
@@ -149,8 +148,6 @@ The workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Te
 | Skill | Trigger | What it does |
 |---|---|---|
 | `super-ralph` | `/super-ralph` | Fully autonomous multi-agent development (brainstorm or oneshot) |
-| `codex` (oiloil) | `/codex` and optional background auto-trigger | Delegate coding to Codex CLI via `ask_codex.sh`, plus cross-model review (review/challenge/consult) |
-| `gstack codex` | internal to `/review-staff` | Enhanced cross-model review with telemetry, platform detection, and plan file integration |
 | `autoresearch` | `/autoresearch` | Karpathy-style ML experiment loops |
 | `agentic-engineering` | ask about "agent development" | Agent development patterns |
 
@@ -167,7 +164,7 @@ The workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Te
 
 ## Selected Commands
 
-The repo tracks 20 slash commands. Common entry points are listed below.
+The repo tracks 66 slash commands. Common entry points are listed below.
 
 | Command | Purpose |
 |---|---|
@@ -175,7 +172,6 @@ The repo tracks 20 slash commands. Common entry points are listed below.
 | `/qa` | Browser QA testing + bug fixing |
 | `/review-staff` | Staff engineer code review |
 | `/investigate` | Root-cause debugging |
-| `/codex` | Cross-model review (review/challenge/consult) |
 | `/super-ralph` | Autonomous multi-agent execution (brainstorm or oneshot) |
 | `/autoresearch` | ML experiment loop |
 | `/careful` | Safety guardrails |
@@ -217,22 +213,10 @@ Automated hooks run at every stage of your workflow:
 
 | Hook | When | What it does |
 |---|---|---|
-| `check-careful.sh` | Before Bash | Warns before destructive commands (gstack skill) |
-| `check-freeze.sh` | Before Edit/MultiEdit/Write | Blocks edits outside frozen directory (gstack skill) |
-| `check-mcp.sh` | Before MCP tools | Records every MCP invocation, warns on mutating endpoints |
-| `task-orchestrator-hook.sh` | On prompt | Detects analysis vs coding tasks |
-| `skill-activation-prompt.sh` | On prompt | Suggests skills via 600+ keyword triggers |
-| `auto-codex-trigger.sh` | On prompt | Auto-launches Codex in background for coding tasks |
-| `memory-bootstrap.sh` | On prompt | Surfaces repo-local memory when it exists |
-| `post-tool-use-tracker.sh` | After Edit/MultiEdit/Write | Tracks edited files |
-| `tsc-check.sh` | After Edit/MultiEdit/Write | Runs TypeScript checks |
-| `lint-check.sh` | After Edit/MultiEdit/Write | Runs project-native linter (ruff/eslint/biome/shellcheck) on edited files |
-| `workflow-step-tracker.sh` | After Bash/Skill/MCP | Marks workflow completion |
+| `task-orchestrator-hook.sh` | On prompt | Detects analysis vs coding tasks, injects guidance, runs the skill-activation engine, and flags vague prompts for clarification |
+| `post-edit-check.sh` | After Edit/MultiEdit/Write | Runs TypeScript checks on affected repos, the native linter (ruff/eslint/biome/shellcheck) on edited files, a Python check (pyright or ruff) on edited `.py` files, and records the edit log |
+| `workflow-completion-gate.sh` | Session stop | Reminds to verify frontend changes in the browser, and cleans stale cache |
 | `session-start.sh` | Session start | Validates required local tools, bootstraps local settings, and injects baseline repo context |
-| `session-end.sh` | Session close | Appends session-close summary, rotates sessions log |
-| `pre-compact.sh` | Before context compaction | Snapshots in-progress state to `runtime/last-precompact.md` |
-| `stop-build-check-enhanced.sh` | Session stop | Re-runs all checks |
-| `workflow-completion-gate.sh` | Session stop | Advisory reminders, cleanup |
 
 ---
 
@@ -278,12 +262,12 @@ Ready-to-use templates at `.claude/prompt-templates/`:
   CLAUDE-skills.md       # Skills inventory reference
   WORKFLOW-REFERENCE.md  # Complete reference (single source of truth)
   settings.json          # Permissions, hooks, plugins, env
-  runtime/               # Repo-local ignored runtime state for safety and Codex
+  runtime/               # Repo-local ignored runtime state for safety and workflow artifacts
   agents/                # 14 local agent definitions
-  commands/              # 20 slash commands
-  hooks/                 # 10 local hook scripts
+  commands/              # 66 slash commands
+  hooks/                 # 4 local hook scripts
   prompt-templates/      # 4 reusable templates
-  skills/                # 26 skill entries
+  skills/                # 71 skill entries
     skill-rules.json     # 400+ keyword trigger engine
     [local skills]       # Backend, frontend, testing, research, and utility skills
 social/                  # Social media assets and demo video
@@ -300,7 +284,6 @@ This workflow integrates and builds upon the work of incredible community projec
 | [gstack](https://github.com/garrytan/gstack) | @garrytan | Think-Plan-Build-Review-Test-Ship-Reflect cycle |
 | [Super Ralph](https://github.com/ashcastelinocs124/super-ralph) | @ashcastelinocs124 | Autonomous multi-agent execution |
 | [everything-claude-code](https://github.com/affaan-m/everything-claude-code) | @affaan-m | Claude Code patterns and community resources |
-| Codex skill | @oiloil | Cross-model review via Codex CLI |
 | autoresearch | Karpathy-inspired | Autonomous ML research loops |
 | Agentic Engineering | Cognition's ECC | Eval-driven development patterns |
 | Continuous Claude | @AnandChowdhary | Continuous PR loop pattern |

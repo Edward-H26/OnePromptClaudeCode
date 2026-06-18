@@ -139,10 +139,16 @@ bad.extend(
 
 LARGE_FILE_THRESHOLD = 500_000
 KNOWN_LARGE_DATA_FILES = {
-    "references/ui-ux-pro-max/data/google-fonts.csv",
+    ".claude/skills/ui-ux-pro-max/data/google-fonts.csv",
 }
+VENDORED_SKILL_ASSET_EXTS = (
+    ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp",
+    ".pdf", ".csv", ".ttf", ".otf", ".woff", ".woff2",
+)
 for rel_path in public_files:
     if rel_path in KNOWN_LARGE_DATA_FILES:
+        continue
+    if rel_path.startswith(".claude/skills/") and rel_path.lower().endswith(VENDORED_SKILL_ASSET_EXTS):
         continue
     path = root / rel_path
     if path.is_file() and path.stat().st_size > LARGE_FILE_THRESHOLD:

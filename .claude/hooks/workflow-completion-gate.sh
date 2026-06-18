@@ -14,119 +14,18 @@ SESSION_ID=$(echo "$HOOK_INPUT" | jq -r '.session_id // empty' 2>/dev/null || ec
 SESSION_ID="$(sanitize_session_id "${SESSION_ID:-default}")"
 
 CACHE_DIR="$CLAUDE_HOME_DIR/tsc-cache/$SESSION_ID"
-STEPS_DIR="$CACHE_DIR/workflow-steps"
-CODEX_FEEDBACK_DIR="$STEPS_DIR/codex-feedback"
 
-if [[ ! -d "$CODEX_FEEDBACK_DIR" ]] && [[ ! -f "$CACHE_DIR/affected-repos.txt" ]]; then
-    if [[ ! -f "$CACHE_DIR/edited-files.log" ]]; then
-        safe_rm_cache "$CACHE_DIR"
-        exit 0
-    fi
-fi
-
-if [[ ! -d "$CODEX_FEEDBACK_DIR" ]] && [[ ! -f "$CACHE_DIR/commands.txt" ]] && [[ ! -f "$CACHE_DIR/edited-files.log" ]]; then
-    safe_rm_cache "$CACHE_DIR"
-    exit 0
-fi
-
-if [[ -d "$CACHE_DIR/gate-fired" ]]; then
-    rmdir "$CACHE_DIR/gate-fired" 2>/dev/null || true
-fi
-
-MISSING=""
-COMPLETED=""
-
-if [[ -f "$CACHE_DIR/affected-repos.txt" ]] && [[ -s "$CACHE_DIR/affected-repos.txt" ]]; then
-    if [[ -d "$STEPS_DIR/codex-kickoff" ]]; then
-        COMPLETED="${COMPLETED}[x] Optional Codex kickoff recorded\n"
-    else
-        MISSING="${MISSING}[ ] Optional Codex kickoff not recorded\n"
-    fi
-
-    if [[ -d "$STEPS_DIR/simplify-review" ]]; then
-        COMPLETED="${COMPLETED}[x] Optional simplification review recorded\n"
-    else
-        MISSING="${MISSING}[ ] Optional simplification review not recorded\n"
-    fi
-
-    if [[ -d "$STEPS_DIR/codex-eval" ]]; then
-        COMPLETED="${COMPLETED}[x] Optional Codex evaluation recorded\n"
-    else
-        MISSING="${MISSING}[ ] Optional Codex evaluation not recorded\n"
-    fi
-fi
-
-HAS_FRONTEND_FILES=0
 if awk -F'\t' '{print $2}' "$CACHE_DIR/edited-files.log" 2>/dev/null | grep -qE '\.(tsx|jsx|css|scss)$'; then
-    HAS_FRONTEND_FILES=1
-fi
-
-if [[ "$HAS_FRONTEND_FILES" -gt 0 ]]; then
-    if [[ -d "$STEPS_DIR/chrome-verification" ]]; then
-        COMPLETED="${COMPLETED}[x] Browser verification recorded\n"
-    else
-        MISSING="${MISSING}[ ] Frontend files changed without recorded browser verification\n"
-    fi
-fi
-
-if [[ -n "$MISSING" ]]; then
-    mkdir -p "$CACHE_DIR/gate-fired" 2>/dev/null || true
     {
         echo ""
-        echo "Workflow reminder:"
-        printf '%b\n' "$MISSING"
-        echo "These are optional workflow signals. Build and type failures are still enforced by the validation hooks."
+        echo "Browser verification reminder:"
+        echo "Frontend files (.tsx/.jsx/.css/.scss) changed this session."
+        echo "Verify the affected UI in the browser tooling available in this session."
         echo ""
     } >&2
 fi
-
-surface_codex_feedback() {
-    [[ -d "$CODEX_FEEDBACK_DIR" ]] || return 0
-
-    local records=()
-    local record
-    for record in "$CODEX_FEEDBACK_DIR"/*.json; do
-        [[ -f "$record" ]] || continue
-        records+=("$record")
-    done
-
-    [[ ${#records[@]} -gt 0 ]] || return 0
-
-    {
-        for record in "${records[@]}"; do
-            local output_path log_path pid_path pid
-            output_path=$(jq -r '.output_path // ""' "$record" 2>/dev/null || echo "")
-            log_path=$(jq -r '.log_path // ""' "$record" 2>/dev/null || echo "")
-            pid_path=$(jq -r '.pid_path // ""' "$record" 2>/dev/null || echo "")
-            pid=$(jq -r '.pid // ""' "$record" 2>/dev/null || echo "")
-
-            if [[ -n "$output_path" ]] && [[ -s "$output_path" ]]; then
-                echo ""
-                echo "Codex background feedback:"
-                echo "Source: $output_path"
-                echo "----- BEGIN CODEX FEEDBACK -----"
-                cat "$output_path"
-                echo "----- END CODEX FEEDBACK -----"
-                mv "$record" "$record.shown" 2>/dev/null || true
-            else
-                echo ""
-                echo "Codex background feedback is still pending."
-                [[ -n "$output_path" ]] && echo "Expected output: $output_path"
-                [[ -n "$log_path" ]] && echo "Run log: $log_path"
-                if [[ -n "$pid_path" ]] && [[ -f "$pid_path" ]]; then
-                    echo "PID: $(cat "$pid_path" 2>/dev/null)"
-                elif [[ -n "$pid" ]]; then
-                    echo "PID: $pid"
-                fi
-            fi
-        done
-    } >&2
-}
-
-surface_codex_feedback
 
 # Session tsc-cache uses 14-day retention because it may span multiple sessions.
-# Codex run artifacts use a shorter 7-day retention (see auto-codex-trigger.sh).
 TSC_CACHE_ROOT="$CLAUDE_HOME_DIR/tsc-cache"
 if [[ -d "$TSC_CACHE_ROOT" ]]; then
     while IFS= read -r stale_dir; do

@@ -61,7 +61,7 @@ auditHookSmokes() {
     fi
 
     SKILL_OUTPUT="$(run_skill_activation "Can you check the theme of this report?")"
-    if printf "%s\n" "$SKILL_OUTPUT" | grep -q "ui-styling"; then
+    if printf "%s\n" "$SKILL_OUTPUT" | grep -q -- "-> ui-styling"; then
         echo "Unexpected ui-styling activation for theme-in-prose prompt" >&2
         exit 1
     fi
@@ -75,14 +75,14 @@ auditHookSmokes() {
     done
 
     SKILL_OUTPUT="$(run_skill_activation "Implement a secure route testing workflow in .claude hooks and update gitignore for runtime state.")"
-    if printf "%s\n" "$SKILL_OUTPUT" | grep -q "backend-dev-guidelines"; then
+    if printf "%s\n" "$SKILL_OUTPUT" | grep -q -- "-> backend-dev-guidelines"; then
         echo "Unexpected backend skill activation for workflow-hardening prompt" >&2
         exit 1
     fi
 
     SKILL_OUTPUT="$(run_skill_activation_no_env "Audit the Claude workflow hooks and settings.json.")"
     if ! printf "%s\n" "$SKILL_OUTPUT" | grep -q "search-first"; then
-        echo "skill-activation-prompt.sh should work without CLAUDE_PROJECT_DIR" >&2
+        echo "task-orchestrator-hook.sh should work without CLAUDE_PROJECT_DIR" >&2
         exit 1
     fi
 
@@ -281,85 +281,6 @@ auditHookSmokes() {
         }
     fi
 
-    local AUTO_OUTPUT_ONE AUTO_OUTPUT_TWO AUTO_PATH_ONE AUTO_PATH_TWO AUTO_DIR_ONE AUTO_DIR_TWO AUDIT_NONCE AUTO_SESSION
-    AUDIT_NONCE="$(date +%s%N)-$$"
-    AUTO_SESSION="audit-${AUDIT_NONCE}"
-    AUTO_OUTPUT_ONE="$(run_auto_codex_trigger_with_stub "Update the hook scripts and settings.json to harden the workflow audit-${AUDIT_NONCE}-a." "$AUTO_SESSION")"
-    AUTO_OUTPUT_TWO="$(run_auto_codex_trigger_with_stub "Refactor the hook scripts to harden the workflow audit surface audit-${AUDIT_NONCE}-b." "$AUTO_SESSION")"
-    AUTO_PATH_ONE="$(printf "%s\n" "$AUTO_OUTPUT_ONE" | awk -F': ' '/Output will be at:/ {print $2}')"
-    AUTO_PATH_TWO="$(printf "%s\n" "$AUTO_OUTPUT_TWO" | awk -F': ' '/Output will be at:/ {print $2}')"
-    AUTO_DIR_ONE="$(dirname "$AUTO_PATH_ONE")"
-    AUTO_DIR_TWO="$(dirname "$AUTO_PATH_TWO")"
-
-    if [[ -z "$AUTO_PATH_ONE" ]] || [[ -z "$AUTO_PATH_TWO" ]] || [[ "$AUTO_DIR_ONE" == "$AUTO_DIR_TWO" ]]; then
-        echo "auto-codex-trigger.sh should create unique artifact directories" >&2
-        exit 1
-    fi
-
-    sleep 1
-    for auto_dir in "$AUTO_DIR_ONE" "$AUTO_DIR_TWO"; do
-        if [[ ! -f "$auto_dir/run.log" ]] || [[ ! -f "$auto_dir/run.pid" ]]; then
-            echo "Missing expected auto-codex artifact files in $auto_dir" >&2
-            exit 1
-        fi
-    done
-
-    if ! printf "%s\n%s\n" "$AUTO_OUTPUT_ONE" "$AUTO_OUTPUT_TWO" | grep -q "Required Codex feedback handoff"; then
-        echo "auto-codex-trigger.sh should print the required Codex feedback handoff" >&2
-        exit 1
-    fi
-
-    local AUTO_CACHE_DIR AUTO_GATE_OUTPUT
-    AUTO_CACHE_DIR="$ROOT/.claude/tsc-cache/$AUTO_SESSION"
-    mkdir -p "$AUTO_CACHE_DIR"
-    printf "audit\tREADME.md\n" > "$AUTO_CACHE_DIR/edited-files.log"
-    AUTO_GATE_OUTPUT="$(jq -n --arg session_id "$AUTO_SESSION" '{session_id: $session_id}' |
-        CLAUDE_PROJECT_DIR="$ROOT" bash "$ROOT/.claude/hooks/workflow-completion-gate.sh" 2>&1)"
-    if ! printf "%s\n" "$AUTO_GATE_OUTPUT" | grep -q "stub codex feedback"; then
-        echo "workflow-completion-gate.sh should surface completed background Codex feedback" >&2
-        exit 1
-    fi
-
-    local ASK_OUTPUT ASK_PATH ASK_ARGS_FILE
-    ASK_OUTPUT="$(run_ask_codex_with_stub "Summarize the repo layout" --read-only -o "$ROOT/.claude/runtime/codex/audit-smoke.md")"
-    ASK_PATH="$(printf "%s\n" "$ASK_OUTPUT" | awk -F= '/^output_path=/ {print $2}')"
-    ASK_ARGS_FILE="$(printf "%s\n" "$ASK_OUTPUT" | awk -F= '/^ARGS_FILE=/ {print $2}')"
-    if [[ -z "$ASK_PATH" ]] || [[ ! -f "$ASK_PATH" ]] || ! grep -q "stub response" "$ASK_PATH"; then
-        echo "ask_codex.sh should capture JSON mode output from Codex" >&2
-        exit 1
-    fi
-    if ! printf "%s\n" "$ASK_OUTPUT" | grep -q '^session_id=stub-thread$'; then
-        echo "ask_codex.sh should emit session_id for new sessions" >&2
-        exit 1
-    fi
-    if [[ ! -f "$ASK_ARGS_FILE" ]] || ! grep -q -- '--json' "$ASK_ARGS_FILE"; then
-        echo "ask_codex.sh should request JSON mode for new sessions" >&2
-        exit 1
-    fi
-
-    ASK_OUTPUT="$(run_ask_codex_with_stub "Follow up" --session stub-session --read-only -o "$ROOT/.claude/runtime/codex/audit-resume.md")"
-    ASK_PATH="$(printf "%s\n" "$ASK_OUTPUT" | awk -F= '/^output_path=/ {print $2}')"
-    ASK_ARGS_FILE="$(printf "%s\n" "$ASK_OUTPUT" | awk -F= '/^ARGS_FILE=/ {print $2}')"
-    if [[ -z "$ASK_PATH" ]] || [[ ! -f "$ASK_PATH" ]] || ! grep -q "resume response" "$ASK_PATH"; then
-        echo "ask_codex.sh should capture resume-mode output from Codex" >&2
-        exit 1
-    fi
-    if ! printf "%s\n" "$ASK_OUTPUT" | grep -q '^session_id=stub-session$'; then
-        echo "ask_codex.sh should preserve the caller session_id for resume mode" >&2
-        exit 1
-    fi
-    if [[ ! -f "$ASK_ARGS_FILE" ]] || ! grep -q '^exec resume ' "$ASK_ARGS_FILE"; then
-        echo "ask_codex.sh should use codex exec resume for resumed sessions" >&2
-        exit 1
-    fi
-    if grep -q -- '--json' "$ASK_ARGS_FILE" || grep -q -- '--sandbox' "$ASK_ARGS_FILE"; then
-        echo "ask_codex.sh should not pass unsupported resume flags" >&2
-        exit 1
-    fi
-
-    for f in "$ASK_ARGS_FILE"; do
-        [[ -n "$f" && -f "$f" ]] && rm -rf "$(dirname "$f")"
-    done
 
     SKILL_OUTPUT="$(run_skill_activation "How do these modules relate to each other?")"
     if printf "%s\n" "$SKILL_OUTPUT" | grep -q "ship"; then
@@ -374,7 +295,7 @@ auditHookSmokes() {
     fi
 
     SKILL_OUTPUT="$(run_skill_activation "What did we discuss in the last session?")"
-    if printf "%s\n" "$SKILL_OUTPUT" | grep -q "backend-dev-guidelines"; then
+    if printf "%s\n" "$SKILL_OUTPUT" | grep -q -- "-> backend-dev-guidelines"; then
         echo "Unexpected backend skill activation for conversation prompt" >&2
         exit 1
     fi

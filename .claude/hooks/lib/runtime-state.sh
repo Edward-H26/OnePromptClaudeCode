@@ -39,16 +39,3 @@ gstack_freeze_path() {
     echo "$(gstack_state_dir)/freeze-dir.txt"
 }
 
-codex_runtime_root() {
-    local fallback
-    fallback="$(workflow_runtime_root)/codex"
-    expand_shell_path "${AUTO_CODEX_RUNTIME_ROOT:-$fallback}"
-}
-
-codex_home_dir() {
-    expand_shell_path "${AUTO_CODEX_HOME:-$(codex_runtime_root)/home}"
-}
-
-codex_runs_dir() {
-    expand_shell_path "${AUTO_CODEX_RUNTIME_DIR:-$(codex_runtime_root)/runs}"
-}

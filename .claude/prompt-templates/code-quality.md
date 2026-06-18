@@ -31,7 +31,7 @@ Start with `search-first`. Review the real code and settings before drawing conc
 
 1. Prioritize bugs, regressions, security issues, and missing tests.
 2. Use `security-review` for code risks and `security-scan` for workflow or config risks.
-3. Use `/codex review` or `/codex challenge` only when an independent second opinion adds value.
+3. Use `/review-staff` or the `code-review` plugin when an independent second opinion adds value.
 4. If UI behavior is in scope, verify it in browser tooling when feasible.
 5. Present findings first, ordered by severity, with file references and fix direction.
 

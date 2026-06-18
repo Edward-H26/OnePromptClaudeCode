@@ -112,7 +112,6 @@ allowlisted_prefixes = (
     ".claude/session-data/",
     ".claude/homunculus/",
     ".claude/checkpoints/",
-    ".claude/skills/codex/.runtime/",
     ".claude/settings.local.json",
     ".claude.json",
     ".credentials.json",

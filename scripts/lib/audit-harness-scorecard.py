@@ -24,28 +24,10 @@ SETTINGS = ROOT / ".claude" / "settings.json"
 
 SENSORS = [
     {
-        "name": "tsc-check",
-        "hook_name": "tsc-check.sh",
-        "file_types": {".ts", ".tsx", ".js", ".jsx"},
-        "purpose": "TypeScript type check",
-    },
-    {
-        "name": "lint-check",
-        "hook_name": "lint-check.sh",
-        "file_types": {".ts", ".tsx", ".js", ".jsx", ".py", ".sh", ".mjs", ".cjs"},
-        "purpose": "Linter on edit",
-    },
-    {
-        "name": "post-tool-use-tracker",
-        "hook_name": "post-tool-use-tracker.sh",
+        "name": "post-edit-check",
+        "hook_name": "post-edit-check.sh",
         "file_types": {"*"},
-        "purpose": "Edit audit trail",
-    },
-    {
-        "name": "check-mcp",
-        "hook_name": "check-mcp.sh",
-        "file_types": {"*"},
-        "purpose": "MCP invocation audit",
+        "purpose": "Type check, lint, edit log",
     },
 ]
 

@@ -471,51 +471,6 @@ PY
     rm -f "$mcp_log"
 }
 
-doctorCodexSmoke() {
-    if ! command -v codex >/dev/null 2>&1; then
-        warn "Codex CLI not installed; optional Codex workflow unavailable"
-        return
-    fi
-
-    local CODEX_VERSION
-    CODEX_VERSION="$(codex --version 2>/dev/null || echo "unknown")"
-    echo "  Codex version: $CODEX_VERSION"
-
-    local codex_runtime_root="$ROOT/.claude/runtime/codex"
-    local codex_output="$codex_runtime_root/doctor-smoke.md"
-    local codex_stdout codex_stderr
-    codex_stdout="$(mktemp)"
-    codex_stderr="$(mktemp)"
-    mkdir -p "$codex_runtime_root"
-
-    if CLAUDE_PROJECT_DIR="$ROOT" \
-        AUTO_CODEX_HOME="$codex_runtime_root/home" \
-        AUTO_CODEX_RUNTIME_DIR="$codex_runtime_root/runs" \
-        bash "$ROOT/.claude/skills/codex/scripts/ask_codex.sh" \
-        --read-only \
-        -w "$ROOT" \
-        -o "$codex_output" \
-        "Reply with only the text ok." \
-        >"$codex_stdout" 2>"$codex_stderr"; then
-        if grep -qi '^ok$' "$codex_output"; then
-            pass "Codex read-only smoke test passed"
-        else
-            warn "Codex ran, but the output was not the expected smoke-test text"
-            print_file_head "$codex_output"
-        fi
-    else
-        warn "Codex read-only smoke test failed; optional Codex workflow unavailable until authenticated/configured"
-        echo "  Diagnostics:"
-        echo "  - Verify OPENAI_API_KEY or ANTHROPIC_API_KEY is set"
-        echo "  - Or run: CODEX_HOME=\"$codex_runtime_root/home\" codex --login"
-        echo "  - Run: codex --version"
-        echo "  - Run: codex 'Reply with ok' --read-only"
-        print_file_head "$codex_stderr"
-        print_file_head "$codex_output"
-    fi
-
-    rm -f "$codex_stdout" "$codex_stderr"
-}
 
 doctorGitSurface() {
     local status_output

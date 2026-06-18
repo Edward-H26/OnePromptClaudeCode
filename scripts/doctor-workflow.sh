@@ -29,7 +29,7 @@ Usage: $0 [options]
 Options:
   --json              Emit a structured JSON summary at the end
   --strict            Treat warnings as failures (useful for CI)
-  --fast              Skip slow steps (MCP, Codex smoke)
+  --fast              Skip slow steps (MCP)
   --deps              Run dependency vulnerability scan (npm/pip/cargo audit)
   --timeout=SECONDS   Per-step timeout (default: 180)
   --help              Show this help
@@ -283,7 +283,6 @@ run_step "Shared plugin health" doctorPluginHealth
 
 if [[ "$FAST_MODE" == false ]]; then
     run_step "MCP health" doctorMcpHealth
-    run_step "Codex read-only smoke" doctorCodexSmoke
 fi
 
 run_step "Git surface check" doctorGitSurface

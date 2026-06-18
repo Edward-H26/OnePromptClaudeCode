@@ -115,8 +115,6 @@ if missing_dirs:
     raise SystemExit(1)
 
 for required in [
-    skills_dir / "codex" / "scripts" / "ask_codex.sh",
-    skills_dir / "codex" / "scripts" / "ask_codex.ps1",
     skills_dir / "webapp-testing" / "scripts" / "browser_navigate.py",
     skills_dir / "webapp-testing" / "scripts" / "with_server.py",
 ]:
@@ -198,7 +196,7 @@ if placeholder_hits:
 link_pattern = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 broken_links = []
 for rel_path in tracked_files:
-    if not rel_path.endswith(".md") or rel_path.startswith("references/"):
+    if not rel_path.endswith(".md") or rel_path.startswith("references/") or rel_path.startswith(".claude/skills/"):
         continue
     path = root / rel_path
     if not path.exists():

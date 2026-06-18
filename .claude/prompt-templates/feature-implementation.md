@@ -349,17 +349,16 @@ Launch a general-purpose subagent or use `verification-loop`, `webapp-testing`, 
 
 Output: a test report with post-change results, eval results, and any regressions.
 
-### Agent 6: Codex Reviewer (Cross-Model Review)
+### Agent 6: Independent Reviewer
 
-Use the `/codex` skill to invoke cross-model review.
+Run an independent review of the changes.
 
-- Run `/codex review` on all changed files for an independent code review.
-- Run `/codex challenge` to adversarially stress-test the implementation.
+- Use `/review-staff` or the `code-review` plugin on all changed files for a staff-level review.
 - Check changes against `[REQUIREMENTS]` for completeness.
 - Use `code-simplifier` to identify unnecessary complexity.
-- If Codex identifies issues, iterate: fix, re-review, repeat until clean.
+- If the review identifies issues, iterate: fix, re-review, repeat until clean.
 
-Output: a Codex review report with all findings addressed.
+Output: a review report with all findings addressed.
 
 ### Agent 7: Visual Verifier (Browser Testing Loop)
 
@@ -468,7 +467,7 @@ Phase 3 (Super Ralph autonomous loop):
     Per-task learnings -> dependency injection for dependent tasks
 
 Phase 4 (validation):
-  Agent 5 (Validator) ---> Agent 6 (Codex) ---> Agent 7 (Visual Verifier)
+  Agent 5 (Validator) ---> Agent 6 (Review) ---> Agent 7 (Visual Verifier)
                               |                      |
                               +--- fix loop ---------+
 

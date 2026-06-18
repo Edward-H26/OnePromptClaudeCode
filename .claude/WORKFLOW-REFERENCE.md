@@ -7,9 +7,9 @@
 This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Test, Ship, Reflect**. Each phase has dedicated skills that feed into the next. Skills are activated automatically via keyword triggers or manually via slash commands.
 
 **Global config**: On some local setups, a user-scoped Claude home directory may be symlinked to this project directory. This is a machine-specific convention, not a requirement of the published repo.
-**Repo-local multi-model flow**: `/multi-plan` and `/multi-execute` use the bundled Codex bridge plus installed plugin agents. The Codex bridge now writes repo-local runtime state under `.claude/runtime/codex/`.
+**Repo-local multi-model flow**: `/multi-plan` and `/multi-execute` use installed plugin agents.
 **Published surface**: This repo tracks the workflow content it runs. All shipped skills live as local SKILL.md directories under `.claude/skills/`; no vendored upstream sources are required.
-**Live readiness**: Use `bash scripts/doctor-workflow.sh` for plugin, MCP, and Codex runtime checks. Use `bash scripts/audit-workflow.sh` for static repo-surface validation.
+**Live readiness**: Use `bash scripts/doctor-workflow.sh` for plugin and MCP checks. Use `bash scripts/audit-workflow.sh` for static repo-surface validation.
 **Plugin split**: The tracked shared config enables only the repo-stable baseline. Auth-sensitive, duplicate, or machine-fragile integrations such as GitHub, context7, plugin-provided Figma/Playwright MCP servers, `superpowers`, and `huggingface-skills` belong in `.claude/settings.local.json`. Use `.claude/settings.local.example.json` as the tracked starting point for those local overrides; it lists the optional plugins but leaves them disabled until a local machine explicitly enables them. Project-scoped shared MCP servers belong in the tracked [`.mcp.json`](/Users/edwardhu/Desktop/agent/claude/.mcp.json). `bash scripts/doctor-workflow.sh` now auto-creates or merges `.claude/settings.local.json` from that tracked example on first run. If doctor warns about enabled plugins that are also blocklisted in ignored local state, clear the stale local blocklist entry before relying on that plugin.
 
 ---
@@ -71,7 +71,6 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 
 | Skill | Trigger | What it does |
 |---|---|---|
-| `codex` (oiloil) | `/codex` or auto-trigger | Delegate coding tasks to Codex CLI via bundled `ask_codex.sh`. Also provides cross-model review modes (review/challenge/consult) via direct `codex` CLI. |
 
 ### Research and Content Skills
 
@@ -102,7 +101,6 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 | `/refine` | Evaluator-optimizer refinement loop | `/refine <scope>` |
 | `/remotion` | Scaffold / edit / render Remotion video | `/remotion <instruction>` |
 | `/investigate` | Root-cause debugging | `/investigate <bug description>` |
-| `/codex` | Coding delegation and cross-model review (oiloil) | `/codex review`, `/codex challenge`, `/codex <task>` |
 | `/build-fix` | Fix build errors | `/build-fix` |
 
 ---
@@ -114,7 +112,7 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 | `architect` | Architecture design | Designing system architecture with implementation focus |
 | `architecture-review-system` | Architecture review | Reviewing existing architecture for issues |
 | `build-error-resolver` | Fix build errors | Automated build error resolution |
-| `auto-error-resolver` | Fix errors post-hook | Auto-triggered by tsc-check when errors exceed threshold |
+| `auto-error-resolver` | Fix errors post-hook | Suggested by post-edit-check when TypeScript errors are found |
 | `code-refactor-master` | Bulk refactoring | Large-scale code transformations |
 | `context-manager` | Context management | Managing conversation context and state |
 | `database-reviewer` | Database review | Reviewing schemas, queries, migrations, indexes |
@@ -169,18 +167,13 @@ Availability depends on the local Claude installation, enabled plugins, ignored 
 
 ## Hooks System
 
-The 10 locally-maintained tracked hook scripts live in `.claude/hooks/`. All hooks are repo-local. The `auto-codex-trigger.sh` script remains on disk but is intentionally un-wired (disabled) until the Codex CLI is authenticated; re-add it to the `UserPromptSubmit` block in `settings.json` to re-enable.
+The 4 locally-maintained tracked hook scripts live in `.claude/hooks/`. All hooks are repo-local and wired in `settings.json`.
 
 | Hook | When | What it does |
 |---|---|---|
-| **PreToolUse** | Before MCP tools | `check-mcp.sh`: Records every MCP invocation to hook-metrics.jsonl for audit trail |
-| **UserPromptSubmit** | On prompt | `task-orchestrator-hook.sh`: Detects analysis vs coding, injects guidance |
-| **UserPromptSubmit** | On prompt | `skill-activation-prompt.sh`: Suggests skills based on keyword matching |
-| **PostToolUse** | After Edit/MultiEdit/Write | `post-tool-use-tracker.sh`: Tracks edited files for downstream hooks |
-| **PostToolUse** | After Edit/MultiEdit/Write | `tsc-check.sh`: Runs TypeScript checks on modified files |
-| **PostToolUse** | After Edit/MultiEdit/Write | `lint-check.sh`: Runs native linter (ruff/eslint/biome/shellcheck) on edited files |
-| **Stop** | Session end | `stop-build-check-enhanced.sh`: Re-runs TSC checks at session end |
-| **Stop** | Session end | `workflow-completion-gate.sh`: Advisory reminders, cleans stale cache |
+| **UserPromptSubmit** | On prompt | `task-orchestrator-hook.sh`: Detects analysis vs coding, injects guidance, runs the skill-activation engine, and flags vague prompts for clarification |
+| **PostToolUse** | After Edit/MultiEdit/Write | `post-edit-check.sh`: Runs TypeScript checks on affected repos, the native linter (ruff/eslint/biome/shellcheck) on edited files, and a Python check (pyright or ruff) on edited `.py` files, and records the edit log |
+| **Stop** | Session end | `workflow-completion-gate.sh`: Reminds to verify frontend changes in the browser, cleans stale cache |
 | **SessionStart** | New session | `session-start.sh`: Validates required local tools, auto-bootstraps local settings, and re-injects baseline repo rules |
 
 ---
@@ -208,7 +201,7 @@ These are repo-local starting points, not hard-gated control flows. They must st
 | **Think** | office-hours, plan-ceo-review | `/office-hours` |
 | **Plan** | plan-eng-review, plan-design-review, design-consultation | `/multi-plan`, `/plan-eng-review`, `/plan-design-review` |
 | **Build** | backend/frontend-dev-guidelines, code-refactor | `/build-fix`, `/orchestrate` |
-| **Review** | review, design-review, codex | `/review-staff`, `/codex review` |
+| **Review** | review, design-review | `/review-staff` |
 | **Test** | qa, qa-only, webapp-testing | `/qa`, `/qa-only` |
 | **Ship** | ship, document-release | `/ship` |
 | **Reflect** | retro | `/retro` |

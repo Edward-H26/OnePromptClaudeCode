@@ -1,6 +1,6 @@
 # Hooks
 
-Claude Code hooks that enable skill auto-activation, file tracking, workflow reminders, and validation.
+Claude Code hooks that enable skill auto-activation, type and lint checks, and workflow reminders. All 4 hooks are repo-local and wired in `.claude/settings.json`.
 
 ---
 
@@ -8,18 +8,18 @@ Claude Code hooks that enable skill auto-activation, file tracking, workflow rem
 
 - **jq** (required): All hooks depend on jq for JSON parsing. Hooks degrade silently if jq is missing. Install via `brew install jq` (macOS), `apt-get install jq` (Linux), or `winget install stedolan.jq` / `choco install jq` (Windows).
 - **bash 4+** (recommended): Hooks use associative arrays and modern bash features.
-- **codex** (optional): Required only for `auto-codex-trigger.sh`. Other hooks work without it.
 
 ---
 
 ## What Are Hooks?
 
 Hooks are scripts that run at specific points in Claude's workflow:
-- **UserPromptSubmit**: When user submits a prompt
+- **UserPromptSubmit**: When the user submits a prompt
 - **PostToolUse**: After a tool completes
 - **Stop**: When Claude finishes responding
+- **SessionStart**: When a session begins
 
-**Key insight:** Hooks can modify prompts and track state. In this repo, they should remain advisory unless a concrete validation failure exists.
+**Key insight:** Hooks can inject context and track state. In this repo they remain advisory unless a concrete validation failure exists.
 
 ---
 
@@ -27,32 +27,17 @@ Hooks are scripts that run at specific points in Claude's workflow:
 
 Hooks fire in the order they appear in `.claude/settings.json`:
 
-**PreToolUse (Bash):**
-1. `check-careful.sh` - Always hard-denies commits, pushes, force reset, force clean, and `Co-Authored-By` trailers. Recoverable git mutations such as checkout, restore, rm, and stash apply/pop/drop/clear/branch use `permissionDecision: ask`. When `/careful` is active, it also warns before other destructive commands.
-
-**PreToolUse (mcp__.*):**
-1. `check-mcp.sh` - Records MCP tool invocations for the hook-metrics audit trail
-
 **UserPromptSubmit:**
-1. `task-orchestrator-hook.sh` - Detects analysis vs coding tasks, injects concise workflow reminders
-2. `auto-codex-trigger.sh` - Optionally launches Codex in background for coding tasks
-3. `skill-activation-prompt.sh` - Suggests relevant skills based on prompt keywords
-4. `memory-bootstrap.sh` - Surfaces repo-local memory when it exists
+1. `task-orchestrator-hook.sh` - Detects analysis vs coding tasks, injects concise workflow reminders, runs the skill-activation engine, and flags vague prompts for clarification
 
 **PostToolUse (Edit|MultiEdit|Write):**
-1. `post-tool-use-tracker.sh` - Records file changes, detects project structure
-2. `tsc-check.sh` - Runs TypeScript compilation check on modified repos
-3. `lint-check.sh` - Runs the native linter on edited files and surfaces violations
-
-**PostToolUse (Bash|Skill|Chrome MCP):**
-1. `workflow-step-tracker.sh` - Tracks optional workflow signals such as Codex kickoff, read-only Codex review, simplification review, and browser verification
+1. `post-edit-check.sh` - Runs the TypeScript check, the native linter, and a Python check on edited files, and records the edit log
 
 **Stop:**
-1. `stop-build-check-enhanced.sh` - Re-runs build checks on all affected repos
-2. `workflow-completion-gate.sh` - Emits reminders and cleans stale cache state
+1. `workflow-completion-gate.sh` - Emits a browser-verification reminder for frontend edits and cleans stale cache state
 
 **SessionStart:**
-1. `session-start.sh` - Validates tools, bootstraps local settings, and injects baseline repo context on every SessionStart.
+1. `session-start.sh` - Validates tools, bootstraps local settings, and injects baseline repo context
 
 ---
 
@@ -67,17 +52,20 @@ Shared utility functions sourced by multiple hooks:
 - `validate_and_run_tsc(cmd)` - Validates and executes tsc commands safely
 - `atomic_sort_unique(file)` - Atomically sorts and deduplicates a file (uses directory-based locking)
 - `safe_rm_cache(dir)` - Safely removes tsc-cache directories (validates path prefix)
+- `sanitize_session_id(id)` - Strips a session id down to filesystem-safe characters
+- `resolve_claude_home()` - Resolves the active repo-local `.claude/` root with a safe fallback
 
 ### `lib/patterns.sh`
-Shared regex patterns sourced by auto-codex-trigger.sh and task-orchestrator-hook.sh:
+Shared regex patterns sourced by `task-orchestrator-hook.sh`:
 - `ANALYSIS_PATTERN` - Matches analysis/research prompts (audit, review, explain, etc.)
 - `CODING_PATTERN` - Matches coding task prompts (fix, implement, build, etc.)
 - `PURE_QUESTION_PATTERN` - Matches question-form prompts
 - `CODING_CONTEXT_PATTERN` - Matches code-related file extensions and terminology
 - `EXPLICIT_IMPLEMENTATION_PATTERN` - Distinguishes concrete file or code edits from broad audit language
+- `WORKFLOW_IMPLEMENTATION_PATTERN` - Treats workflow/config edits as concrete implementation intent
 
 ### `lib/plugin-state.sh`
-Shared plugin state helpers sourced by task-orchestrator-hook.sh and audit tooling:
+Shared plugin state helpers sourced by `task-orchestrator-hook.sh` and audit tooling:
 - `plugin_enabled_names()` - Lists plugins enabled in `.claude/settings.json`
 - `plugin_installed_names()` - Lists locally installed plugins when `plugins/installed_plugins.json` exists
 - `plugin_blocklisted_names()` - Lists locally blocklisted plugins when `plugins/blocklist.json` exists
@@ -87,15 +75,11 @@ Shared plugin state helpers sourced by task-orchestrator-hook.sh and audit tooli
 The shared tracked config keeps the baseline plugin set intentionally small. Auth-sensitive, duplicate, or machine-fragile plugin integrations should be added in `.claude/settings.local.json` so repo health checks stay reproducible.
 
 ### `lib/runtime-state.sh`
-Shared repo-local runtime path helpers:
+Shared repo-local runtime path helpers used by the audit tooling:
 - `workflow_runtime_root()` - Resolves the repo-local runtime root under `.claude/runtime/`
-- `gstack_state_dir()` - Resolves repo-local careful and freeze state
-- `gstack_analytics_dir()` - Resolves repo-local careful and freeze analytics
-- `codex_home_dir()` - Resolves the repo-local Codex home
-- `codex_runs_dir()` - Resolves repo-local Codex artifact storage
 
 ### `lib/hook-metrics.sh`
-Shared instrumentation helpers sourced by `check-mcp.sh`, `lint-check.sh`, and `session-start.sh`:
+Shared instrumentation helpers sourced by `session-start.sh`:
 - `record_hook_invocation(hook_name)` - Appends a single JSONL line to `.claude/runtime/hook-metrics.jsonl`
 - `resolve_claude_home()` - Resolves the active repo-local `.claude/` root and falls back safely when a hook is invoked outside the repo
 
@@ -105,74 +89,32 @@ Shared instrumentation helpers sourced by `check-mcp.sh`, `lint-check.sh`, and `
 
 ### task-orchestrator-hook (UserPromptSubmit)
 
-**Purpose:** Detects whether a prompt is analysis-only or a coding task. Injects a compact reminder about exploration, minimal edits, relevant skills, and verification.
+**Purpose:** Detects whether a prompt is analysis-only or a coding task, injects a compact reminder, runs the skill-activation engine, and flags vague prompts.
 
-**Analysis mode:** If the prompt matches `ANALYSIS_PATTERN` without concrete edit intent, outputs a short analysis reminder.
+**Analysis mode:** If the prompt matches `ANALYSIS_PATTERN` without concrete edit intent, outputs a short analysis reminder followed by the skill-activation check.
 
 **Pure informational mode:** If the prompt is only a question and does not imply edits, exits quietly instead of injecting coding-task guidance.
 
+**Memory or preference mode:** If the prompt is only a memory or preference note without concrete implementation intent, exits quietly.
+
 **Coding mode:** Outputs concise workflow guidance, points to the most relevant local skills, and only lists plugins that are locally available.
 
-### auto-codex-trigger (UserPromptSubmit)
+**Skill activation:** Reads `skill-rules.json`, matches the prompt against each skill's `promptTriggers` (keywords + intentPatterns), respects `keywordExclusions`, and groups results by priority (critical, high, medium, low). Falls back to `$PWD` when `CLAUDE_PROJECT_DIR` is not exported.
 
-**Purpose:** Automatically launches Codex for coding tasks in the background.
+**Clarify first:** When the prompt is vague (five words or fewer, or only a bare verb such as fix/update/change/改/弄 with no specifics), appends a short reminder to ask one or two clarifying questions before implementing.
 
-**Skip conditions:** Greetings, prompts < 15 chars, memory operations, missing `jq`, analysis-only tasks, pure questions without coding actions.
+### post-edit-check (PostToolUse, Edit|MultiEdit|Write)
 
-**Coding task detection:** A prompt is considered a coding task only when it clears the analysis guard and then matches `CODING_PATTERN` or code-related file extensions or terms (`CODING_CONTEXT_PATTERN`).
+**Purpose:** Validates edited files and records the change set so the Stop hook can read it.
 
-**Artifact handling:** Each launch gets a unique runtime directory under `.claude/runtime/codex/runs/` so concurrent launches cannot overwrite each other's output, log, or pid files.
-The hook also exports a repo-local Codex home under `.claude/runtime/codex/home/`.
-
-### skill-activation-prompt (UserPromptSubmit)
-
-**Purpose:** Auto-suggests relevant skills based on prompt keywords and intent patterns.
-
-Reads `skill-rules.json`, matches prompt against each skill's `promptTriggers` (keywords + intentPatterns), respects `keywordExclusions`, and groups results by priority (critical, high, medium, low). Falls back to `$PWD` when `CLAUDE_PROJECT_DIR` is not exported, so it can be dry-run directly from the repo root.
-
-### post-tool-use-tracker (PostToolUse)
-
-**Purpose:** Tracks file modifications for downstream hooks. Skips `.md`, `.mdx`, `.markdown` files.
-
-Creates: `edited-files.log`, `affected-repos.txt`, `commands.txt` in `tsc-cache/SESSION_ID/`.
-`commands.txt` stores tracked TSC commands only.
-
-### tsc-check (PostToolUse)
-
-**Purpose:** Runs TypeScript compilation check on repos affected by file edits.
-
-Only triggers for `.ts`, `.tsx`, `.js`, `.jsx` files. Caches the detected TSC command per repo.
-Cache artifacts use sanitized repo keys so nested repos such as `packages/app` do not break file creation.
-
-### workflow-step-tracker (PostToolUse)
-
-**Purpose:** Tracks optional workflow signals via directory markers:
-- `codex-kickoff/` - Created when background Codex runs in edit-capable mode
-- `simplify-review/` - Created when a simplify or code-simplifier review is detected
-- `codex-eval/` - Created when `ask_codex.sh` runs with `--read-only`
-- `chrome-verification/` - Created when browser tooling is used
-
-### stop-build-check-enhanced (Stop)
-
-**Purpose:** Re-runs tracked TSC checks on all affected repos when Claude finishes responding. Uses `AUTO_ERROR_THRESHOLD` (default: 5) to decide between suggesting auto-error-resolver (for many errors) or inline fix suggestions (for few errors).
+- **TypeScript:** Runs a compilation check on repos affected by `.ts`, `.tsx`, `.js`, `.jsx` edits. Caches the detected TSC command per repo using sanitized repo keys so nested repos such as `packages/app` do not break file creation. Writes `affected-repos.txt`, `commands.txt`, and `last-errors.txt` under `tsc-cache/SESSION_ID/`, and exits non-zero when TypeScript errors are found.
+- **Lint:** Detects the native linter for each edited file (ruff, flake8, eslint, biome, shellcheck) by walking the file's parent directories for a matching config, runs it on the edited file only, and folds any violation into the exit code.
+- **Python:** For each edited `.py` file, runs `pyright` when available, otherwise `ruff check`, and folds any failure into the exit code.
+- **Edit log:** Appends a `<tool_name>\t<path>` line per edited file to `edited-files.log`.
 
 ### workflow-completion-gate (Stop)
 
-**Purpose:** Emits workflow reminders and cleans stale cache state. It no longer blocks completion for stale, tool-specific workflow steps that may not exist in every environment.
-
-Also cleans up stale `tsc-cache` sessions older than 14 days.
-
-### check-mcp (PreToolUse, mcp__.*)
-
-**Purpose:** Records every MCP tool invocation to `.claude/runtime/hook-metrics.jsonl`. Silent on success so it does not add noise to normal MCP use.
-
-Silent fallbacks: exits 0 if `jq` is missing. Always writes the metric line on a best-effort basis so a failing append never blocks the MCP call.
-
-### lint-check (PostToolUse, Edit|MultiEdit|Write)
-
-**Purpose:** Detects the native linter for each edited file (ruff, flake8, eslint, biome, shellcheck) by walking the file's parent directories for a matching config. Runs the linter on the edited file only and surfaces violations so the model can self-correct on the next turn.
-
-Silent when no linter is configured or when none of the edited files are lintable. Required binaries (eslint, biome) can be provided via `npx --no-install`.
+**Purpose:** Emits a browser-verification reminder when `edited-files.log` shows `.tsx`, `.jsx`, `.css`, or `.scss` edits, then removes `tsc-cache` session directories older than 14 days. Always exits 0.
 
 ### session-start (SessionStart)
 
@@ -185,21 +127,16 @@ Silent when no linter is configured or when none of the edited files are lintabl
 | Variable | Default | Used By | Description |
 |----------|---------|---------|-------------|
 | `CLAUDE_PROJECT_DIR` | `$PWD` | All hooks | Root project directory |
-| `SESSION_ID` | `default` | All hooks | Session identifier for cache isolation |
-| `AUTO_ERROR_THRESHOLD` | `5` | stop-build-check-enhanced | Errors >= threshold triggers auto-error-resolver agent |
-| `AUTO_CODEX_READ_ONLY` | `0` | auto-codex-trigger | Set to `1` when background Codex should review without editing files |
-| `AUTO_CODEX_TIMEOUT_SECONDS` | `3600` | auto-codex-trigger | External timeout guard for repo-local background Codex runs |
-| `FORCE_DETECT` | (unset) | tsc-check | When set, bypasses cached TSC command and re-detects |
+| `SESSION_ID` | `default` | post-edit-check, workflow-completion-gate | Session identifier for cache isolation |
+| `FORCE_DETECT` | (unset) | post-edit-check | When set, bypasses cached TSC command and re-detects |
 
 ---
 
 ## Known Limitations
 
 - **TSC cache staleness**: The cached TSC command per repo does not auto-invalidate when tsconfig.json changes. Set `FORCE_DETECT=1` to force re-detection after config changes.
-- **Codex mode and timeout behavior**: `auto-codex-trigger.sh` launches background Codex in edit-capable mode by default and enforces a portable external timeout using `timeout`, `gtimeout`, or a Perl fallback. Set `AUTO_CODEX_READ_ONLY=1` when a prompt should trigger review without edits, and tune the limit with `AUTO_CODEX_TIMEOUT_SECONDS` if tasks need a different ceiling.
 - **Plugin availability is snapshot-based**: `plugin_available_names()` reads plugin state at hook invocation time. Plugins installed or removed mid-session may not be reflected until the next hook fires.
 - **Pre-commit safety**: Run `git diff --cached` and `bash scripts/audit-workflow.sh` before committing to verify no secrets or unintended files are staged.
-- **PowerShell coverage**: Only `skill-activation-prompt.ps1` and `tsc-check.ps1` have PowerShell variants. The remaining hooks require bash.
 
 ---
 
@@ -213,22 +150,16 @@ Silent when no linter is configured or when none of the edited files are lintabl
 **"PostToolUse:Edit hook blocking error":**
 - Run `bash -n "$PWD/.claude/hooks/lib/utils.sh"` to check for syntax errors
 - Check that `jq` is installed: `command -v jq`
-- Look at tsc-check.sh output: the error might be a TypeScript compilation failure, not a hook error
+- Look at post-edit-check.sh output: the error might be a TypeScript, lint, or Python failure, not a hook error
 
 **Workflow reminder output:**
 - This is advisory output from `workflow-completion-gate.sh`
-- Type failures are still handled by the validation hooks
-- Stale sessions auto-clean after 7 days
-
-**Codex not triggering:**
-- Check that `codex` command is in PATH: `command -v codex`
-- Check that `ask_codex.sh` exists and is executable
-- Verify the prompt isn't being classified as "analysis-only" by the pattern matching
+- Type, lint, and Python failures are still handled by `post-edit-check.sh`
+- Stale sessions auto-clean after 14 days
 
 **Hook stalls or hangs:**
 - Check for stale lock files: `find "$PWD/.claude/tsc-cache" -name '*.lock' -print`
 - Remove a stale empty lock directory manually with `rmdir` if needed after checking that no hook process is still running
-- Kill orphan background processes: `ps aux | grep 'tsc-check\|auto-codex-trigger' | grep -v grep`
 
 **Temporarily disable a specific hook:**
 - Comment out the hook entry in `.claude/settings.json` under the appropriate event key

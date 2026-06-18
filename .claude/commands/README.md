@@ -10,7 +10,6 @@ Available commands:
 - `build-fix.md`
 - `chrome-devtools.md`
 - `code-refactor.md`
-- `codex.md`
 - `deep-research.md`
 - `design-review.md`
 - `frontend-dev.md`
@@ -33,4 +32,3 @@ Available commands:
 - Hook behavior comes from `.claude/hooks/`, not from synthetic commands like `ultra-think`.
 - Gstack-backed and Super Ralph command wrappers should read the local `.claude/skills/` entries directly, so the tracked repo remains self-contained.
 - If a command depends on a local skill or script, that dependency should resolve inside this repo first.
-- `/multi-plan` and `/multi-execute` are repo-local workflows that use the bundled Codex bridge and installed plugin agents, not personal wrapper tooling.

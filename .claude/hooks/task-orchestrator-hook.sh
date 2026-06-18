@@ -36,6 +36,164 @@ Use /security-review when the final change would benefit from a security pass.
 EOF
 }
 
+print_skill_activation_check() {
+    local rules_path="$CLAUDE_HOME_DIR/skills/skill-rules.json"
+    [[ -f "$rules_path" ]] || return 0
+
+    local matches=""
+    if command -v python3 >/dev/null 2>&1; then
+        matches=$(PROMPT_LOWER="$PROMPT_LOWER" RULES_PATH="$rules_path" python3 - <<'PYEOF'
+import json
+import os
+import re
+import sys
+
+prompt = os.environ.get("PROMPT_LOWER", "").lower()
+rules_path = os.environ.get("RULES_PATH", "")
+
+try:
+    with open(rules_path) as f:
+        data = json.load(f)
+except Exception:
+    sys.exit(0)
+
+def keyword_hit(kw, text):
+    kw_lower = kw.lower()
+    if kw_lower not in text:
+        return False
+    pat = r"(?:^|[^a-z0-9_])" + re.escape(kw_lower) + r"(?:[^a-z0-9_]|$)"
+    return re.search(pat, text) is not None
+
+def pattern_hit(pat, text):
+    try:
+        return re.search(pat, text, re.IGNORECASE) is not None
+    except re.error:
+        return False
+
+lines = []
+for name, rule in data.get("skills", {}).items():
+    pt = rule.get("promptTriggers")
+    if pt is None and not rule.get("alwaysActive", False):
+        continue
+    priority = rule.get("priority", "low")
+    keywords = (pt or {}).get("keywords", [])
+    patterns = (pt or {}).get("intentPatterns", [])
+    excludes = (pt or {}).get("keywordExclusions", [])
+
+    always = rule.get("alwaysActive", False)
+    matched = False
+    if always:
+        matched = True
+    else:
+        for kw in keywords:
+            if keyword_hit(kw, prompt):
+                matched = True
+                break
+        if not matched:
+            for p in patterns:
+                if pattern_hit(p, prompt):
+                    matched = True
+                    break
+
+    if not matched:
+        continue
+
+    if excludes:
+        excluded = False
+        for ek in excludes:
+            if keyword_hit(ek, prompt):
+                excluded = True
+                break
+        if excluded:
+            continue
+
+    lines.append(f"{priority}|{name}")
+
+sys.stdout.write("\n".join(lines))
+PYEOF
+)
+    else
+        matches=$(jq -r --arg prompt "$PROMPT_LOWER" '
+            def regex_escape:
+                gsub("([][(){}.*+?^$|\\\\-])"; "\\\\\\1");
+            def keyword_match($prompt; $keyword):
+                ("(^|[^[:alnum:]_])" + ($keyword | ascii_downcase | regex_escape) + "([^[:alnum:]_]|$)") as $pattern |
+                try ($prompt | test($pattern; "i")) catch false;
+            .skills | to_entries[] |
+            select(.value.promptTriggers != null) |
+            select(
+                (.value.alwaysActive // false) or
+                (
+                    ((.value.promptTriggers.keywords // []) | any(. as $kw | keyword_match($prompt; $kw))) or
+                    ((.value.promptTriggers.intentPatterns // []) | any(. as $pat | try ($prompt | test($pat; "i")) catch false))
+                )
+            ) |
+            "\(.value.priority)|\(.key)"
+        ' "$rules_path" 2>/dev/null)
+    fi
+
+    [[ -z "$matches" ]] && return 0
+
+    local critical=""
+    local high=""
+    local medium=""
+    local low=""
+    while IFS='|' read -r priority name; do
+        case "$priority" in
+            critical) critical="${critical}  -> ${name}\n" ;;
+            high)     high="${high}  -> ${name}\n" ;;
+            medium)   medium="${medium}  -> ${name}\n" ;;
+            low)      low="${low}  -> ${name}\n" ;;
+        esac
+    done <<< "$matches"
+
+    local output=""
+    output="${output}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+    output="${output}SKILL ACTIVATION CHECK\n"
+    output="${output}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+    if [[ -n "$critical" ]]; then
+        output="${output}CRITICAL SKILLS (REQUIRED):\n${critical}\n"
+    fi
+    if [[ -n "$high" ]]; then
+        output="${output}RECOMMENDED SKILLS:\n${high}\n"
+    fi
+    if [[ -n "$medium" ]]; then
+        output="${output}SUGGESTED SKILLS:\n${medium}\n"
+    fi
+    if [[ -n "$low" ]]; then
+        output="${output}OPTIONAL SKILLS:\n${low}\n"
+    fi
+    output="${output}ACTION: Use Skill tool BEFORE responding\n"
+    output="${output}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    printf '%b\n' "$output"
+}
+
+print_clarify_first() {
+    local word_count
+    word_count=$(printf "%s" "$PROMPT" | tr -s '[:space:]' ' ' | sed 's/^ //;s/ $//' | grep -o ' ' | wc -l | tr -d ' ')
+    word_count=$((word_count + 1))
+    [[ -z "$PROMPT" ]] && word_count=0
+
+    local is_vague=false
+    if [[ "$word_count" -gt 0 && "$word_count" -le 5 ]]; then
+        is_vague=true
+    fi
+    local trimmed
+    trimmed=$(printf "%s" "$PROMPT_LOWER" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//;s/[[:punct:]]*$//')
+    if [[ "$trimmed" =~ ^(fix|update|change|改|弄)$ ]]; then
+        is_vague=true
+    fi
+
+    if [[ "$is_vague" == "true" ]]; then
+        printf '%s\n' "CLARIFY FIRST: request looks ambiguous, ask 1-2 clarifying questions before implementing."
+    fi
+}
+
+run_skill_and_clarify() {
+    print_skill_activation_check
+    print_clarify_first
+}
+
 HAS_EXPLICIT_IMPLEMENTATION=false
 if prompt_matches "$EXPLICIT_IMPLEMENTATION_PATTERN"; then
     HAS_EXPLICIT_IMPLEMENTATION=true
@@ -82,6 +240,7 @@ This appears to be an analysis or research task.
 Focus on exploration, source-backed findings, and clear recommendations.
 
 EOF
+run_skill_and_clarify
 exit 0
 fi
 
@@ -131,26 +290,21 @@ Use this as concise guidance for coding tasks:
 
 Helpful skills in this repo:
 - search-first for repo exploration before editing
-- professional-research-writing for docs and explanations
 - backend-dev-guidelines for backend code
 - frontend-dev-guidelines for React and TypeScript code
 - ui-styling for component styling and layout work
-- verification-loop for structured verification
-- security-review and security-scan for auth, secrets, permissions, and workflow audits
-- e2e-testing for browser-driven verification work
-- skill-developer for hooks, skills, and workflow configuration
-
-Vendored workflows:
-- /super-ralph for the bundled autonomous multi-agent workflow
+- code-refactor for bulk renames and pattern replacement
+- investigate for systematic root-cause debugging
+- review for staff-level code review via /review-staff
+- qa, qa-only, and webapp-testing for browser verification
+- refine for the evaluator-optimizer loop
 
 $PLUGIN_SECTION
 Evaluator-optimizer loop:
 - After the implementation is complete and all checks pass, run /refine to close the loop with a generate to critique to apply to re-critique pass (bounded at 3 rounds).
 - Skip /refine only for trivial one-line changes or when the task explicitly forbids it.
 
-Codex is optional:
-- If auto-codex-trigger ran, review its output before finishing.
-- If it did not run, continue normally. Do not invent missing mandatory steps.
-
 ================================================================================
 "
+
+run_skill_and_clarify

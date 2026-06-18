@@ -28,7 +28,14 @@
           "BaseController",
           "dependency injection",
           "unifiedConfig",
-          "configuration"
+          "configuration",
+          "写后端",
+          "后端",
+          "接口",
+          "写api",
+          "路由",
+          "prisma",
+          "服务端"
         ],
         "keywordExclusions": [
           ".claude",
@@ -94,7 +101,12 @@
           "useCallback",
           "useMemo",
           "feature directory",
-          "file organization"
+          "file organization",
+          "写前端",
+          "写组件",
+          "前端组件",
+          "react组件",
+          "做页面逻辑"
         ],
         "keywordExclusions": [
           "beautiful",
@@ -139,70 +151,6 @@
         ]
       }
     },
-    "professional-research-writing": {
-      "type": "writing-style",
-      "enforcement": "suggest",
-      "priority": "critical",
-      "description": "Professional research writing style for all written content - ALWAYS ACTIVE",
-      "promptTriggers": {
-        "keywords": [
-          "write",
-          "writing",
-          "document",
-          "documentation",
-          "paper",
-          "research",
-          "report",
-          "summary",
-          "description",
-          "explain",
-          "paragraph",
-          "section",
-          "text",
-          "content",
-          "README",
-          "markdown",
-          "comments",
-          "docstring",
-          "article",
-          "blog",
-          "technical writing",
-          "academic writing"
-        ],
-        "intentPatterns": [
-          "(write|create|draft|compose|generate).*?(paper|document|section|paragraph|content|text|description|summary|report)",
-          "(explain|describe|summarize|document).*",
-          "(how to|best practice|approach|method|methodology)",
-          "(introduction|motivation|background|related work|approach|implementation|results|discussion|conclusion)",
-          ".*?(abstract|literature review|findings|evaluation|analysis)",
-          "(help me|can you).*?(write|explain|describe)"
-        ]
-      },
-      "fileTriggers": {
-        "pathPatterns": [
-          "**/*.md",
-          "**/*.markdown",
-          "**/README*",
-          "**/*.txt",
-          "**/docs/**/*",
-          "**/documentation/**/*",
-          "**/*.rst",
-          "**/*.adoc"
-        ],
-        "contentPatterns": [
-          "# ",
-          "## ",
-          "### ",
-          "\\*\\*.*?\\*\\*",
-          "^In recent years,",
-          "^We propose",
-          "^This research",
-          "^However,"
-        ]
-      },
-      "alwaysActive": true,
-      "applyToAllWriting": true
-    },
     "chrome-devtools": {
       "type": "domain",
       "enforcement": "suggest",
@@ -224,7 +172,12 @@
           "browser console",
           "page load",
           "core web vitals",
-          "lcp"
+          "lcp",
+          "截个图",
+          "网页截图",
+          "控制台报错",
+          "看网络请求",
+          "跑lighthouse"
         ],
         "intentPatterns": [
           "(screenshot|capture).*?(page|url|browser)",
@@ -256,7 +209,12 @@
           "solid principles",
           "extract function",
           "extract component",
-          "simplify"
+          "simplify",
+          "重构",
+          "批量改名",
+          "批量替换",
+          "改个名",
+          "清理代码"
         ],
         "intentPatterns": [
           "(refactor|improve|clean|simplify).*?(code|function|component|class)",
@@ -307,7 +265,13 @@
           "card component",
           "table component",
           "accessible UI",
-          "utility classes"
+          "utility classes",
+          "调样式",
+          "样式",
+          "布局",
+          "css",
+          "主题",
+          "暗黑模式"
         ],
         "intentPatterns": [
           "(implement|build|polish).*?(ui|landing page|design|figma)",
@@ -336,45 +300,6 @@
           "hover:",
           "focus:"
         ]
-      }
-    },
-    "codex": {
-      "type": "domain",
-      "enforcement": "suggest",
-      "priority": "high",
-      "description": "Delegate coding tasks to Codex CLI for execution, batch refactoring, code generation, multi-file changes, and test writing. Also used for post-implementation code review.",
-      "promptTriggers": {
-        "keywords": [
-          "codex",
-          "delegate",
-          "batch refactor",
-          "code generation",
-          "multi-file changes",
-          "ask codex",
-          "codex review",
-          "review changes",
-          "review code",
-          "quality check"
-        ],
-        "intentPatterns": [
-          "delegate.*coding",
-          "run codex",
-          "use codex",
-          "codex.*review",
-          "launch codex",
-          "review.*implementation",
-          "check.*code quality"
-        ]
-      },
-      "fileTriggers": {
-        "pathPatterns": [
-          "**/*.ts",
-          "**/*.tsx",
-          "**/*.js",
-          "**/*.jsx",
-          "**/*.py"
-        ],
-        "contentPatterns": []
       }
     },
     "context7": {
@@ -496,38 +421,11 @@
         ]
       }
     },
-    "superpowers": {
-      "type": "plugin-router",
-      "enforcement": "suggest",
-      "priority": "medium",
-      "description": "Route brainstorming, planning, test-driven development, code review, debugging, and verification workflows to the locally enabled Superpowers plugin when available.",
-      "promptTriggers": {
-        "keywords": [
-          "superpowers",
-          "brainstorming",
-          "writing plans",
-          "test-driven development",
-          "systematic debugging",
-          "requesting code review",
-          "verification before completion",
-          "dispatching parallel agents"
-        ],
-        "intentPatterns": [
-          "(use|run|apply).*?superpowers",
-          "(brainstorm|plan|tdd|debug|verify).*?(with|using).*?superpowers",
-          "(dispatch|parallel).*?agents"
-        ]
-      },
-      "fileTriggers": {
-        "pathPatterns": [],
-        "contentPatterns": []
-      }
-    },
     "deep-research": {
       "type": "domain",
       "enforcement": "suggest",
       "priority": "high",
-      "description": "Multi-source research reports with citations, synthesis, and structured delivery",
+      "description": "Universal deep research agent team. 13-agent pipeline for rigorous academic research on any topic. 8 modes: full research, quick brief, paper review, lit-review, fact-check, three-way literature scan, Socratic guided research dialogue, and systematic review with optional meta-analysis. Covers resear",
       "promptTriggers": {
         "keywords": [
           "deep research",
@@ -537,7 +435,32 @@
           "comprehensive research",
           "literature review",
           "competitive analysis",
-          "market research"
+          "market research",
+          "research",
+          "systematic review",
+          "meta-analysis",
+          "prisma",
+          "evidence synthesis",
+          "fact-check",
+          "why how what papers",
+          "3w literature scan",
+          "guide my research",
+          "help me think through",
+          "研究",
+          "深度研究",
+          "文獻回顧",
+          "文獻探討",
+          "系統性回顧",
+          "後設分析",
+          "事實查核",
+          "三段式文獻掃描",
+          "引導我的研究",
+          "幫我釐清",
+          "幫我想想",
+          "我不確定要研究什麼",
+          "研究方向",
+          "研究主題",
+          "调研"
         ],
         "intentPatterns": [
           "(deep|thorough|comprehensive).*?(research|investigation|analysis)",
@@ -565,7 +488,11 @@
           "is this worth building",
           "product idea",
           "startup idea",
-          "reframe problem"
+          "reframe problem",
+          "聊聊方案",
+          "头脑风暴",
+          "需求没想清",
+          "帮我想想做啥"
         ],
         "intentPatterns": [
           "(brainstorm|think through|help me think).*?(idea|feature|product)",
@@ -622,7 +549,20 @@
           "investigate",
           "root cause",
           "debug systematically",
-          "hypothesis test"
+          "hypothesis test",
+          "报错",
+          "代码报错",
+          "出错",
+          "出bug",
+          "调试",
+          "排查",
+          "查bug",
+          "为什么不工作",
+          "debug",
+          "异常",
+          "崩溃",
+          "stack trace",
+          "bug"
         ],
         "intentPatterns": [
           "investigate.*(bug|issue|error)",
@@ -644,7 +584,9 @@
           "iteratively improve",
           "polish the",
           "tighten up",
-          "close the loop"
+          "close the loop",
+          "再打磨一轮",
+          "优化一轮"
         ],
         "intentPatterns": [
           "(refine|polish|iterate on|tighten).*?(file|feature|change|PR|patch)",
@@ -675,7 +617,11 @@
           "build:veo",
           "npm run veo",
           "full pipeline",
-          "render with veo"
+          "render with veo",
+          "做视频",
+          "渲染视频",
+          "程序化视频",
+          "视频"
         ],
         "intentPatterns": [
           "(create|render|generate|scaffold|build).*?(video|composition|mp4|clip|pipeline)",
@@ -712,7 +658,14 @@
           "staff review",
           "code review gstack",
           "review staff",
-          "production review"
+          "production review",
+          "审代码",
+          "代码审查",
+          "审一下代码",
+          "看看代码",
+          "review",
+          "code review",
+          "审查代码"
         ],
         "intentPatterns": [
           "staff.*review",
@@ -751,7 +704,11 @@
           "browser qa",
           "browser test",
           "test in browser",
-          "regression test"
+          "regression test",
+          "测一下网页",
+          "测试网页",
+          "回归测试",
+          "qa测试"
         ],
         "intentPatterns": [
           "(qa|browser).*test",
@@ -768,7 +725,9 @@
         "keywords": [
           "qa only",
           "qa report",
-          "test report only"
+          "test report only",
+          "出测试报告",
+          "只测不改"
         ],
         "intentPatterns": [
           "qa.*only",
@@ -812,7 +771,10 @@
           "test local app",
           "ui test python",
           "browser flow",
-          "capture screenshots"
+          "capture screenshots",
+          "端到端测试",
+          "测本地网页",
+          "e2e"
         ],
         "intentPatterns": [
           "test.*webapp",
@@ -844,12 +806,965 @@
           "competitive analysis report",
           "stakeholder research",
           "defensible research",
-          "multi-source synthesis"
+          "multi-source synthesis",
+          "要带引用的研究",
+          "研究报告"
         ],
         "intentPatterns": [
           "(rigorous|structured|strict).*?research.*?(citation|source)",
           "research.*?(brief|report).*?(stakeholder|executive|leadership)",
           "(literature|competitive).*?(review|analysis)"
+        ]
+      },
+      "fileTriggers": {
+        "pathPatterns": [],
+        "contentPatterns": []
+      }
+    },
+    "frontend-design": {
+      "type": "frontend-design",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Distinctive, intentional visual design when building new UI or reshaping an existing one. Helps with aesthetic direction, typography, and choices that do not read as templated.",
+      "promptTriggers": {
+        "keywords": [
+          "ui",
+          "design",
+          "frontend",
+          "visual",
+          "aesthetic",
+          "typography",
+          "landing page",
+          "component"
+        ]
+      },
+      "alwaysActive": true
+    },
+    "impeccable": {
+      "type": "design-review",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Design, redesign, critique, audit, polish, and harden frontend interfaces across websites, dashboards, product UI, forms, and design systems.",
+      "promptTriggers": {
+        "keywords": [
+          "design",
+          "redesign",
+          "polish",
+          "audit",
+          "ui",
+          "ux",
+          "interface",
+          "dashboard"
+        ]
+      },
+      "alwaysActive": true
+    },
+    "ui-ux-pro-max": {
+      "type": "ui-ux",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "UI/UX design intelligence for web and mobile, with many styles, color palettes, font pairings, product types, and UX guidelines.",
+      "promptTriggers": {
+        "keywords": [
+          "ui",
+          "ux",
+          "design",
+          "palette",
+          "font",
+          "style",
+          "layout",
+          "dashboard",
+          "mobile app"
+        ]
+      },
+      "alwaysActive": true
+    },
+    "shadcn-ui": {
+      "type": "ui-component",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "shadcn/ui component library patterns: installation, forms with React Hook Form and Zod, theming with Tailwind, and accessible component composition.",
+      "promptTriggers": {
+        "keywords": [
+          "shadcn",
+          "component",
+          "radix",
+          "form",
+          "dialog",
+          "table",
+          "tailwind",
+          "theme"
+        ]
+      },
+      "alwaysActive": true
+    },
+    "web-design-guidelines": {
+      "type": "design-review",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Review UI code for Web Interface Guidelines compliance, covering accessibility, UX, and design best practices.",
+      "promptTriggers": {
+        "keywords": [
+          "ui review",
+          "accessibility",
+          "audit design",
+          "ux",
+          "best practices",
+          "guidelines"
+        ]
+      },
+      "alwaysActive": true
+    },
+    "design-taste-frontend": {
+      "type": "design-style",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Anti-slop frontend skill for landing pages, portfolios, and redesigns. Infers the right design direction and ships interfaces that do not look templated.",
+      "promptTriggers": {
+        "keywords": [
+          "landing page",
+          "portfolio",
+          "redesign",
+          "frontend",
+          "design system",
+          "anti-slop"
+        ]
+      },
+      "alwaysActive": true
+    },
+    "image-to-code": {
+      "type": "design-to-code",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Generate design images first, analyze them deeply, then implement a website that matches them closely, with clean spacious heroes.",
+      "promptTriggers": {
+        "keywords": [
+          "image to code",
+          "design image",
+          "website",
+          "hero",
+          "screenshot to code",
+          "设计图转代码",
+          "图转代码",
+          "还原设计稿",
+          "按图做网站"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "minimalist-ui": {
+      "type": "design-style",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Clean editorial-style interfaces with warm monochrome palette, typographic contrast, flat bento grids, and muted pastels. No gradients or heavy shadows.",
+      "promptTriggers": {
+        "keywords": [
+          "minimalist",
+          "editorial",
+          "monochrome",
+          "bento",
+          "clean ui"
+        ]
+      },
+      "alwaysActive": true
+    },
+    "industrial-brutalist-ui": {
+      "type": "design-style",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Raw mechanical interfaces fusing Swiss typographic print with military terminal aesthetics. Rigid grids, extreme type scale contrast, utilitarian color.",
+      "promptTriggers": {
+        "keywords": [
+          "brutalist",
+          "industrial",
+          "swiss",
+          "terminal",
+          "grid",
+          "dashboard"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "gpt-taste": {
+      "type": "design-style",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Elite UX/UI and GSAP motion direction: AIDA page structure, wide editorial typography, gapless bento grids, and strict ScrollTrigger motion.",
+      "promptTriggers": {
+        "keywords": [
+          "gsap",
+          "motion",
+          "animation",
+          "scrolltrigger",
+          "editorial",
+          "bento"
+        ]
+      },
+      "alwaysActive": true
+    },
+    "high-end-visual-design": {
+      "type": "design-style",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Design like a high-end agency. Defines the fonts, spacing, shadows, card structures, and animations that make a site feel expensive, blocking cheap defaults.",
+      "promptTriggers": {
+        "keywords": [
+          "high-end",
+          "premium",
+          "agency",
+          "expensive",
+          "fonts",
+          "spacing",
+          "shadow",
+          "animation"
+        ]
+      },
+      "alwaysActive": true
+    },
+    "redesign-existing-projects": {
+      "type": "design-review",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Upgrade existing websites and apps to premium quality. Audit current design, identify generic AI patterns, and apply high-end standards without breaking functionality.",
+      "promptTriggers": {
+        "keywords": [
+          "redesign",
+          "upgrade",
+          "premium",
+          "audit",
+          "existing",
+          "refactor ui"
+        ]
+      },
+      "alwaysActive": true
+    },
+    "fireworks-tech-graph": {
+      "type": "diagram",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Turn natural language or a system description into technical diagrams (architecture, data flow, flowchart, sequence, concept map) exported as SVG and PNG.",
+      "promptTriggers": {
+        "keywords": [
+          "画图",
+          "架构图",
+          "流程图",
+          "diagram",
+          "draw",
+          "visualize",
+          "svg",
+          "png",
+          "architecture",
+          "flowchart",
+          "画架构图",
+          "画流程图",
+          "出个图",
+          "可视化一下",
+          "做个图"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "diagram-design": {
+      "type": "diagram",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Create technical and product diagrams as standalone HTML with inline SVG, with brand color and font extraction to reduce template feel.",
+      "promptTriggers": {
+        "keywords": [
+          "diagram",
+          "flowchart",
+          "sequence",
+          "architecture",
+          "svg",
+          "brand",
+          "chart",
+          "editorial diagram",
+          "画图表",
+          "画流程图",
+          "画架构图",
+          "出个图"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "web-accessibility": {
+      "type": "accessibility",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Build accessible web applications following WCAG guidelines: ARIA patterns, keyboard navigation, screen reader support, and accessibility compliance.",
+      "promptTriggers": {
+        "keywords": [
+          "accessibility",
+          "a11y",
+          "wcag",
+          "aria",
+          "screen reader",
+          "keyboard navigation"
+        ]
+      },
+      "alwaysActive": true
+    },
+    "academic-paper": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "12-agent academic paper writing pipeline. 11 modes (full/plan/outline/revision/revision-coach/abstract/lit-review/format-convert/citation-check/disclosure/rebuttal-audit). 6 paper types, 5 citation formats, bilingual abstracts, LaTeX/DOCX-via-Pandoc/PDF output. Style Calibration + Writing Quality Ch",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "write paper",
+          "academic paper",
+          "guide my paper",
+          "parse reviews",
+          "audit my rebuttal",
+          "check my response draft",
+          "ai disclosure",
+          "寫論文",
+          "學術論文",
+          "引導我寫論文",
+          "審查意見",
+          "評估回覆",
+          "写论文",
+          "帮我写论文",
+          "写paper",
+          "论文写作",
+          "起草论文",
+          "写学术论文"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "academic-paper-reviewer": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Multi-perspective academic paper review with dynamic reviewer personas. Simulates 5 independent reviewers (EIC + 3 peer reviewers + Devil's Advocate) with field-specific expertise. Supports full review, re-review (verification), quick assessment, methodology focus, Socratic guided, and calibration m",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "reviewer",
+          "review paper",
+          "peer review",
+          "manuscript review",
+          "referee report",
+          "review my paper",
+          "critique paper",
+          "simulate review",
+          "editorial review",
+          "calibrate reviewer",
+          "reviewer calibration",
+          "审稿",
+          "模拟审稿",
+          "投稿前自审",
+          "我的稿",
+          "稿子"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "academic-pipeline": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Orchestrator for the full academic research pipeline: research -> write -> integrity check -> review -> revise -> re-review -> re-revise -> final integrity check -> finalize. Coordinates deep-research, academic-paper, and academic-paper-reviewer into a seamless 10-stage workflow with mandatory integ",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "pipeline"
+        ]
+      },
+      "alwaysActive": true
+    },
+    "citation-check-skill": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Vision-enabled verification gate with web search. Use when users want to (1) verify slides/reports/PDFs/images against authoritative online sources, (2) validate that citations actually exist and say what's claimed, (3) check charts/graphs/tables for accuracy, (4) audit AI-generated content in doc-o",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "citation",
+          "check",
+          "skill",
+          "查引用",
+          "核对引用",
+          "引用对不对",
+          "查参考文献",
+          "引用核查"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "nature-academic-search": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": ">-",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "nature",
+          "search",
+          "文献检索",
+          "查文献",
+          "找文献",
+          "查论文"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "nature-citation": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": ">-",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "nature",
+          "citation",
+          "学术写作引用",
+          "写论文加引用",
+          "加参考文献",
+          "配文献",
+          "引用文献",
+          "文献支撑",
+          "写paper找文献",
+          "补引用",
+          "加引用",
+          "配引用",
+          "找文献支撑"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "nature-data": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": ">-",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "nature",
+          "data",
+          "数据可用性声明",
+          "数据可用性",
+          "data availability"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "nature-figure": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": ">-",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "nature",
+          "figure",
+          "论文配图",
+          "学术写作配图",
+          "科研绘图",
+          "科研作图",
+          "画图",
+          "作图",
+          "出图",
+          "论文图表",
+          "可视化",
+          "画数据图"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "nature-paper-to-patent": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Convert scientific papers, theses, technical reports, source code, figures, or research manuscripts into evidence-grounded Chinese invention patent drafts. Use when an AI agent must extract patentable technical contributions, map every claimed feature to source evidence, preserve core formulas as ed",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "nature",
+          "to",
+          "patent",
+          "写专利",
+          "专利草稿",
+          "申专利"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "nature-paper2ppt": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Build a complete but efficient Nature-style Chinese PPTX presentation from a scientific paper, preprint, PDF, article text, abstract, figure legends, or reading notes. Use this skill whenever the user asks to make slides/PPT/PPTX for journal club, group meeting, paper sharing, thesis seminar, lab me",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "nature",
+          "paper2ppt",
+          "论文汇报",
+          "文献汇报",
+          "学术汇报",
+          "做幻灯片",
+          "论文做PPT",
+          "组会PPT",
+          "讲paper",
+          "读书报告PPT",
+          "做ppt",
+          "组会ppt",
+          "组会"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "nature-polishing": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Polish, restructure, or translate academic prose into Nature-leaning English using writing-strategy principles, curated Nature/Nature Communications article patterns, and phrase-level support from Academic Phrasebank. Use whenever the user asks to polish a manuscript paragraph, abstract, introductio",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "nature",
+          "polishing"
+        ]
+      },
+      "alwaysActive": true
+    },
+    "nature-reader": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Build full-paper Chinese-English side-by-side, figure/table-aware, source-grounded Markdown readers for journal or conference papers from PDF, DOI, arXiv, publisher HTML, or pasted text. Use whenever the user asks to translate or read a paper, make 中英文对照/原文对照/全文翻译解读, extract figures or tables into t",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "nature",
+          "reader",
+          "读论文",
+          "精读论文",
+          "论文翻译",
+          "文献翻译",
+          "文献阅读",
+          "学术阅读",
+          "帮我读这篇文章",
+          "翻译这篇paper",
+          "论文精读",
+          "翻译论文"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "nature-response": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": ">-",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "nature",
+          "response",
+          "回复审稿人",
+          "审稿回复",
+          "返修",
+          "回审稿",
+          "rebuttal",
+          "回复审稿意见",
+          "审稿意见",
+          "回复"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "nature-reviewer": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": ">-",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "nature",
+          "reviewer",
+          "审稿人视角",
+          "模拟审稿",
+          "预审",
+          "帮我审一下论文",
+          "投稿前自审",
+          "审稿意见模拟",
+          "找论文问题",
+          "审稿",
+          "审我的稿",
+          "peer review",
+          "我的稿",
+          "稿子"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "nature-writing": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Draft, restructure, or plan Nature-style manuscript sections from author-provided claims, results, figures, notes, or Chinese drafts. Use when the user wants to write or rebuild an abstract, introduction, related-work, method, experiments, discussion, conclusion, title, or full manuscript argument r",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "nature",
+          "writing"
+        ]
+      },
+      "alwaysActive": true
+    },
+    "office-academic-skill": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Chinese-first academic Word and PowerPoint workflow for paper reading reports, thesis or group-meeting PPTs, editable DOCX/PPTX generation, Office file inspection, template matching, speaker notes, and layout quality checks. Use when the user asks to read papers into Word reports, create or polish P",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "office",
+          "skill",
+          "做ppt",
+          "组会ppt",
+          "精读报告",
+          "学术汇报",
+          "做word报告"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "paper-spine": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Write, rewrite, or build a paper or report (journal, conference, report, review, competition) end to end, then output LaTeX/PDF/Word. The main PaperSpine entry point that orchestrates every step.",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "spine",
+          "写论文",
+          "用paperspine写",
+          "论文出latex",
+          "论文出pdf"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "paper-spine-audit": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Audits PaperSpine outputs for missing artifacts, shallow revisions, logic transfer, unsupported claims, and translation coverage. (internal /paperspine step)",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "spine",
+          "audit"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "paper-spine-build": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Builds a paper or report from materials using the shared PaperSpine research, motivation, and rationale workflow. (internal /paperspine step)",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "spine",
+          "build"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "paper-spine-citation": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Builds a citation support bank for Introduction, Discussion, and background claims. (internal /paperspine step)",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "spine",
+          "citation"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "paper-spine-humanize": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Reduces AI detection rates via tiered stylistic constraints mapped to real AIGC detection dimensions. Produces a teaching humanize_matrix.md. (internal /paperspine step)",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "spine",
+          "humanize"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "paper-spine-intake": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Collects PaperSpine workflow options and writes config for flash/pro, scene, language, and inputs. (internal /paperspine step)",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "spine",
+          "intake"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "paper-spine-latex": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Handles LaTeX project assembly, figure placement, citations, labels, and compile-safe cleanup. (internal /paperspine step)",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "spine",
+          "latex"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "paper-spine-research": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Researches target requirements, downloads reference materials, learns strong examples, and prepares motivation options. (internal /paperspine step)",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "spine"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "paper-spine-rewrite": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Rewrites an existing manuscript from confirmed motivation, research, paragraph-level rationale, and evidence. (internal /paperspine step)",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "spine",
+          "rewrite"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "paper-spine-translate": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Produces the complete translation_zh/ package with row-by-row translation of all required artifacts and full-paper translation. (internal /paperspine step)",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "spine",
+          "translate"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "paper-spine-ui": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Launches the PaperSpine external terminal configuration UI for Claude Code. (internal /paperspine step)",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "spine",
+          "ui"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "paper-spine-update": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Checks and updates PaperSpine from GitHub while preserving global config; use for upgrades, latest-version checks, or local reinstall.",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "spine",
+          "update"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "research-paper-writing": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Improve academic paper writing quality for ML/CV/NLP-style papers with clear section structure, paragraph flow, and reviewer-facing presentation. Use when drafting or revising Abstract, Introduction, Related Work, Method, Experiments, or Conclusion; polishing figures/tables; checking claim-support a",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "writing"
+        ]
+      },
+      "alwaysActive": true
+    },
+    "research-writing-skill": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Chinese-first research paper writing, revision, polishing, section drafting, rebuttal, peer-review response, thesis prose improvement, and manuscript argument planning. Use when the user asks to write or revise论文正文, abstracts, introductions, methods, results, discussion, conclusions, related work, r",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "writing",
+          "skill",
+          "写论文",
+          "中文写论文",
+          "论文润色",
+          "帮我写论文",
+          "改论文"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "scientific-figure-making": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": ">-",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "scientific",
+          "figure",
+          "making",
+          "科研绘图",
+          "论文配图",
+          "画数据图",
+          "作图"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "scientific-toolkit-skill": {
+      "type": "academic",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Research computing toolkit for optoelectronic information science and engineering, MATLAB/Octave, Python scientific analysis, signal processing, image processing, statistics, simulation, optimization, publication figures, sensor/time-series data, citation lookup, and common scientific libraries. Use",
+      "promptTriggers": {
+        "keywords": [
+          "academic",
+          "paper",
+          "research",
+          "scientific",
+          "toolkit",
+          "skill",
+          "数据分析",
+          "科学计算",
+          "matlab",
+          "信号处理"
+        ]
+      },
+      "alwaysActive": false
+    },
+    "superpowers": {
+      "type": "plugin-router",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "description": "Route brainstorming, planning, test-driven development, code review, debugging, and verification workflows to the locally enabled Superpowers plugin when available.",
+      "promptTriggers": {
+        "keywords": [
+          "superpowers",
+          "brainstorming",
+          "writing plans",
+          "test-driven development",
+          "systematic debugging",
+          "requesting code review",
+          "verification before completion",
+          "dispatching parallel agents"
+        ],
+        "intentPatterns": [
+          "(use|run|apply).*?superpowers",
+          "(brainstorm|plan|tdd|debug|verify).*?(with|using).*?superpowers",
+          "(dispatch|parallel).*?agents"
         ]
       },
       "fileTriggers": {

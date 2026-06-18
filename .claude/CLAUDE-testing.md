@@ -68,10 +68,8 @@ Computer Use is an Anthropic API feature where the model drives the user's deskt
 
 These hooks exist and should be treated as helpers, not as a substitute for judgment:
 
-- `post-tool-use-tracker.sh` tracks edited files and affected repos
-- `tsc-check.sh` attempts a targeted TypeScript check after file edits
-- `stop-build-check-enhanced.sh` re-checks tracked repos on stop
-- `workflow-completion-gate.sh` now acts as a reminder and cleanup step, not a stale hard blocker for imaginary workflow steps
+- `post-edit-check.sh` runs a targeted TypeScript check on affected repos, the native linter on edited files, and a Python check (pyright or ruff) on edited `.py` files, and records the edit log
+- `workflow-completion-gate.sh` acts as a reminder and cleanup step, not a stale hard blocker for imaginary workflow steps
 
 ## Failure Response
 
