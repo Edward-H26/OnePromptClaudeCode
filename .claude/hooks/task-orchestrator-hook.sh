@@ -189,8 +189,41 @@ print_clarify_first() {
     fi
 }
 
+# Inject the ponytail ruleset full-text every engaged turn so it shapes code,
+# not just appears as a recommended name. Auto-disables if ponytail is removed.
+print_ponytail_ruleset() {
+    [[ -d "$CLAUDE_HOME_DIR/skills/ponytail" ]] || return 0
+    cat <<'EOF'
+
+================================================================================
+PONYTAIL ACTIVE (lazy senior dev, default mode: full)
+================================================================================
+Before writing code, stop at the FIRST rung that holds:
+  1. Does this need to exist at all? -> no: skip it, say so in one line (YAGNI)
+  2. Already in this codebase? -> reuse it, do not re-implement
+  3. Stdlib does it? -> use it
+  4. Native platform feature covers it? -> use it (<input type="date"> over a lib, CSS over JS, DB constraint over app code)
+  5. Installed dependency solves it? -> use it; never add a new one for what a few lines do
+  6. Can it be one line? -> one line
+  7. Only then: the minimum code that works
+
+The ladder runs AFTER you understand the problem, never instead of it: read the
+code the change touches, trace the real flow, then climb. Bug fix = root cause
+(one guard in the shared function), not a patch per caller.
+
+NEVER simplify away: trust-boundary validation, data-loss handling, security,
+accessibility, or anything explicitly requested. Non-trivial logic leaves ONE
+runnable check behind. Mark deliberate shortcuts with a `ponytail:` comment.
+
+Output: code first, then at most 3 short lines (what was skipped, when to add
+it). No essays. Switch intensity with /ponytail lite|full|ultra|off.
+================================================================================
+EOF
+}
+
 run_skill_and_clarify() {
     print_skill_activation_check
+    print_ponytail_ruleset
     print_clarify_first
 }
 

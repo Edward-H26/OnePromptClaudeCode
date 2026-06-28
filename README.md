@@ -4,7 +4,7 @@
 
 A complete Claude Code workflow that covers the entire software development lifecycle. Clone it, start coding, and never write a prompt from scratch again.
 
-71 skill entries. 66 commands. 14 agents. 4 local hooks. 4 templates. 11+ shared MCP servers. 600+ auto-triggers.
+77 skill entries. 72 commands. 14 agents. 4 local hooks. 4 templates. 11+ shared MCP servers. 600+ auto-triggers.
 
 Built for beginners. Scales for power users.
 
@@ -76,8 +76,8 @@ Zero prompts to write. Minimal repo setup. Machine-local plugin installs and aut
 
 | Component | Count | Description |
 |---|---|---|
-| **Skills** | 71 | Bundled workflow skill entries available directly from the tracked repo |
-| **Commands** | 66 | Slash commands for planning, implementation, review, QA, and release handoff |
+| **Skills** | 77 | Bundled workflow skill entries available directly from the tracked repo |
+| **Commands** | 72 | Slash commands for planning, implementation, review, QA, and release handoff |
 | **Agents** | 14 | Specialized local agents for complex tasks |
 | **Hooks** | 4 | Automated skill activation, type/lint checks, and workflow hooks (all local) |
 | **Templates** | 4 | Reusable prompt templates for common workflows |
@@ -129,6 +129,7 @@ The workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Te
 | `ui-ux-pro-max` | ask about design decisions | 67 UI styles, 161 palettes, 57 fonts, 99 UX guidelines, 25 chart types |
 | `shadcn-ui` | ask about shadcn/ui | shadcn/ui component composition, theming, registry, OKLCH tokens |
 | `code-refactor` | ask to refactor | Grep + Edit workflow for bulk refactoring |
+| `ponytail` | always active (`/ponytail lite/full/ultra/off`) | Lazy senior-dev mode: minimal solution via the YAGNI ladder, never cutting validation, security, or accessibility |
 
 ### Review and Testing
 
@@ -164,7 +165,7 @@ The workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Te
 
 ## Selected Commands
 
-The repo tracks 66 slash commands. Common entry points are listed below.
+The repo tracks 72 slash commands. Common entry points are listed below.
 
 | Command | Purpose |
 |---|---|
@@ -264,10 +265,10 @@ Ready-to-use templates at `.claude/prompt-templates/`:
   settings.json          # Permissions, hooks, plugins, env
   runtime/               # Repo-local ignored runtime state for safety and workflow artifacts
   agents/                # 14 local agent definitions
-  commands/              # 66 slash commands
+  commands/              # 72 slash commands
   hooks/                 # 4 local hook scripts
   prompt-templates/      # 4 reusable templates
-  skills/                # 71 skill entries
+  skills/                # 77 skill entries
     skill-rules.json     # 400+ keyword trigger engine
     [local skills]       # Backend, frontend, testing, research, and utility skills
 social/                  # Social media assets and demo video

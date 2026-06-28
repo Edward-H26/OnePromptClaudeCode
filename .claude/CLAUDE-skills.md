@@ -4,10 +4,10 @@
 
 本文件是这套 Claude Code harness 的"地图":列出全部 skill、command、MCP、hook、plugin,逐个用大白话解释、给出使用场景,并标出重复或冲突的地方。
 
-计数:**71 skills · 66 commands · 14 agents · 4 hooks · 2 MCP(仓库自带)· 6 plugins**。
+计数:**77 skills · 72 commands · 14 agents · 4 hooks · 2 MCP(仓库自带)· 6 plugins**。
 验证:`python3 -c "import json; print(len(json.load(open('.claude/skills/skill-rules.json'))['skills']))"`
 
-状态图例:🔴 常驻(每条 prompt 都被 `task-orchestrator-hook.sh` 列出)· 🟢 按需(只在命中关键词/意图时出现,或用 `/命令` 手动开)。当前 **常驻 15 / 按需 56**。
+状态图例:🔴 常驻(每条 prompt 都被 `task-orchestrator-hook.sh` 列出)· 🟢 按需(只在命中关键词/意图时出现,或用 `/命令` 手动开)。当前 **常驻 15 / 按需 62**。
 
 ---
 
@@ -28,13 +28,17 @@
 - **web-accessibility** — 按 WCAG 做无障碍(ARIA、键盘导航、读屏)。「要过无障碍标准时」
 - **web-design-guidelines** — 拿 Web 界面规范审查 UI 代码。「UI 写完做规范审查时」
 
-### 🔴 常驻 · 学术写作(4)
+### 🔴 常驻 · 学术写作(3)
 论文质量类,每篇都用得上。写整篇论文**主推 `academic-pipeline`**(研究→写→审一条龙)。
 
 - **academic-pipeline** — 把研究→写→审→改串成 10 阶段总编排,是**写论文的主推入口**。「想从研究到成稿一条龙时」
 - **research-paper-writing** — 提升英文 ML/CV/NLP 论文写作质量(结构、段落、面向审稿人)。「写英文顶会论文时」
 - **nature-polishing** — 把中文/粗糙英文润色成 Nature 风格英文,还能修 LaTeX 排版。「润色英文稿、修 LaTeX 排版时」
-- **nature-writing** — 从观点/结果/图起草 Nature 风格章节。「从零起草论文章节时」
+
+### 🔴 常驻 · 代码纪律(1)
+让 AI 只写必要代码的"懒惰资深程序员"准则,和 `CLAUDE.md` 的 Simplicity First 一脉相承,所以常驻。
+
+- **ponytail** — 写代码前先过 YAGNI 阶梯(复用 > 标准库 > 原生 > 一行 > 最小实现),绝不简化掉校验/安全/可访问性;`/ponytail lite|full|ultra|off` 调强度。「每次写代码默认生效,想更激进就 `/ponytail ultra`」
 
 ### 🟢 按需 · 核心(24)
 原有的开发/研究/审查/工具类,关键词触发或 `/命令` 手动开。
@@ -71,7 +75,7 @@
 - **superpowers** — 转 Superpowers 插件(头脑风暴/TDD/调试/审查)。「想用结构化工程流程时」
 - **remotion** — 用 Remotion(React 视频框架)编程做视频。「做程序化视频时」
 
-### 🟢 按需 · 学术(28)
+### 🟢 按需 · 学术(21)
 一整套科研流水线,按需触发。注意:写论文有三套并存(见冲突)。
 
 - **academic-paper** — 12 agent 论文写作流水线,11 种模式。「写整篇英文论文(一套主力)」
@@ -80,13 +84,6 @@
 - **research-writing-skill** — 中文优先的写作/润色/rebuttal。「用中文写论文时」
 - **nature-academic-search** — 多源文献检索 + 引用管理(PubMed/CrossRef/arXiv)。「查文献、管参考文献时」
 - **nature-citation** — 给段落自动配 Nature/CNS 引用。「补引用时」
-- **nature-data** — 写数据可用性声明、仓库选择、FAIR 元数据。「投稿写 data availability 时」
-- **nature-figure** — Nature 级科研配图(Python/R,投稿级 SVG/PDF/TIFF)。「做投稿数据图时」
-- **nature-paper-to-patent** — 论文/代码转中文发明专利草稿。「要申专利时」
-- **nature-paper2ppt** — 论文转 Nature 风中文 PPT。「论文做组会/答辩汇报时」
-- **nature-reader** — PDF 论文转中英对照、图表感知精读稿。「精读文献时」
-- **nature-response** — 写审稿意见回复(rebuttal)。「回审稿意见时」
-- **nature-reviewer** — 模拟审稿人审你的稿。「投稿前自审(Nature 风)」
 - **office-academic-skill** — 中文优先 Word/PPT 学术工作流(精读报告、组会 PPT、DOCX/PPTX)。「做中文学术汇报材料时」
 - **scientific-figure-making** — figures4papers 发表级作图。「做论文数据图(另一套)」
 - **scientific-toolkit-skill** — 科研计算工具箱(MATLAB/Octave、Python 分析、信号处理)。「做数据分析/科学计算时」
@@ -101,9 +98,30 @@
 - **fireworks-tech-graph** — 自然语言→技术图(架构/流程/时序),导出 SVG+PNG。「要画架构图/流程图时」
 - **diagram-design** — 技术/产品图做成 HTML+SVG,能抓品牌色。「要带品牌风的图表时」
 
+### 🟢 按需 · 代码纪律(5)
+ponytail 家族的命令式子技能,打 `/ponytail-*` 手动开。
+
+- **ponytail-review** — 审当前 diff 的过度设计,回一份"删除清单"。「写完想砍冗余时」
+- **ponytail-audit** — 审**整个仓库**的过度设计(不只 diff),给可删/可简化排序。「整库瘦身时」
+- **ponytail-debt** — 把代码里 `ponytail:` 标记的简化欠账收集成清单。「想清点欠的技术债时」
+- **ponytail-gain** — 展示 ponytail 的实测收益记分牌(更少代码/成本、更快)。「想看省了多少时」
+- **ponytail-help** — ponytail 所有模式/命令的速查卡。「忘了怎么用时」
+
+### 🟢 按需 · GSAP 动画(8)
+GreenSock 官方动画技能,全部按需(`gsap`/`动画`/`scroll` 等关键词触发),不常驻。
+
+- **gsap-core** — 核心 API:gsap.to/from、缓动、stagger、响应式/reduced-motion。「做 JS 网页动画的入口」
+- **gsap-react** — React/Next 里用 GSAP:useGSAP、refs、卸载清理。「React 动画时」
+- **gsap-frameworks** — Vue/Svelte/Nuxt 里用 GSAP:生命周期、作用域、清理。「Vue/Svelte 动画时」
+- **gsap-scrolltrigger** — 滚动驱动动画、钉住、scrub、视差。「做滚动动画时」
+- **gsap-plugins** — GSAP 插件(ScrollSmoother/Flip/Draggable/SplitText/SVG 等)。「用到某个插件时」
+- **gsap-timeline** — 时间线编排:gsap.timeline、position、嵌套。「排动画序列时」
+- **gsap-utils** — gsap.utils 助手:clamp、mapRange、random、snap、interpolate。「用工具函数时」
+- **gsap-performance** — 动画性能:优先 transform、避免重排、60fps。「动画卡顿优化时」
+
 ---
 
-## 二、Commands(66)
+## 二、Commands(72)
 
 机制:**打 `/名字` = 调用同名 skill**(绝大多数 1:1)。名字不同的 4 个:
 - `/backend-dev` → backend-dev-guidelines
@@ -127,7 +145,7 @@
 一个时机一个钩子:
 
 1. **session-start.sh**(SessionStart,开会话)— 引导本地配置 + 注入仓库规则 + 压缩快照恢复。
-2. **task-orchestrator-hook.sh**(UserPromptSubmit,你发消息)— 判断意图(分析/写代码/纯问)+ 列出该用的 skill(读 skill-rules.json)+ 提示词含糊时提醒先澄清 + auth 类提示 `/security-review`。
+2. **task-orchestrator-hook.sh**(UserPromptSubmit,你发消息)— 判断意图(分析/写代码/纯问)+ 列出该用的 skill(读 skill-rules.json)+ 提示词含糊时提醒先澄清 + auth 类提示 `/security-review` + 每个写代码/分析回合注入 ponytail 规则正文(强化版,卸载 ponytail 即自动关闭)。
 3. **post-edit-check.sh**(PostToolUse 改文件)— 按文件类型跑检查:TS/JS 跑 tsc,Python 跑 pyright/ruff,其它跑对应 linter,并记录改动文件。
 4. **workflow-completion-gate.sh**(Stop,答完)— 改了前端就提醒做浏览器验证 + 清 14 天前的过期缓存。
 
@@ -145,10 +163,10 @@
 
 功能重叠太多时 AI 容易选错,以下是最该注意的几组:
 
-1. **"写一整篇论文"三套并存**:`paper-spine`(12 个)、`academic-paper` + `academic-pipeline`、`nature-writing`/`research-paper-writing`。**主推 `academic-pipeline`**(研究→写→审一条龙,已设为常驻),其余按需。
-2. **科研/示意图四个重叠**:`nature-figure` 和 `scientific-figure-making`(科研数据图)、`fireworks-tech-graph` 和 `diagram-design`(架构/示意图)。各留一个即可。
-3. **审稿两个**:`academic-paper-reviewer` 与 `nature-reviewer`。
-4. **学术 PPT 两个**:`nature-paper2ppt` 与 `office-academic-skill`。
+1. **"写一整篇论文"三套并存**:`paper-spine`(12 个)、`academic-paper`、`research-paper-writing`。**主推 `academic-pipeline`**(研究→写→审一条龙,已设为常驻),其余按需。
+2. **示意图两个重叠**:`fireworks-tech-graph` 与 `diagram-design`(架构/示意图),各留一个;科研数据图统一用 `scientific-figure-making`。
+3. **审稿**:统一用 `academic-paper-reviewer`(主题已转 academic 系列)。
+4. **学术 PPT**:统一用 `office-academic-skill`。
 5. **深度研究两个**:`deep-research`(更全)与 `aiq-research`。
 6. **泛化设计五个**:`frontend-design`/`impeccable`/`ui-ux-pro-max`/`design-taste-frontend`/`high-end-visual-design` 都是"把 UI 做好看",高度重叠。常驻其实留 1 个就够。
 7. **shadcn 两个**:`shadcn-ui` 与 `ui-styling` 都涉及 shadcn + Tailwind。

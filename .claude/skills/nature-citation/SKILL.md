@@ -67,4 +67,4 @@ The files under `references/` are deep references, not defaults. Open them on de
 - The static layer is versioned and reviewable; the core stays small for a normal short run.
 - The dynamic layer keeps each invocation cheap: the script flag dump and long-article strategy load only when actually running a search.
 - The router itself is short on purpose. Update fragments and references, not this file, when adding scope.
-- This structure mirrors `nature-writing`, `nature-polishing`, `nature-reader`, `nature-paper2ppt`, and `nature-figure`.
+- This structure mirrors the other surviving nature-* academic skills (`nature-polishing`, `nature-academic-search`).

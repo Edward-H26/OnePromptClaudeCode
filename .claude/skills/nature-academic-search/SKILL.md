@@ -72,4 +72,4 @@ The files under `references/` (and `scripts/`) are deep references, not defaults
 - The static layer is versioned and reviewable; the workflow files and shared modules were already factored this way.
 - The dynamic layer keeps each invocation cheap: only the workflow the user needs enters context, instead of all five plus every module.
 - The router itself is short on purpose. Update fragments and references, not this file, when adding scope.
-- This structure mirrors the other nature-* skills (`nature-writing`, `nature-polishing`, `nature-reader`, `nature-paper2ppt`, `nature-figure`, `nature-citation`, `nature-response`, `nature-data`).
+- This structure mirrors the other surviving nature-* academic skills (`nature-polishing`, `nature-citation`).

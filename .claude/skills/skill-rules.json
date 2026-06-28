@@ -1131,7 +1131,20 @@
           "写paper",
           "论文写作",
           "起草论文",
-          "写学术论文"
+          "写学术论文",
+          "sci论文",
+          "nature论文",
+          "写章节",
+          "论文初稿",
+          "write a paper",
+          "draft paper"
+        ],
+        "intentPatterns": [
+          "(写|撰写|起草|草拟|完成|改写)(一|这|那|几|本|个|份|篇|关于|好|完|出|作).{0,10}论文",
+          "论文.{0,6}(初稿|草稿|框架|大纲|写作)",
+          "(写|撰写).{0,6}(paper|manuscript)",
+          "研究论文",
+          "学术论文"
         ]
       },
       "alwaysActive": false
@@ -1161,7 +1174,14 @@
           "模拟审稿",
           "投稿前自审",
           "我的稿",
-          "稿子"
+          "稿子",
+          "审我的稿",
+          "审论文",
+          "审一下稿"
+        ],
+        "intentPatterns": [
+          "(审|评审|审查|审阅|审一下|审下).{0,5}(稿|论文|文章|manuscript|paper)",
+          "(模拟|扮演|充当).{0,4}审稿"
         ]
       },
       "alwaysActive": false
@@ -1219,6 +1239,10 @@
           "查文献",
           "找文献",
           "查论文"
+        ],
+        "intentPatterns": [
+          "(查|找|搜|搜索|检索|搜一下).{0,6}(文献|论文|paper|literature)",
+          "文献(检索|综述|调研|调查)"
         ]
       },
       "alwaysActive": false
@@ -1246,98 +1270,9 @@
           "加引用",
           "配引用",
           "找文献支撑"
-        ]
-      },
-      "alwaysActive": false
-    },
-    "nature-data": {
-      "type": "academic",
-      "enforcement": "suggest",
-      "priority": "high",
-      "description": ">-",
-      "promptTriggers": {
-        "keywords": [
-          "academic",
-          "paper",
-          "research",
-          "nature",
-          "data",
-          "数据可用性声明",
-          "数据可用性",
-          "data availability"
-        ]
-      },
-      "alwaysActive": false
-    },
-    "nature-figure": {
-      "type": "academic",
-      "enforcement": "suggest",
-      "priority": "high",
-      "description": ">-",
-      "promptTriggers": {
-        "keywords": [
-          "academic",
-          "paper",
-          "research",
-          "nature",
-          "figure",
-          "论文配图",
-          "学术写作配图",
-          "科研绘图",
-          "科研作图",
-          "画图",
-          "作图",
-          "出图",
-          "论文图表",
-          "可视化",
-          "画数据图"
-        ]
-      },
-      "alwaysActive": false
-    },
-    "nature-paper-to-patent": {
-      "type": "academic",
-      "enforcement": "suggest",
-      "priority": "high",
-      "description": "Convert scientific papers, theses, technical reports, source code, figures, or research manuscripts into evidence-grounded Chinese invention patent drafts. Use when an AI agent must extract patentable technical contributions, map every claimed feature to source evidence, preserve core formulas as ed",
-      "promptTriggers": {
-        "keywords": [
-          "academic",
-          "paper",
-          "research",
-          "nature",
-          "to",
-          "patent",
-          "写专利",
-          "专利草稿",
-          "申专利"
-        ]
-      },
-      "alwaysActive": false
-    },
-    "nature-paper2ppt": {
-      "type": "academic",
-      "enforcement": "suggest",
-      "priority": "high",
-      "description": "Build a complete but efficient Nature-style Chinese PPTX presentation from a scientific paper, preprint, PDF, article text, abstract, figure legends, or reading notes. Use this skill whenever the user asks to make slides/PPT/PPTX for journal club, group meeting, paper sharing, thesis seminar, lab me",
-      "promptTriggers": {
-        "keywords": [
-          "academic",
-          "paper",
-          "research",
-          "nature",
-          "paper2ppt",
-          "论文汇报",
-          "文献汇报",
-          "学术汇报",
-          "做幻灯片",
-          "论文做PPT",
-          "组会PPT",
-          "讲paper",
-          "读书报告PPT",
-          "做ppt",
-          "组会ppt",
-          "组会"
+        ],
+        "intentPatterns": [
+          "(加|补|配|找|添加|补充).{0,4}(引用|参考文献|文献|citation)"
         ]
       },
       "alwaysActive": false
@@ -1354,100 +1289,6 @@
           "research",
           "nature",
           "polishing"
-        ]
-      },
-      "alwaysActive": true
-    },
-    "nature-reader": {
-      "type": "academic",
-      "enforcement": "suggest",
-      "priority": "high",
-      "description": "Build full-paper Chinese-English side-by-side, figure/table-aware, source-grounded Markdown readers for journal or conference papers from PDF, DOI, arXiv, publisher HTML, or pasted text. Use whenever the user asks to translate or read a paper, make 中英文对照/原文对照/全文翻译解读, extract figures or tables into t",
-      "promptTriggers": {
-        "keywords": [
-          "academic",
-          "paper",
-          "research",
-          "nature",
-          "reader",
-          "读论文",
-          "精读论文",
-          "论文翻译",
-          "文献翻译",
-          "文献阅读",
-          "学术阅读",
-          "帮我读这篇文章",
-          "翻译这篇paper",
-          "论文精读",
-          "翻译论文"
-        ]
-      },
-      "alwaysActive": false
-    },
-    "nature-response": {
-      "type": "academic",
-      "enforcement": "suggest",
-      "priority": "high",
-      "description": ">-",
-      "promptTriggers": {
-        "keywords": [
-          "academic",
-          "paper",
-          "research",
-          "nature",
-          "response",
-          "回复审稿人",
-          "审稿回复",
-          "返修",
-          "回审稿",
-          "rebuttal",
-          "回复审稿意见",
-          "审稿意见",
-          "回复"
-        ]
-      },
-      "alwaysActive": false
-    },
-    "nature-reviewer": {
-      "type": "academic",
-      "enforcement": "suggest",
-      "priority": "high",
-      "description": ">-",
-      "promptTriggers": {
-        "keywords": [
-          "academic",
-          "paper",
-          "research",
-          "nature",
-          "reviewer",
-          "审稿人视角",
-          "模拟审稿",
-          "预审",
-          "帮我审一下论文",
-          "投稿前自审",
-          "审稿意见模拟",
-          "找论文问题",
-          "审稿",
-          "审我的稿",
-          "peer review",
-          "我的稿",
-          "稿子"
-        ]
-      },
-      "alwaysActive": false
-    },
-    "nature-writing": {
-      "type": "academic",
-      "enforcement": "suggest",
-      "priority": "high",
-      "description": "Draft, restructure, or plan Nature-style manuscript sections from author-provided claims, results, figures, notes, or Chinese drafts. Use when the user wants to write or rebuild an abstract, introduction, related-work, method, experiments, discussion, conclusion, title, or full manuscript argument r",
-      "promptTriggers": {
-        "keywords": [
-          "academic",
-          "paper",
-          "research",
-          "nature",
-          "writing"
         ]
       },
       "alwaysActive": true
@@ -1770,6 +1611,278 @@
       "fileTriggers": {
         "pathPatterns": [],
         "contentPatterns": []
+      }
+    },
+    "ponytail": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "high",
+      "alwaysActive": true,
+      "description": "Lazy senior-dev mode: write only what the task needs via the YAGNI ladder (reuse > stdlib > native > one line), never cutting validation, security, or accessibility.",
+      "promptTriggers": {
+        "keywords": [
+          "ponytail",
+          "be lazy",
+          "lazy mode",
+          "simplest solution",
+          "minimal solution",
+          "yagni",
+          "do less",
+          "shortest path",
+          "over-engineering",
+          "overengineering",
+          "boilerplate",
+          "过度设计",
+          "过度工程",
+          "精简实现",
+          "极简",
+          "少写代码",
+          "最简实现",
+          "别过度设计",
+          "简化方案"
+        ]
+      }
+    },
+    "ponytail-review": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "description": "Review the current diff for over-engineering and hand back a delete-list.",
+      "promptTriggers": {
+        "keywords": [
+          "ponytail review",
+          "over-engineering review",
+          "delete list",
+          "审查过度设计",
+          "精简审查",
+          "删减建议"
+        ],
+        "intentPatterns": [
+          "(review|检查|审查).{0,8}(over.?engineering|过度设计|bloat|臃肿)"
+        ]
+      }
+    },
+    "ponytail-audit": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "description": "Audit the whole repo for over-engineering, not just the diff.",
+      "promptTriggers": {
+        "keywords": [
+          "ponytail audit",
+          "audit over-engineering",
+          "全仓过度设计审计",
+          "过度设计审计",
+          "臃肿审计"
+        ]
+      }
+    },
+    "ponytail-debt": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "low",
+      "description": "Harvest deferred ponytail: shortcuts into a debt ledger so 'later' doesn't become 'never'.",
+      "promptTriggers": {
+        "keywords": [
+          "ponytail debt",
+          "ponytail ledger",
+          "简化债",
+          "ponytail 技术债"
+        ]
+      }
+    },
+    "ponytail-gain": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "low",
+      "description": "Show the measured impact scoreboard (less code, less cost, more speed).",
+      "promptTriggers": {
+        "keywords": [
+          "ponytail gain",
+          "ponytail scoreboard",
+          "ponytail 收益",
+          "ponytail 成效"
+        ]
+      }
+    },
+    "ponytail-help": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "low",
+      "description": "Quick reference for the ponytail commands.",
+      "promptTriggers": {
+        "keywords": [
+          "ponytail help",
+          "ponytail 帮助",
+          "ponytail 命令"
+        ]
+      }
+    },
+    "gsap-core": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Official GSAP skill: core.",
+      "promptTriggers": {
+        "keywords": [
+          "gsap",
+          "gsap动画",
+          "animation library",
+          "tween",
+          "easing",
+          "stagger",
+          "gsap.to",
+          "matchmedia",
+          "js动画",
+          "网页动画",
+          "动画库",
+          "reduced-motion",
+          "prefers-reduced-motion"
+        ],
+        "intentPatterns": [
+          "(gsap|动画).{0,6}(tween|easing|缓动|stagger)"
+        ]
+      }
+    },
+    "gsap-react": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "description": "Official GSAP skill: react.",
+      "promptTriggers": {
+        "keywords": [
+          "gsap react",
+          "usegsap",
+          "gsap next",
+          "react动画",
+          "gsap.context",
+          "use gsap"
+        ],
+        "intentPatterns": [
+          "(react|next).{0,8}gsap",
+          "gsap.{0,8}(react|next)"
+        ]
+      }
+    },
+    "gsap-frameworks": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "description": "Official GSAP skill: frameworks.",
+      "promptTriggers": {
+        "keywords": [
+          "gsap vue",
+          "gsap svelte",
+          "gsap nuxt",
+          "vue动画",
+          "svelte动画",
+          "sveltekit动画",
+          "onmounted gsap"
+        ],
+        "intentPatterns": [
+          "(vue|svelte|nuxt|sveltekit).{0,8}gsap",
+          "gsap.{0,8}(vue|svelte|nuxt|svelte)"
+        ]
+      }
+    },
+    "gsap-scrolltrigger": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Official GSAP skill: scrolltrigger.",
+      "promptTriggers": {
+        "keywords": [
+          "scrolltrigger",
+          "scroll动画",
+          "滚动动画",
+          "pinning",
+          "钉住",
+          "parallax",
+          "视差",
+          "scrub",
+          "滚动触发",
+          "scroll-driven"
+        ],
+        "intentPatterns": [
+          "(scroll|滚动).{0,6}(animation|动画|trigger|触发)"
+        ]
+      }
+    },
+    "gsap-plugins": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "description": "Official GSAP skill: plugins.",
+      "promptTriggers": {
+        "keywords": [
+          "gsap plugin",
+          "gsap插件",
+          "scrollsmoother",
+          "scrolltoplugin",
+          "splittext",
+          "flip",
+          "draggable",
+          "morphsvg",
+          "drawsvg",
+          "observer",
+          "inertia",
+          "customease"
+        ]
+      }
+    },
+    "gsap-timeline": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "description": "Official GSAP skill: timeline.",
+      "promptTriggers": {
+        "keywords": [
+          "gsap timeline",
+          "时间线",
+          "动画序列",
+          "动画编排",
+          "sequencing",
+          "gsap.timeline",
+          "动画顺序",
+          "keyframes编排"
+        ]
+      }
+    },
+    "gsap-utils": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "low",
+      "description": "Official GSAP skill: utils.",
+      "promptTriggers": {
+        "keywords": [
+          "gsap.utils",
+          "gsap工具",
+          "maprange",
+          "interpolate",
+          "gsap clamp",
+          "gsap random",
+          "gsap snap",
+          "toarray",
+          "gsap wrap"
+        ]
+      }
+    },
+    "gsap-performance": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "description": "Official GSAP skill: performance.",
+      "promptTriggers": {
+        "keywords": [
+          "gsap performance",
+          "动画性能",
+          "动画卡顿",
+          "jank",
+          "60fps",
+          "will-change",
+          "layout thrash",
+          "掉帧"
+        ]
       }
     }
   }
