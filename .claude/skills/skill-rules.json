@@ -838,7 +838,7 @@
           "component"
         ]
       },
-      "alwaysActive": true
+      "alwaysActive": false
     },
     "impeccable": {
       "type": "design-review",
@@ -857,7 +857,7 @@
           "dashboard"
         ]
       },
-      "alwaysActive": true
+      "alwaysActive": false
     },
     "ui-ux-pro-max": {
       "type": "ui-ux",
@@ -877,7 +877,7 @@
           "mobile app"
         ]
       },
-      "alwaysActive": true
+      "alwaysActive": false
     },
     "shadcn-ui": {
       "type": "ui-component",
@@ -896,7 +896,7 @@
           "theme"
         ]
       },
-      "alwaysActive": true
+      "alwaysActive": false
     },
     "web-design-guidelines": {
       "type": "design-review",
@@ -913,7 +913,7 @@
           "guidelines"
         ]
       },
-      "alwaysActive": true
+      "alwaysActive": false
     },
     "design-taste-frontend": {
       "type": "design-style",
@@ -930,7 +930,7 @@
           "anti-slop"
         ]
       },
-      "alwaysActive": true
+      "alwaysActive": false
     },
     "image-to-code": {
       "type": "design-to-code",
@@ -966,7 +966,7 @@
           "clean ui"
         ]
       },
-      "alwaysActive": true
+      "alwaysActive": false
     },
     "industrial-brutalist-ui": {
       "type": "design-style",
@@ -1000,7 +1000,7 @@
           "bento"
         ]
       },
-      "alwaysActive": true
+      "alwaysActive": false
     },
     "high-end-visual-design": {
       "type": "design-style",
@@ -1019,7 +1019,7 @@
           "animation"
         ]
       },
-      "alwaysActive": true
+      "alwaysActive": false
     },
     "redesign-existing-projects": {
       "type": "design-review",
@@ -1036,7 +1036,7 @@
           "refactor ui"
         ]
       },
-      "alwaysActive": true
+      "alwaysActive": false
     },
     "fireworks-tech-graph": {
       "type": "diagram",
@@ -1102,7 +1102,7 @@
           "keyboard navigation"
         ]
       },
-      "alwaysActive": true
+      "alwaysActive": false
     },
     "academic-paper": {
       "type": "academic",
@@ -1199,7 +1199,7 @@
           "pipeline"
         ]
       },
-      "alwaysActive": true
+      "alwaysActive": false
     },
     "citation-check-skill": {
       "type": "academic",
@@ -1291,7 +1291,7 @@
           "polishing"
         ]
       },
-      "alwaysActive": true
+      "alwaysActive": false
     },
     "office-academic-skill": {
       "type": "academic",
@@ -1521,7 +1521,7 @@
           "writing"
         ]
       },
-      "alwaysActive": true
+      "alwaysActive": false
     },
     "research-writing-skill": {
       "type": "academic",
@@ -1617,7 +1617,7 @@
       "type": "domain",
       "enforcement": "suggest",
       "priority": "high",
-      "alwaysActive": true,
+      "alwaysActive": false,
       "description": "Lazy senior-dev mode: write only what the task needs via the YAGNI ladder (reuse > stdlib > native > one line), never cutting validation, security, or accessibility.",
       "promptTriggers": {
         "keywords": [
