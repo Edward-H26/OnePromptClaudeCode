@@ -1,6 +1,7 @@
-> **Parent**: [CLAUDE.md](./CLAUDE.md) | **Related**: [CLAUDE-testing.md](./CLAUDE-testing.md), [CLAUDE-skills.md](./CLAUDE-skills.md)
->
-> This document covers UI-heavy website work in this environment.
+---
+name: website-workflow
+description: Workflow for UI-heavy website work: layout, styling, interaction, and user-facing frontend behavior. Also holds the browser tooling preference order for any visual verification.
+---
 
 # Website Development Workflow
 
@@ -32,22 +33,7 @@ Do not wait until the end to fix obvious styling duplication or layout drift.
 
 ## Phase 4: Verify
 
-Run the most relevant checks:
-
-```bash
-npx tsc --noEmit
-npm run build
-npm run lint
-
-# Browser verification, preferred path when chrome-devtools scripts are installed
-node .claude/skills/chrome-devtools/scripts/navigate.js --url http://localhost:3000
-node .claude/skills/chrome-devtools/scripts/screenshot.js --url http://localhost:3000 --output ./docs/screenshots/page.png
-
-# Playwright fallback when cross-browser coverage or the plugin is required
-npx playwright test
-```
-
-Use only the checks that exist in the target project.
+Run the project's own type-check, build, and lint commands. Use only the checks that exist in the target project.
 
 ## Phase 5: Browser Validation
 
@@ -57,11 +43,11 @@ When there is a runnable UI target:
 - check for console or runtime errors
 - confirm responsive behavior for the important breakpoints
 
-Preferred order of browser tooling:
+### Browser tooling preference order
 
-1. `chrome-devtools` skill at `.claude/skills/chrome-devtools/scripts/` when Chrome is configured locally. It drives Chrome via Puppeteer, outputs structured JSON, compresses screenshots automatically, and supports chained sessions.
-2. Playwright plugin when cross-browser coverage (Firefox, WebKit) is required, when the chrome-devtools node modules are not installed, or when the target project already uses Playwright specs.
-3. The generic browser MCP connector when neither option is available.
+1. The `chrome-devtools` skill, which wraps the chrome-devtools-mcp plugin. Preferred default: it drives Chrome directly and covers screenshots, console, network, performance traces, and Lighthouse.
+2. The `playwright` skill or the Playwright plugin, when Firefox or WebKit coverage is required, or when the target project already has Playwright specs.
+3. The generic browser MCP connector, only when neither of the first two is available.
 
 Record which tool was used and why in the final report so future runs stay consistent.
 

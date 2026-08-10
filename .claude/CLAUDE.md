@@ -77,5 +77,5 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ## Additional Guidance
 
-- Testing and verification: @CLAUDE-testing.md
-- UI-heavy and website work: @CLAUDE-website-workflow.md
+- Testing and verification: `testing-verification` skill
+- UI-heavy and website work: `website-workflow` skill
