@@ -61,7 +61,6 @@ Run a broad first pass to map the territory.
 - Note source types in your scratch notes: official docs, primary research, news, blog, forum.
 - Identify the top 3-5 URLs worth deep reading (mix of source types, prefer primary > secondary).
 - If the topic involves a library or framework, run `mcp__context7__resolve-library-id` then `mcp__context7__query-docs` for the canonical reference.
-- If the topic involves an ML model or dataset, query the `mcp__claude_ai_Hugging_Face__*` tools.
 
 ### Stage 4: Deep Research
 

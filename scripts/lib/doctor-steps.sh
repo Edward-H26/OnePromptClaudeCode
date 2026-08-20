@@ -338,7 +338,6 @@ direct_mcp_plugins = {
 optional_claude_ai = {
     "claude.ai Google Calendar",
     "claude.ai Gmail",
-    "claude.ai Scholar Gateway",
     "claude.ai Tavily",
 }
 

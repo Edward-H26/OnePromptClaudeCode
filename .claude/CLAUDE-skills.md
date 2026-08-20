@@ -136,7 +136,7 @@ GreenSock 官方动画技能,全部按需(`gsap`/`动画`/`scroll` 等关键词�
 ## 三、MCP 服务器
 
 - **仓库自带(随仓库走,已启用):** `remotion-docs`(查 Remotion 文档)、`remotion-app`(操作 Remotion 项目)。
-- **会话级(来自你机器的全局配置 / 插件,不在仓库里):** context7、github、playwright、chrome-devtools、figma、computer-use,以及 claude.ai 的 Canva / Hugging Face / PDF Viewer / Scholar Gateway / Tavily 连接器。
+- **会话级(来自你机器的全局配置 / 插件,不在仓库里):** context7、github、playwright、chrome-devtools、figma、computer-use,以及 claude.ai 的 Google Drive 连接器。
 
 ---
 

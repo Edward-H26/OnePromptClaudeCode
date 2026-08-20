@@ -35,7 +35,7 @@ This skill is a direct route to the `chrome-devtools-mcp` plugin's MCP tools. In
 | Inspect network | `mcp__plugin_chrome-devtools-mcp_chrome-devtools__list_network_requests` / `get_network_request` |
 | Lighthouse audit | `mcp__plugin_chrome-devtools-mcp_chrome-devtools__lighthouse_audit` |
 | Performance trace | `mcp__plugin_chrome-devtools-mcp_chrome-devtools__performance_start_trace` / `performance_stop_trace` / `performance_analyze_insight` |
-| Memory snapshot | `mcp__plugin_chrome-devtools-mcp_chrome-devtools__take_memory_snapshot` |
+| Memory snapshot | `mcp__plugin_chrome-devtools-mcp_chrome-devtools__take_heapsnapshot` |
 
 ## When To Use This vs Other Browser Skills
 

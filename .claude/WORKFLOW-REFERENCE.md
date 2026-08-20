@@ -136,13 +136,8 @@ Availability depends on the local Claude installation, enabled plugins, ignored 
 | **Figma** | Read designs, get screenshots, create diagrams, Code Connect | `get_design_context`, `get_screenshot`, `generate_diagram` |
 | **GitHub** | Repository search, issues, pull requests, and reviews | `search_repositories`, `create_pull_request`, `list_issues` |
 | **Playwright** | Browser automation, click, fill, screenshot, evaluate | `browser_navigate`, `browser_click`, `browser_snapshot` |
-| **Hugging Face** | Model/dataset/paper search, training jobs | `hub_repo_search`, `paper_search`, `dynamic_space` |
-| **filesystem** | Read/write files across allowed directories | `read_file`, `write_file`, `search_files` |
-| **memory** | Persistent entity/relation graph | `create_entities`, `search_nodes`, `add_observations` |
 | **chrome** | Chrome browser automation with screenshots | `navigate`, `read_page`, `javascript_tool`, `gif_creator` |
 | **context7** | Up-to-date library documentation | `resolve-library-id`, `query-docs` |
-| **Scholar Gateway** | Academic paper search | `semanticSearch` |
-| **PDF Viewer** | Display and read PDFs | `display_pdf`, `read_pdf_bytes` |
 
 ---
 

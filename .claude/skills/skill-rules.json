@@ -828,7 +828,6 @@
       "description": "Distinctive, intentional visual design when building new UI or reshaping an existing one. Helps with aesthetic direction, typography, and choices that do not read as templated.",
       "promptTriggers": {
         "keywords": [
-          "ui",
           "design",
           "frontend",
           "visual",
@@ -866,12 +865,10 @@
       "description": "UI/UX design intelligence for web and mobile, with many styles, color palettes, font pairings, product types, and UX guidelines.",
       "promptTriggers": {
         "keywords": [
-          "ui",
           "ux",
           "design",
           "palette",
           "font",
-          "style",
           "layout",
           "dashboard",
           "mobile app"
@@ -1111,9 +1108,6 @@
       "description": "12-agent academic paper writing pipeline. 11 modes (full/plan/outline/revision/revision-coach/abstract/lit-review/format-convert/citation-check/disclosure/rebuttal-audit). 6 paper types, 5 citation formats, bilingual abstracts, LaTeX/DOCX-via-Pandoc/PDF output. Style Calibration + Writing Quality Ch",
       "promptTriggers": {
         "keywords": [
-          "academic",
-          "paper",
-          "research",
           "write paper",
           "academic paper",
           "guide my paper",
@@ -1156,9 +1150,6 @@
       "description": "Multi-perspective academic paper review with dynamic reviewer personas. Simulates 5 independent reviewers (EIC + 3 peer reviewers + Devil's Advocate) with field-specific expertise. Supports full review, re-review (verification), quick assessment, methodology focus, Socratic guided, and calibration m",
       "promptTriggers": {
         "keywords": [
-          "academic",
-          "paper",
-          "research",
           "reviewer",
           "review paper",
           "peer review",
@@ -1193,9 +1184,6 @@
       "description": "Orchestrator for the full academic research pipeline: research -> write -> integrity check -> review -> revise -> re-review -> re-revise -> final integrity check -> finalize. Coordinates deep-research, academic-paper, and academic-paper-reviewer into a seamless 10-stage workflow with mandatory integ",
       "promptTriggers": {
         "keywords": [
-          "academic",
-          "paper",
-          "research",
           "pipeline"
         ]
       },
@@ -1208,12 +1196,7 @@
       "description": "Vision-enabled verification gate with web search. Use when users want to (1) verify slides/reports/PDFs/images against authoritative online sources, (2) validate that citations actually exist and say what's claimed, (3) check charts/graphs/tables for accuracy, (4) audit AI-generated content in doc-o",
       "promptTriggers": {
         "keywords": [
-          "academic",
-          "paper",
-          "research",
           "citation",
-          "check",
-          "skill",
           "查引用",
           "核对引用",
           "引用对不对",
@@ -1230,9 +1213,6 @@
       "description": ">-",
       "promptTriggers": {
         "keywords": [
-          "academic",
-          "paper",
-          "research",
           "nature",
           "search",
           "文献检索",
@@ -1254,9 +1234,6 @@
       "description": ">-",
       "promptTriggers": {
         "keywords": [
-          "academic",
-          "paper",
-          "research",
           "nature",
           "citation",
           "学术写作引用",
@@ -1284,9 +1261,6 @@
       "description": "Polish, restructure, or translate academic prose into Nature-leaning English using writing-strategy principles, curated Nature/Nature Communications article patterns, and phrase-level support from Academic Phrasebank. Use whenever the user asks to polish a manuscript paragraph, abstract, introductio",
       "promptTriggers": {
         "keywords": [
-          "academic",
-          "paper",
-          "research",
           "nature",
           "polishing"
         ]
@@ -1300,11 +1274,6 @@
       "description": "Chinese-first academic Word and PowerPoint workflow for paper reading reports, thesis or group-meeting PPTs, editable DOCX/PPTX generation, Office file inspection, template matching, speaker notes, and layout quality checks. Use when the user asks to read papers into Word reports, create or polish P",
       "promptTriggers": {
         "keywords": [
-          "academic",
-          "paper",
-          "research",
-          "office",
-          "skill",
           "做ppt",
           "组会ppt",
           "精读报告",
@@ -1340,9 +1309,6 @@
       "description": "Audits PaperSpine outputs for missing artifacts, shallow revisions, logic transfer, unsupported claims, and translation coverage. (internal /paperspine step)",
       "promptTriggers": {
         "keywords": [
-          "academic",
-          "paper",
-          "research",
           "spine",
           "audit"
         ]
@@ -1356,11 +1322,7 @@
       "description": "Builds a paper or report from materials using the shared PaperSpine research, motivation, and rationale workflow. (internal /paperspine step)",
       "promptTriggers": {
         "keywords": [
-          "academic",
-          "paper",
-          "research",
-          "spine",
-          "build"
+          "spine"
         ]
       },
       "alwaysActive": false
@@ -1372,9 +1334,6 @@
       "description": "Builds a citation support bank for Introduction, Discussion, and background claims. (internal /paperspine step)",
       "promptTriggers": {
         "keywords": [
-          "academic",
-          "paper",
-          "research",
           "spine",
           "citation"
         ]
@@ -1388,9 +1347,6 @@
       "description": "Reduces AI detection rates via tiered stylistic constraints mapped to real AIGC detection dimensions. Produces a teaching humanize_matrix.md. (internal /paperspine step)",
       "promptTriggers": {
         "keywords": [
-          "academic",
-          "paper",
-          "research",
           "spine",
           "humanize"
         ]
@@ -1404,9 +1360,6 @@
       "description": "Collects PaperSpine workflow options and writes config for flash/pro, scene, language, and inputs. (internal /paperspine step)",
       "promptTriggers": {
         "keywords": [
-          "academic",
-          "paper",
-          "research",
           "spine",
           "intake"
         ]
@@ -1420,9 +1373,6 @@
       "description": "Handles LaTeX project assembly, figure placement, citations, labels, and compile-safe cleanup. (internal /paperspine step)",
       "promptTriggers": {
         "keywords": [
-          "academic",
-          "paper",
-          "research",
           "spine",
           "latex"
         ]
@@ -1436,9 +1386,6 @@
       "description": "Researches target requirements, downloads reference materials, learns strong examples, and prepares motivation options. (internal /paperspine step)",
       "promptTriggers": {
         "keywords": [
-          "academic",
-          "paper",
-          "research",
           "spine"
         ]
       },
@@ -1451,9 +1398,6 @@
       "description": "Rewrites an existing manuscript from confirmed motivation, research, paragraph-level rationale, and evidence. (internal /paperspine step)",
       "promptTriggers": {
         "keywords": [
-          "academic",
-          "paper",
-          "research",
           "spine",
           "rewrite"
         ]
@@ -1467,9 +1411,6 @@
       "description": "Produces the complete translation_zh/ package with row-by-row translation of all required artifacts and full-paper translation. (internal /paperspine step)",
       "promptTriggers": {
         "keywords": [
-          "academic",
-          "paper",
-          "research",
           "spine",
           "translate"
         ]
@@ -1483,11 +1424,7 @@
       "description": "Launches the PaperSpine external terminal configuration UI for Claude Code. (internal /paperspine step)",
       "promptTriggers": {
         "keywords": [
-          "academic",
-          "paper",
-          "research",
-          "spine",
-          "ui"
+          "spine"
         ]
       },
       "alwaysActive": false
@@ -1499,9 +1436,6 @@
       "description": "Checks and updates PaperSpine from GitHub while preserving global config; use for upgrades, latest-version checks, or local reinstall.",
       "promptTriggers": {
         "keywords": [
-          "academic",
-          "paper",
-          "research",
           "spine",
           "update"
         ]
@@ -1514,12 +1448,7 @@
       "priority": "high",
       "description": "Improve academic paper writing quality for ML/CV/NLP-style papers with clear section structure, paragraph flow, and reviewer-facing presentation. Use when drafting or revising Abstract, Introduction, Related Work, Method, Experiments, or Conclusion; polishing figures/tables; checking claim-support a",
       "promptTriggers": {
-        "keywords": [
-          "academic",
-          "paper",
-          "research",
-          "writing"
-        ]
+        "keywords": []
       },
       "alwaysActive": false
     },
@@ -1530,11 +1459,6 @@
       "description": "Chinese-first research paper writing, revision, polishing, section drafting, rebuttal, peer-review response, thesis prose improvement, and manuscript argument planning. Use when the user asks to write or revise论文正文, abstracts, introductions, methods, results, discussion, conclusions, related work, r",
       "promptTriggers": {
         "keywords": [
-          "academic",
-          "paper",
-          "research",
-          "writing",
-          "skill",
           "写论文",
           "中文写论文",
           "论文润色",
@@ -1551,10 +1475,6 @@
       "description": ">-",
       "promptTriggers": {
         "keywords": [
-          "academic",
-          "paper",
-          "research",
-          "scientific",
           "figure",
           "making",
           "科研绘图",
@@ -1577,7 +1497,6 @@
           "research",
           "scientific",
           "toolkit",
-          "skill",
           "数据分析",
           "科学计算",
           "matlab",

@@ -228,13 +228,8 @@ Automated hooks run at every stage of your workflow:
 | **Figma** | Read designs, screenshots, diagrams, Code Connect |
 | **GitHub** | Repos, issues, PRs, reviews |
 | **Playwright** | Browser automation, testing |
-| **Hugging Face** | Model/dataset/paper search, training |
-| **filesystem** | Read/write files |
-| **memory** | Persistent entity/relation graph |
 | **chrome** | Browser automation with screenshots |
 | **context7** | Live library documentation |
-| **Scholar Gateway** | Academic paper search |
-| **PDF Viewer** | PDF display and reading |
 | **Optional user-scoped connectors** | Additional project-specific services outside the shared repo config |
 
 ---
