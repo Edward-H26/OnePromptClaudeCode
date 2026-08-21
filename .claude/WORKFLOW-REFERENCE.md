@@ -77,7 +77,6 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 | Skill | Trigger | What it does |
 |---|---|---|
 | `deep-research` | `/deep-research` or ask for "deep research" | Multi-source research workflow using WebFetch/WebSearch with synthesis rules. |
-| `aiq-research` | ask about "AI-Q", "Nemotron research", "deep research blueprint" | NVIDIA AI-Q Blueprint delegation for enterprise multi-document research with citations. |
 | `professional-research-writing` | always active | Writing style guide: participial phrases, sentence construction, paragraph structure. Dash prohibition. |
 
 ### Utility Skills
@@ -137,7 +136,12 @@ Availability depends on the local Claude installation, enabled plugins, ignored 
 | **GitHub** | Repository search, issues, pull requests, and reviews | `search_repositories`, `create_pull_request`, `list_issues` |
 | **Playwright** | Browser automation, click, fill, screenshot, evaluate | `browser_navigate`, `browser_click`, `browser_snapshot` |
 | **chrome** | Chrome browser automation with screenshots | `navigate`, `read_page`, `javascript_tool`, `gif_creator` |
+| **chrome-devtools** | DevTools protocol: console, network, performance, Lighthouse | `list_console_messages`, `list_network_requests`, `lighthouse_audit` |
 | **context7** | Up-to-date library documentation | `resolve-library-id`, `query-docs` |
+| **computer-use** | Desktop screenshots and native-app control | `screenshot`, `left_click`, `type`, `open_application` |
+| **remotion-docs** | Remotion documentation lookup | `remotion-documentation` |
+| **remotion-app** | Remotion project scaffolding and rendering | `create-project`, `launch-studio`, `generate-audio` |
+| **Google Drive** | claude.ai connector for Drive files | (claude.ai account connector) |
 
 ---
 

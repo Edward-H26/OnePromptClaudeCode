@@ -13,7 +13,8 @@ doctorRepoLocalSurface() {
         fi
     done
 
-    for f in settings.json CLAUDE.md CLAUDE-testing.md CLAUDE-website-workflow.md CLAUDE-skills.md WORKFLOW-REFERENCE.md README.md; do
+    for f in settings.json CLAUDE.md CLAUDE-skills.md WORKFLOW-REFERENCE.md README.md \
+             skills/testing-verification/SKILL.md skills/website-workflow/SKILL.md; do
         if [[ ! -f "$ROOT/.claude/$f" ]]; then
             printf "  Missing repo-local file: %s\n" "$ROOT/.claude/$f"
             missing=1

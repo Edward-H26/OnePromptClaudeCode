@@ -1,4 +1,4 @@
-> **Parent**: [CLAUDE.md](./CLAUDE.md) | **Related**: [CLAUDE-testing.md](./CLAUDE-testing.md), [CLAUDE-website-workflow.md](./CLAUDE-website-workflow.md), [WORKFLOW-REFERENCE.md](./WORKFLOW-REFERENCE.md)
+> **Parent**: [CLAUDE.md](./CLAUDE.md) | **Related**: [testing-verification](./skills/testing-verification/SKILL.md), [website-workflow](./skills/website-workflow/SKILL.md), [WORKFLOW-REFERENCE.md](./WORKFLOW-REFERENCE.md)
 
 # Harness 总览参考 (CLAUDE-skills.md)
 
@@ -51,7 +51,6 @@
 
 **研究 / 调试 / 审查**
 - **deep-research** — 13 agent 深度研究团队(系统综述、meta 分析、事实核查)。「要严谨多源研究报告时」
-- **aiq-research** — 5 阶段 AI-Q 风研究,带引用。「要带引用的结构化研究报告时」
 - **investigate** — 系统化根因调试(假设验证,3 次失败就停)。「查 bug 根因时」
 - **review** — 资深工程师代码审查(`/review-staff`),找过了 CI 的生产 bug。「合并前审代码时」
 - **search-first** — 先搜现有代码再写。「动手改之前先摸代码时」
@@ -167,7 +166,7 @@ GreenSock 官方动画技能,全部按需(`gsap`/`动画`/`scroll` 等关键词�
 2. **示意图两个重叠**:`fireworks-tech-graph` 与 `diagram-design`(架构/示意图),各留一个;科研数据图统一用 `scientific-figure-making`。
 3. **审稿**:统一用 `academic-paper-reviewer`(主题已转 academic 系列)。
 4. **学术 PPT**:统一用 `office-academic-skill`。
-5. **深度研究两个**:`deep-research`(更全)与 `aiq-research`。
+5. **深度研究**:统一用 `deep-research`。
 6. **泛化设计五个**:`frontend-design`/`impeccable`/`ui-ux-pro-max`/`design-taste-frontend`/`high-end-visual-design` 都是"把 UI 做好看",高度重叠。常驻其实留 1 个就够。
 7. **shadcn 两个**:`shadcn-ui` 与 `ui-styling` 都涉及 shadcn + Tailwind。
 8. **风格 skill 互斥审美**:`minimalist-ui`(极简)、`industrial-brutalist-ui`(粗野)、`gpt-taste`(动效)只在选定风格时用。

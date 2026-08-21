@@ -784,43 +784,6 @@
         ]
       }
     },
-    "aiq-research": {
-      "type": "domain",
-      "enforcement": "suggest",
-      "priority": "medium",
-      "description": "Strict 5-stage research pipeline (intent classify, clarify, shallow, deep, evaluate) with inline citations. Runs entirely on Claude Code tools (WebSearch, WebFetch, context7, HF MCP); no external NVIDIA AI-Q server needed.",
-      "promptTriggers": {
-        "keywords": [
-          "aiq",
-          "ai-q",
-          "ai q",
-          "nvidia ai-q",
-          "nvidia aiq",
-          "nemotron",
-          "deep research with citations",
-          "structured research report",
-          "ai-q style research",
-          "rigorous research",
-          "research brief with sources",
-          "literature review",
-          "competitive analysis report",
-          "stakeholder research",
-          "defensible research",
-          "multi-source synthesis",
-          "要带引用的研究",
-          "研究报告"
-        ],
-        "intentPatterns": [
-          "(rigorous|structured|strict).*?research.*?(citation|source)",
-          "research.*?(brief|report).*?(stakeholder|executive|leadership)",
-          "(literature|competitive).*?(review|analysis)"
-        ]
-      },
-      "fileTriggers": {
-        "pathPatterns": [],
-        "contentPatterns": []
-      }
-    },
     "frontend-design": {
       "type": "frontend-design",
       "enforcement": "suggest",
@@ -1801,6 +1764,50 @@
           "will-change",
           "layout thrash",
           "掉帧"
+        ]
+      }
+    },
+    "testing-verification": {
+      "type": "workflow",
+      "enforcement": "suggest",
+      "priority": "high",
+      "description": "Verification protocol before claiming a code change is done.",
+      "promptTriggers": {
+        "keywords": [
+          "verification protocol",
+          "verify before done",
+          "run the tests",
+          "test suite",
+          "确认改好了",
+          "验证一下改动",
+          "跑一下测试",
+          "改完验证"
+        ],
+        "intentPatterns": [
+          "(verify|confirm|prove).*?(work|pass|fixed|done)",
+          "(what|which).*?(test|check).*?(run|before)"
+        ]
+      }
+    },
+    "website-workflow": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "description": "Workflow for UI-heavy website work plus the browser-tooling preference order.",
+      "promptTriggers": {
+        "keywords": [
+          "landing page",
+          "website layout",
+          "browser verification",
+          "visual check",
+          "网站页面",
+          "前端页面",
+          "页面布局",
+          "浏览器验证"
+        ],
+        "intentPatterns": [
+          "(build|redesign|fix).*?(landing page|website|web page)",
+          "(check|verify).*?(in the browser|visually)"
         ]
       }
     }

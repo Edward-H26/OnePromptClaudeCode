@@ -4,7 +4,7 @@
 
 A complete Claude Code workflow that covers the entire software development lifecycle. Clone it, start coding, and never write a prompt from scratch again.
 
-77 skill entries. 72 commands. 14 agents. 4 local hooks. 4 templates. 11+ shared MCP servers. 600+ auto-triggers.
+78 skill entries. 71 commands. 14 agents. 4 local hooks. 4 templates. 10 shared MCP servers. 600+ auto-triggers.
 
 Built for beginners. Scales for power users.
 
@@ -76,12 +76,12 @@ Zero prompts to write. Minimal repo setup. Machine-local plugin installs and aut
 
 | Component | Count | Description |
 |---|---|---|
-| **Skills** | 77 | Bundled workflow skill entries available directly from the tracked repo |
-| **Commands** | 72 | Slash commands for planning, implementation, review, QA, and release handoff |
+| **Skills** | 78 | Bundled workflow skill entries available directly from the tracked repo |
+| **Commands** | 71 | Slash commands for planning, implementation, review, QA, and release handoff |
 | **Agents** | 14 | Specialized local agents for complex tasks |
 | **Hooks** | 4 | Automated skill activation, type/lint checks, and workflow hooks (all local) |
 | **Templates** | 4 | Reusable prompt templates for common workflows |
-| **MCP Servers** | 11+ | Figma, GitHub, Playwright, HuggingFace, and other shared or user-scoped connectors |
+| **MCP Servers** | 10 | Figma, GitHub, context7, Chrome DevTools, Playwright, and other shared or user-scoped connectors |
 
 ### Development Lifecycle
 
@@ -165,7 +165,7 @@ The workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Te
 
 ## Selected Commands
 
-The repo tracks 72 slash commands. Common entry points are listed below.
+The repo tracks 71 slash commands. Common entry points are listed below.
 
 | Command | Purpose |
 |---|---|
@@ -229,7 +229,12 @@ Automated hooks run at every stage of your workflow:
 | **GitHub** | Repos, issues, PRs, reviews |
 | **Playwright** | Browser automation, testing |
 | **chrome** | Browser automation with screenshots |
+| **chrome-devtools** | DevTools protocol: console, network, performance traces, Lighthouse |
 | **context7** | Live library documentation |
+| **computer-use** | Desktop screenshots and native-app control |
+| **remotion-docs** | Remotion documentation lookup |
+| **remotion-app** | Remotion project scaffolding and rendering |
+| **Google Drive** | claude.ai connector for Drive files |
 | **Optional user-scoped connectors** | Additional project-specific services outside the shared repo config |
 
 ---
@@ -260,10 +265,10 @@ Ready-to-use templates at `.claude/prompt-templates/`:
   settings.json          # Permissions, hooks, plugins, env
   runtime/               # Repo-local ignored runtime state for safety and workflow artifacts
   agents/                # 14 local agent definitions
-  commands/              # 72 slash commands
+  commands/              # 71 slash commands
   hooks/                 # 4 local hook scripts
   prompt-templates/      # 4 reusable templates
-  skills/                # 77 skill entries
+  skills/                # 78 skill entries
     skill-rules.json     # 400+ keyword trigger engine
     [local skills]       # Backend, frontend, testing, research, and utility skills
 social/                  # Social media assets and demo video

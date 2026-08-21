@@ -6,8 +6,8 @@ This directory contains the maintained workflow source for this `agent/claude` e
 
 1. [settings.json](./settings.json) for the active Claude project settings
 2. [CLAUDE.md](./CLAUDE.md) for the active execution rules
-3. [CLAUDE-testing.md](./CLAUDE-testing.md) for verification guidance
-4. [CLAUDE-website-workflow.md](./CLAUDE-website-workflow.md) for UI-heavy work
+3. [testing-verification](./skills/testing-verification/SKILL.md) for verification guidance
+4. [website-workflow](./skills/website-workflow/SKILL.md) for UI-heavy work
 5. [CLAUDE-skills.md](./CLAUDE-skills.md) for skills, agents, hooks, and plugins
 
 ## Ownership Model

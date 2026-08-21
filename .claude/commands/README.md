@@ -5,7 +5,6 @@ Custom slash commands for this workspace.
 ## Active Command Files
 
 Available commands:
-- `aiq-research.md`
 - `backend-dev.md`
 - `build-fix.md`
 - `chrome-devtools.md`
