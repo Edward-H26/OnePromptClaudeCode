@@ -126,7 +126,7 @@ export const RemotionRoot = () => (
 
 ### MCP servers (no auth, project-scoped)
 
-Two MCP servers are declared in the tracked project [`.mcp.json`](/Users/edwardhu/Desktop/agent/claude/.mcp.json):
+Two MCP servers are declared in the tracked project [`.mcp.json`](../../../.mcp.json):
 
 | MCP | Purpose | Auth |
 |---|---|---|

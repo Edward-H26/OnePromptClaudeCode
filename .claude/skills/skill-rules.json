@@ -1,6 +1,218 @@
 {
   "version": "1.0",
   "description": "Unified project-local skill activation triggers for Claude Code. Controls when skills automatically suggest or block actions in this workspace.",
+  "lanes": {
+    "research": {
+      "description": "Top-conference research work: experiments, baselines, rebuttals, submissions, literature, and paper writing. ccf-* skills own this lane.",
+      "keywords": [
+        "paper",
+        "papers",
+        "manuscript",
+        "thesis",
+        "dissertation",
+        "preprint",
+        "abstract",
+        "related work",
+        "rebuttal",
+        "author response",
+        "meta-review",
+        "revision ledger",
+        "resubmission",
+        "response letter",
+        "camera-ready",
+        "supplementary",
+        "appendix",
+        "baseline",
+        "baselines",
+        "ablation",
+        "ablations",
+        "ablation study",
+        "experiment",
+        "experiments",
+        "benchmark",
+        "benchmarks",
+        "dataset",
+        "datasets",
+        "sota",
+        "reproduce",
+        "reproducibility",
+        "checkpoint",
+        "hyperparameter",
+        "seed",
+        "seeds",
+        "reviewer",
+        "reviewers",
+        "peer review",
+        "submission",
+        "page limit",
+        "anonymity",
+        "venue",
+        "arxiv",
+        "openreview",
+        "bibtex",
+        "citation",
+        "citations",
+        "literature review",
+        "prior art",
+        "novelty",
+        "neurips",
+        "icml",
+        "iclr",
+        "cvpr",
+        "eccv",
+        "iccv",
+        "aaai",
+        "ijcai",
+        "acl",
+        "emnlp",
+        "naacl",
+        "kdd",
+        "sigmod",
+        "vldb",
+        "osdi",
+        "sosp",
+        "siggraph",
+        "usenix",
+        "www conference",
+        "ccf-a",
+        "ccf a",
+        "论文",
+        "顶会",
+        "投稿",
+        "审稿",
+        "评审",
+        "回复审稿",
+        "审稿意见",
+        "实验",
+        "跑实验",
+        "消融",
+        "消融实验",
+        "基线",
+        "对比实验",
+        "复现",
+        "数据集",
+        "指标",
+        "文献",
+        "参考文献",
+        "引用",
+        "相关工作",
+        "综述",
+        "摘要",
+        "期刊",
+        "会议",
+        "返修",
+        "大修",
+        "小修",
+        "截稿",
+        "投稿检查",
+        "写论文",
+        "学术论文",
+        "科研",
+        "课题",
+        "选题",
+        "创新点",
+        "方法论"
+      ],
+      "intentPatterns": [
+        "(写|撰写|起草|润色|改写|压缩|投|重投).{0,8}(论文|文章|manuscript|paper)",
+        "(跑|复现|设计|补充|加).{0,6}(实验|baseline|基线|消融)",
+        "(neurips|icml|iclr|cvpr|eccv|iccv|aaai|acl|emnlp|kdd|siggraph)",
+        "(rebuttal|author\\s+response|meta[- ]review)"
+      ]
+    },
+    "frontend": {
+      "description": "User-facing interface work: layout, styling, components, animation, and browser behavior. Frontend/design/GSAP skills own this lane.",
+      "keywords": [
+        "frontend",
+        "front-end",
+        "ui",
+        "ux",
+        "interface",
+        "webpage",
+        "web page",
+        "website",
+        "landing page",
+        "dashboard",
+        "app shell",
+        "onboarding",
+        "empty state",
+        "homepage",
+        "component",
+        "components",
+        "button",
+        "modal",
+        "dialog",
+        "dropdown",
+        "navbar",
+        "sidebar",
+        "form",
+        "card",
+        "tooltip",
+        "carousel",
+        "css",
+        "html",
+        "tailwind",
+        "react",
+        "vue",
+        "svelte",
+        "next.js",
+        "shadcn",
+        "radix",
+        "storybook",
+        "figma",
+        "gsap",
+        "scrolltrigger",
+        "tween",
+        "easing",
+        "stagger",
+        "framer motion",
+        "responsive",
+        "breakpoint",
+        "viewport",
+        "mobile",
+        "dark mode",
+        "design system",
+        "design token",
+        "hover",
+        "transition",
+        "animation",
+        "animate",
+        "micro-interaction",
+        "accessibility",
+        "a11y",
+        "wcag",
+        "前端",
+        "界面",
+        "页面",
+        "网页",
+        "网站",
+        "落地页",
+        "首页",
+        "组件",
+        "按钮",
+        "弹窗",
+        "导航",
+        "表单",
+        "样式",
+        "布局",
+        "交互",
+        "动效",
+        "动画",
+        "响应式",
+        "暗色模式",
+        "视觉设计",
+        "设计系统",
+        "移动端",
+        "改版",
+        "重构界面"
+      ],
+      "intentPatterns": [
+        "(做|写|改|优化|重构|设计).{0,8}(页面|界面|前端|网页|组件|ui)",
+        "(gsap|scrolltrigger|framer\\s*motion)",
+        "(tailwind|shadcn|radix)"
+      ]
+    }
+  },
   "skills": {
     "backend-dev-guidelines": {
       "type": "domain",
@@ -35,7 +247,9 @@
           "写api",
           "路由",
           "prisma",
-          "服务端"
+          "服务端",
+          "写接口",
+          "中间件"
         ],
         "keywordExclusions": [
           ".claude",
@@ -82,6 +296,7 @@
     },
     "frontend-dev-guidelines": {
       "type": "domain",
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "high",
       "description": "React/TypeScript patterns, Suspense, TanStack Query/Router. For styling use ui-styling skill.",
@@ -153,6 +368,7 @@
     },
     "chrome-devtools": {
       "type": "domain",
+      "alternate": true,
       "enforcement": "suggest",
       "priority": "medium",
       "description": "Direct wrapper around chrome-devtools-mcp plugin for browser automation, screenshots, console, network, Lighthouse.",
@@ -214,7 +430,15 @@
           "批量改名",
           "批量替换",
           "改个名",
-          "清理代码"
+          "清理代码",
+          "批量重命名",
+          "重命名",
+          "改名字",
+          "统一命名",
+          "批量修改",
+          "rename",
+          "简化",
+          "太复杂"
         ],
         "intentPatterns": [
           "(refactor|improve|clean|simplify).*?(code|function|component|class)",
@@ -240,6 +464,7 @@
     },
     "ui-styling": {
       "type": "domain",
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "high",
       "description": "shadcn/ui components with Tailwind CSS styling and accessible design patterns",
@@ -271,7 +496,28 @@
           "布局",
           "css",
           "主题",
-          "暗黑模式"
+          "暗黑模式",
+          "配色",
+          "间距",
+          "卡片组件",
+          "组件样式",
+          "调间距",
+          "换配色",
+          "圆角",
+          "阴影",
+          "字号",
+          "spacing",
+          "padding",
+          "color palette",
+          "落地页",
+          "官网",
+          "按钮",
+          "改颜色",
+          "换颜色",
+          "调颜色",
+          "字体",
+          "边框",
+          "对齐"
         ],
         "intentPatterns": [
           "(implement|build|polish).*?(ui|landing page|design|figma)",
@@ -317,7 +563,14 @@
           "sdk docs",
           "api docs",
           "cli docs",
-          "version-specific docs"
+          "version-specific docs",
+          "查文档",
+          "官方文档",
+          "最新文档",
+          "版本文档",
+          "api文档",
+          "怎么用这个库",
+          "这个库怎么写"
         ],
         "intentPatterns": [
           "(look up|fetch|use|query).*?(docs|documentation)",
@@ -332,6 +585,8 @@
     },
     "figma": {
       "type": "plugin-router",
+      "alternate": true,
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "medium",
       "description": "Route Figma design reading, implementation, diagrams, design systems, and Code Connect tasks to the locally enabled Figma plugin when available.",
@@ -344,7 +599,11 @@
           "code connect",
           "design system rules",
           "implement figma",
-          "figma diagram"
+          "figma diagram",
+          "设计稿",
+          "figma稿",
+          "从设计稿生成",
+          "还原设计稿"
         ],
         "intentPatterns": [
           "(read|inspect|fetch|open).*?figma",
@@ -359,6 +618,7 @@
     },
     "github": {
       "type": "plugin-router",
+      "alternate": true,
       "enforcement": "suggest",
       "priority": "medium",
       "description": "Route GitHub repository, pull request, issue, review-comment, and CI investigation tasks to the locally enabled GitHub plugin when available.",
@@ -372,7 +632,12 @@
           "github issue",
           "github ci",
           "gh pr",
-          "gh issue"
+          "gh issue",
+          "提pr",
+          "看pr",
+          "github议题",
+          "ci挂了",
+          "合并请求"
         ],
         "intentPatterns": [
           "(inspect|triage|review|address).*?(pull request|pr|github)",
@@ -389,6 +654,7 @@
     },
     "playwright": {
       "type": "plugin-router",
+      "alternate": true,
       "enforcement": "suggest",
       "priority": "medium",
       "description": "Route browser automation, page interaction, screenshots, and end-to-end validation to the locally enabled Playwright plugin when available.",
@@ -401,7 +667,12 @@
           "take screenshot",
           "browser screenshot",
           "e2e browser",
-          "test in browser"
+          "test in browser",
+          "浏览器自动化",
+          "自动点击",
+          "无头浏览器",
+          "打开本地服务",
+          "脚本操作浏览器"
         ],
         "intentPatterns": [
           "(open|navigate|click|type|screenshot).*?(browser|localhost|page|site)",
@@ -423,6 +694,7 @@
     },
     "deep-research": {
       "type": "domain",
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Universal deep research agent team. 13-agent pipeline for rigorous academic research on any topic. 8 modes: full research, quick brief, paper review, lit-review, fact-check, three-way literature scan, Socratic guided research dialogue, and systematic review with optional meta-analysis. Covers resear",
@@ -492,7 +764,12 @@
           "聊聊方案",
           "头脑风暴",
           "需求没想清",
-          "帮我想想做啥"
+          "帮我想想做啥",
+          "规划",
+          "帮我规划",
+          "想方案",
+          "需求梳理",
+          "怎么做这个功能"
         ],
         "intentPatterns": [
           "(brainstorm|think through|help me think).*?(idea|feature|product)",
@@ -512,7 +789,12 @@
           "architecture review",
           "engineering review",
           "tech review",
-          "plan eng"
+          "plan eng",
+          "技术方案",
+          "架构评审",
+          "方案评审",
+          "评审方案",
+          "实现方案"
         ],
         "intentPatterns": [
           "(eng|engineering|architecture|technical).*review",
@@ -522,6 +804,8 @@
     },
     "plan-design-review": {
       "type": "domain",
+      "alternate": true,
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "medium",
       "description": "Senior designer evaluation rating design dimensions 0-10, detecting AI slop.",
@@ -531,7 +815,10 @@
           "design audit",
           "ui review",
           "design evaluation",
-          "plan design"
+          "plan design",
+          "设计方案评审",
+          "设计稿评审",
+          "评审设计方案"
         ],
         "intentPatterns": [
           "(design|ui|ux).*review",
@@ -562,7 +849,14 @@
           "异常",
           "崩溃",
           "stack trace",
-          "bug"
+          "bug",
+          "根因",
+          "定位问题",
+          "定位一下",
+          "查原因",
+          "找原因",
+          "偶发",
+          "复现问题"
         ],
         "intentPatterns": [
           "investigate.*(bug|issue|error)",
@@ -586,7 +880,11 @@
           "tighten up",
           "close the loop",
           "再打磨一轮",
-          "优化一轮"
+          "优化一轮",
+          "打磨",
+          "迭代优化",
+          "再改一版",
+          "多轮优化"
         ],
         "intentPatterns": [
           "(refine|polish|iterate on|tighten).*?(file|feature|change|PR|patch)",
@@ -662,10 +960,17 @@
           "审代码",
           "代码审查",
           "审一下代码",
-          "看看代码",
-          "review",
           "code review",
-          "审查代码"
+          "审查代码",
+          "代码评审",
+          "评审代码",
+          "代码质量",
+          "审查改动",
+          "审一下改动",
+          "code quality",
+          "review 一下",
+          "review 代码",
+          "帮我 review"
         ],
         "intentPatterns": [
           "staff.*review",
@@ -675,6 +980,8 @@
     },
     "design-review": {
       "type": "domain",
+      "alternate": true,
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "medium",
       "description": "Design audit with atomic commit fixes and before/after screenshots.",
@@ -683,7 +990,10 @@
           "design review fix",
           "design audit fix",
           "fix design",
-          "design review with fixes"
+          "design review with fixes",
+          "设计评审并修复",
+          "修设计问题",
+          "边审边改"
         ],
         "intentPatterns": [
           "(design|ui).*review.*fix",
@@ -708,7 +1018,18 @@
           "测一下网页",
           "测试网页",
           "回归测试",
-          "qa测试"
+          "qa测试",
+          "浏览器截图",
+          "页面截图",
+          "测页面",
+          "打开页面",
+          "看看页面",
+          "截图",
+          "截个图",
+          "浏览器打开",
+          "打开本地",
+          "验证页面",
+          "页面有没有问题"
         ],
         "intentPatterns": [
           "(qa|browser).*test",
@@ -718,6 +1039,7 @@
     },
     "qa-only": {
       "type": "domain",
+      "alternate": true,
       "enforcement": "suggest",
       "priority": "medium",
       "description": "QA reporting without code changes. Same methodology as /qa but report-only.",
@@ -727,7 +1049,9 @@
           "qa report",
           "test report only",
           "出测试报告",
-          "只测不改"
+          "只测不改",
+          "只出报告",
+          "只检查不修改"
         ],
         "intentPatterns": [
           "qa.*only",
@@ -747,7 +1071,13 @@
           "codebase search",
           "find existing",
           "workflow audit",
-          "codebase audit"
+          "codebase audit",
+          "先搜索",
+          "找现有实现",
+          "代码库搜索",
+          "有没有现成的",
+          "查一下代码库",
+          "看看有没有类似实现"
         ],
         "intentPatterns": [
           "search.*first",
@@ -759,6 +1089,7 @@
     },
     "webapp-testing": {
       "type": "domain",
+      "alternate": true,
       "enforcement": "suggest",
       "priority": "medium",
       "description": "Test local web applications using Playwright in Python. Browser screenshots, UI debugging, server lifecycle.",
@@ -774,7 +1105,10 @@
           "capture screenshots",
           "端到端测试",
           "测本地网页",
-          "e2e"
+          "e2e",
+          "本地应用测试",
+          "页面自动化",
+          "跑一下前端测试"
         ],
         "intentPatterns": [
           "test.*webapp",
@@ -786,24 +1120,29 @@
     },
     "frontend-design": {
       "type": "frontend-design",
+      "alternate": true,
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Distinctive, intentional visual design when building new UI or reshaping an existing one. Helps with aesthetic direction, typography, and choices that do not read as templated.",
       "promptTriggers": {
         "keywords": [
-          "design",
-          "frontend",
-          "visual",
           "aesthetic",
           "typography",
           "landing page",
-          "component"
+          "视觉方向",
+          "设计风格",
+          "排版设计",
+          "字体搭配",
+          "整体风格",
+          "design direction"
         ]
       },
       "alwaysActive": false
     },
     "impeccable": {
       "type": "design-review",
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Design, redesign, critique, audit, polish, and harden frontend interfaces across websites, dashboards, product UI, forms, and design systems.",
@@ -816,13 +1155,24 @@
           "ui",
           "ux",
           "interface",
-          "dashboard"
+          "dashboard",
+          "好看",
+          "质感",
+          "高级感",
+          "视觉效果",
+          "美观",
+          "设计感",
+          "有品味",
+          "落地页",
+          "官网"
         ]
       },
       "alwaysActive": false
     },
     "ui-ux-pro-max": {
       "type": "ui-ux",
+      "alternate": true,
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "high",
       "description": "UI/UX design intelligence for web and mobile, with many styles, color palettes, font pairings, product types, and UX guidelines.",
@@ -834,32 +1184,46 @@
           "font",
           "layout",
           "dashboard",
-          "mobile app"
+          "mobile app",
+          "好看",
+          "质感",
+          "高级感",
+          "视觉效果",
+          "美观",
+          "设计感",
+          "有品味"
         ]
       },
       "alwaysActive": false
     },
     "shadcn-ui": {
       "type": "ui-component",
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "high",
       "description": "shadcn/ui component library patterns: installation, forms with React Hook Form and Zod, theming with Tailwind, and accessible component composition.",
       "promptTriggers": {
         "keywords": [
           "shadcn",
-          "component",
           "radix",
-          "form",
-          "dialog",
-          "table",
           "tailwind",
-          "theme"
+          "组件库",
+          "shadcn组件",
+          "表单组件",
+          "弹窗组件",
+          "数据表格组件",
+          "主题定制",
+          "shadcn form",
+          "shadcn dialog",
+          "shadcn table"
         ]
       },
       "alwaysActive": false
     },
     "web-design-guidelines": {
       "type": "design-review",
+      "alternate": true,
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Review UI code for Web Interface Guidelines compliance, covering accessibility, UX, and design best practices.",
@@ -870,13 +1234,20 @@
           "audit design",
           "ux",
           "best practices",
-          "guidelines"
+          "guidelines",
+          "界面规范",
+          "ui规范",
+          "设计规范",
+          "最佳实践检查",
+          "界面检查"
         ]
       },
       "alwaysActive": false
     },
     "design-taste-frontend": {
       "type": "design-style",
+      "alternate": true,
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Anti-slop frontend skill for landing pages, portfolios, and redesigns. Infers the right design direction and ships interfaces that do not look templated.",
@@ -887,13 +1258,22 @@
           "redesign",
           "frontend",
           "design system",
-          "anti-slop"
+          "anti-slop",
+          "好看",
+          "质感",
+          "高级感",
+          "视觉效果",
+          "美观",
+          "设计感",
+          "有品味"
         ]
       },
       "alwaysActive": false
     },
     "image-to-code": {
       "type": "design-to-code",
+      "alternate": true,
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Generate design images first, analyze them deeply, then implement a website that matches them closely, with clean spacious heroes.",
@@ -914,6 +1294,8 @@
     },
     "minimalist-ui": {
       "type": "design-style",
+      "alternate": true,
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Clean editorial-style interfaces with warm monochrome palette, typographic contrast, flat bento grids, and muted pastels. No gradients or heavy shadows.",
@@ -923,13 +1305,22 @@
           "editorial",
           "monochrome",
           "bento",
-          "clean ui"
+          "clean ui",
+          "好看",
+          "质感",
+          "高级感",
+          "视觉效果",
+          "美观",
+          "设计感",
+          "有品味"
         ]
       },
       "alwaysActive": false
     },
     "industrial-brutalist-ui": {
       "type": "design-style",
+      "alternate": true,
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Raw mechanical interfaces fusing Swiss typographic print with military terminal aesthetics. Rigid grids, extreme type scale contrast, utilitarian color.",
@@ -940,13 +1331,22 @@
           "swiss",
           "terminal",
           "grid",
-          "dashboard"
+          "dashboard",
+          "好看",
+          "质感",
+          "高级感",
+          "视觉效果",
+          "美观",
+          "设计感",
+          "有品味"
         ]
       },
       "alwaysActive": false
     },
     "gpt-taste": {
       "type": "design-style",
+      "alternate": true,
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Elite UX/UI and GSAP motion direction: AIDA page structure, wide editorial typography, gapless bento grids, and strict ScrollTrigger motion.",
@@ -957,13 +1357,22 @@
           "animation",
           "scrolltrigger",
           "editorial",
-          "bento"
+          "bento",
+          "好看",
+          "质感",
+          "高级感",
+          "视觉效果",
+          "美观",
+          "设计感",
+          "有品味"
         ]
       },
       "alwaysActive": false
     },
     "high-end-visual-design": {
       "type": "design-style",
+      "alternate": true,
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Design like a high-end agency. Defines the fonts, spacing, shadows, card structures, and animations that make a site feel expensive, blocking cheap defaults.",
@@ -976,13 +1385,22 @@
           "fonts",
           "spacing",
           "shadow",
-          "animation"
+          "animation",
+          "好看",
+          "质感",
+          "高级感",
+          "视觉效果",
+          "美观",
+          "设计感",
+          "有品味"
         ]
       },
       "alwaysActive": false
     },
     "redesign-existing-projects": {
       "type": "design-review",
+      "alternate": true,
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Upgrade existing websites and apps to premium quality. Audit current design, identify generic AI patterns, and apply high-end standards without breaking functionality.",
@@ -991,15 +1409,19 @@
           "redesign",
           "upgrade",
           "premium",
-          "audit",
-          "existing",
-          "refactor ui"
+          "refactor ui",
+          "改版",
+          "重新设计",
+          "旧项目改造",
+          "升级界面",
+          "老页面翻新"
         ]
       },
       "alwaysActive": false
     },
     "fireworks-tech-graph": {
       "type": "diagram",
+      "alternate": true,
       "enforcement": "suggest",
       "priority": "high",
       "description": "Turn natural language or a system description into technical diagrams (architecture, data flow, flowchart, sequence, concept map) exported as SVG and PNG.",
@@ -1042,13 +1464,21 @@
           "画图表",
           "画流程图",
           "画架构图",
-          "出个图"
+          "出个图",
+          "架构图",
+          "系统架构",
+          "流程图",
+          "时序图",
+          "状态机图",
+          "er图",
+          "画个图"
         ]
       },
       "alwaysActive": false
     },
     "web-accessibility": {
       "type": "accessibility",
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Build accessible web applications following WCAG guidelines: ARIA patterns, keyboard navigation, screen reader support, and accessibility compliance.",
@@ -1059,13 +1489,20 @@
           "wcag",
           "aria",
           "screen reader",
-          "keyboard navigation"
+          "keyboard navigation",
+          "可访问性",
+          "无障碍",
+          "无障碍访问",
+          "读屏",
+          "键盘导航"
         ]
       },
       "alwaysActive": false
     },
     "academic-paper": {
       "type": "academic",
+      "alternate": true,
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": "12-agent academic paper writing pipeline. 11 modes (full/plan/outline/revision/revision-coach/abstract/lit-review/format-convert/citation-check/disclosure/rebuttal-audit). 6 paper types, 5 citation formats, bilingual abstracts, LaTeX/DOCX-via-Pandoc/PDF output. Style Calibration + Writing Quality Ch",
@@ -1108,6 +1545,8 @@
     },
     "academic-paper-reviewer": {
       "type": "academic",
+      "alternate": true,
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Multi-perspective academic paper review with dynamic reviewer personas. Simulates 5 independent reviewers (EIC + 3 peer reviewers + Devil's Advocate) with field-specific expertise. Supports full review, re-review (verification), quick assessment, methodology focus, Socratic guided, and calibration m",
@@ -1142,18 +1581,26 @@
     },
     "academic-pipeline": {
       "type": "academic",
+      "alternate": true,
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Orchestrator for the full academic research pipeline: research -> write -> integrity check -> review -> revise -> re-review -> re-revise -> final integrity check -> finalize. Coordinates deep-research, academic-paper, and academic-paper-reviewer into a seamless 10-stage workflow with mandatory integ",
       "promptTriggers": {
         "keywords": [
-          "pipeline"
+          "学术流水线",
+          "研究到论文",
+          "端到端论文流程",
+          "academic pipeline",
+          "research to paper"
         ]
       },
       "alwaysActive": false
     },
     "citation-check-skill": {
       "type": "academic",
+      "alternate": true,
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Vision-enabled verification gate with web search. Use when users want to (1) verify slides/reports/PDFs/images against authoritative online sources, (2) validate that citations actually exist and say what's claimed, (3) check charts/graphs/tables for accuracy, (4) audit AI-generated content in doc-o",
@@ -1171,17 +1618,21 @@
     },
     "nature-academic-search": {
       "type": "academic",
+      "alternate": true,
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": ">-",
       "promptTriggers": {
         "keywords": [
-          "nature",
           "search",
           "文献检索",
           "查文献",
           "找文献",
-          "查论文"
+          "查论文",
+          "nature 期刊",
+          "nature 系列",
+          "cns 检索"
         ],
         "intentPatterns": [
           "(查|找|搜|搜索|检索|搜一下).{0,6}(文献|论文|paper|literature)",
@@ -1192,12 +1643,13 @@
     },
     "nature-citation": {
       "type": "academic",
+      "alternate": true,
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": ">-",
       "promptTriggers": {
         "keywords": [
-          "nature",
           "citation",
           "学术写作引用",
           "写论文加引用",
@@ -1209,7 +1661,10 @@
           "补引用",
           "加引用",
           "配引用",
-          "找文献支撑"
+          "找文献支撑",
+          "nature 期刊",
+          "nature 系列",
+          "cns 引用"
         ],
         "intentPatterns": [
           "(加|补|配|找|添加|补充).{0,4}(引用|参考文献|文献|citation)"
@@ -1219,19 +1674,28 @@
     },
     "nature-polishing": {
       "type": "academic",
+      "alternate": true,
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Polish, restructure, or translate academic prose into Nature-leaning English using writing-strategy principles, curated Nature/Nature Communications article patterns, and phrase-level support from Academic Phrasebank. Use whenever the user asks to polish a manuscript paragraph, abstract, introductio",
       "promptTriggers": {
         "keywords": [
-          "nature",
-          "polishing"
+          "polishing",
+          "nature 期刊",
+          "期刊润色",
+          "语言润色",
+          "英文润色",
+          "投稿润色",
+          "润色成 nature 风格"
         ]
       },
       "alwaysActive": false
     },
     "office-academic-skill": {
       "type": "academic",
+      "alternate": true,
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Chinese-first academic Word and PowerPoint workflow for paper reading reports, thesis or group-meeting PPTs, editable DOCX/PPTX generation, Office file inspection, template matching, speaker notes, and layout quality checks. Use when the user asks to read papers into Word reports, create or polish P",
@@ -1248,6 +1712,8 @@
     },
     "paper-spine": {
       "type": "academic",
+      "alternate": true,
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Write, rewrite, or build a paper or report (journal, conference, report, review, competition) end to end, then output LaTeX/PDF/Word. The main PaperSpine entry point that orchestrates every step.",
@@ -1267,156 +1733,206 @@
     },
     "paper-spine-audit": {
       "type": "academic",
+      "alternate": true,
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Audits PaperSpine outputs for missing artifacts, shallow revisions, logic transfer, unsupported claims, and translation coverage. (internal /paperspine step)",
       "promptTriggers": {
         "keywords": [
           "spine",
-          "audit"
+          "audit",
+          "spine 审查"
         ]
       },
       "alwaysActive": false
     },
     "paper-spine-build": {
       "type": "academic",
+      "alternate": true,
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Builds a paper or report from materials using the shared PaperSpine research, motivation, and rationale workflow. (internal /paperspine step)",
       "promptTriggers": {
         "keywords": [
-          "spine"
+          "spine",
+          "spine build",
+          "spine 构建"
         ]
       },
       "alwaysActive": false
     },
     "paper-spine-citation": {
       "type": "academic",
+      "alternate": true,
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Builds a citation support bank for Introduction, Discussion, and background claims. (internal /paperspine step)",
       "promptTriggers": {
         "keywords": [
           "spine",
-          "citation"
+          "spine citation",
+          "spine 引用"
         ]
       },
       "alwaysActive": false
     },
     "paper-spine-humanize": {
       "type": "academic",
+      "alternate": true,
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Reduces AI detection rates via tiered stylistic constraints mapped to real AIGC detection dimensions. Produces a teaching humanize_matrix.md. (internal /paperspine step)",
       "promptTriggers": {
         "keywords": [
           "spine",
-          "humanize"
+          "humanize",
+          "spine 去ai味"
         ]
       },
       "alwaysActive": false
     },
     "paper-spine-intake": {
       "type": "academic",
+      "alternate": true,
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Collects PaperSpine workflow options and writes config for flash/pro, scene, language, and inputs. (internal /paperspine step)",
       "promptTriggers": {
         "keywords": [
           "spine",
-          "intake"
+          "intake",
+          "spine 接收",
+          "spine 素材"
         ]
       },
       "alwaysActive": false
     },
     "paper-spine-latex": {
       "type": "academic",
+      "alternate": true,
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Handles LaTeX project assembly, figure placement, citations, labels, and compile-safe cleanup. (internal /paperspine step)",
       "promptTriggers": {
         "keywords": [
           "spine",
-          "latex"
+          "spine latex",
+          "论文出latex",
+          "spine 导出 latex"
         ]
       },
       "alwaysActive": false
     },
     "paper-spine-research": {
       "type": "academic",
+      "alternate": true,
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Researches target requirements, downloads reference materials, learns strong examples, and prepares motivation options. (internal /paperspine step)",
       "promptTriggers": {
         "keywords": [
-          "spine"
+          "spine",
+          "spine research",
+          "spine 调研"
         ]
       },
       "alwaysActive": false
     },
     "paper-spine-rewrite": {
       "type": "academic",
+      "alternate": true,
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Rewrites an existing manuscript from confirmed motivation, research, paragraph-level rationale, and evidence. (internal /paperspine step)",
       "promptTriggers": {
         "keywords": [
           "spine",
-          "rewrite"
+          "rewrite",
+          "spine 改写"
         ]
       },
       "alwaysActive": false
     },
     "paper-spine-translate": {
       "type": "academic",
+      "alternate": true,
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Produces the complete translation_zh/ package with row-by-row translation of all required artifacts and full-paper translation. (internal /paperspine step)",
       "promptTriggers": {
         "keywords": [
           "spine",
-          "translate"
+          "translate",
+          "spine 翻译"
         ]
       },
       "alwaysActive": false
     },
     "paper-spine-ui": {
       "type": "academic",
+      "alternate": true,
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Launches the PaperSpine external terminal configuration UI for Claude Code. (internal /paperspine step)",
       "promptTriggers": {
         "keywords": [
-          "spine"
+          "spine",
+          "spine ui",
+          "spine 界面"
         ]
       },
       "alwaysActive": false
     },
     "paper-spine-update": {
       "type": "academic",
+      "alternate": true,
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Checks and updates PaperSpine from GitHub while preserving global config; use for upgrades, latest-version checks, or local reinstall.",
       "promptTriggers": {
         "keywords": [
           "spine",
-          "update"
+          "update",
+          "spine 更新"
         ]
       },
       "alwaysActive": false
     },
     "research-paper-writing": {
       "type": "academic",
+      "alternate": true,
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Improve academic paper writing quality for ML/CV/NLP-style papers with clear section structure, paragraph flow, and reviewer-facing presentation. Use when drafting or revising Abstract, Introduction, Related Work, Method, Experiments, or Conclusion; polishing figures/tables; checking claim-support a",
       "promptTriggers": {
-        "keywords": []
+        "keywords": [
+          "论文写作质量",
+          "章节结构",
+          "段落逻辑",
+          "投稿前自查",
+          "reviewer 视角",
+          "paper writing quality",
+          "section structure"
+        ]
       },
       "alwaysActive": false
     },
     "research-writing-skill": {
       "type": "academic",
+      "alternate": true,
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Chinese-first research paper writing, revision, polishing, section drafting, rebuttal, peer-review response, thesis prose improvement, and manuscript argument planning. Use when the user asks to write or revise论文正文, abstracts, introductions, methods, results, discussion, conclusions, related work, r",
@@ -1433,6 +1949,8 @@
     },
     "scientific-figure-making": {
       "type": "academic",
+      "alternate": true,
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": ">-",
@@ -1450,6 +1968,7 @@
     },
     "scientific-toolkit-skill": {
       "type": "academic",
+      "lane": "research",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Research computing toolkit for optoelectronic information science and engineering, MATLAB/Octave, Python scientific analysis, signal processing, image processing, statistics, simulation, optimization, publication figures, sensor/time-series data, citation lookup, and common scientific libraries. Use",
@@ -1470,6 +1989,7 @@
     },
     "superpowers": {
       "type": "plugin-router",
+      "alternate": true,
       "enforcement": "suggest",
       "priority": "medium",
       "description": "Route brainstorming, planning, test-driven development, code review, debugging, and verification workflows to the locally enabled Superpowers plugin when available.",
@@ -1482,7 +2002,13 @@
           "systematic debugging",
           "requesting code review",
           "verification before completion",
-          "dispatching parallel agents"
+          "dispatching parallel agents",
+          "头脑风暴",
+          "写实现计划",
+          "测试驱动开发",
+          "系统化调试",
+          "并行子agent",
+          "完成前验证"
         ],
         "intentPatterns": [
           "(use|run|apply).*?superpowers",
@@ -1521,12 +2047,19 @@
           "少写代码",
           "最简实现",
           "别过度设计",
-          "简化方案"
+          "简化方案",
+          "简化",
+          "简化一下",
+          "太复杂",
+          "复杂了",
+          "化简",
+          "瘦身"
         ]
       }
     },
     "ponytail-review": {
       "type": "domain",
+      "alternate": true,
       "enforcement": "suggest",
       "priority": "medium",
       "description": "Review the current diff for over-engineering and hand back a delete-list.",
@@ -1546,6 +2079,7 @@
     },
     "ponytail-audit": {
       "type": "domain",
+      "alternate": true,
       "enforcement": "suggest",
       "priority": "medium",
       "description": "Audit the whole repo for over-engineering, not just the diff.",
@@ -1561,6 +2095,7 @@
     },
     "ponytail-debt": {
       "type": "domain",
+      "alternate": true,
       "enforcement": "suggest",
       "priority": "low",
       "description": "Harvest deferred ponytail: shortcuts into a debt ledger so 'later' doesn't become 'never'.",
@@ -1575,6 +2110,7 @@
     },
     "ponytail-gain": {
       "type": "domain",
+      "alternate": true,
       "enforcement": "suggest",
       "priority": "low",
       "description": "Show the measured impact scoreboard (less code, less cost, more speed).",
@@ -1589,6 +2125,7 @@
     },
     "ponytail-help": {
       "type": "domain",
+      "alternate": true,
       "enforcement": "suggest",
       "priority": "low",
       "description": "Quick reference for the ponytail commands.",
@@ -1602,6 +2139,7 @@
     },
     "gsap-core": {
       "type": "domain",
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Official GSAP skill: core.",
@@ -1628,6 +2166,7 @@
     },
     "gsap-react": {
       "type": "domain",
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "medium",
       "description": "Official GSAP skill: react.",
@@ -1638,7 +2177,9 @@
           "gsap next",
           "react动画",
           "gsap.context",
-          "use gsap"
+          "use gsap",
+          "react里做动画",
+          "next动画"
         ],
         "intentPatterns": [
           "(react|next).{0,8}gsap",
@@ -1648,6 +2189,7 @@
     },
     "gsap-frameworks": {
       "type": "domain",
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "medium",
       "description": "Official GSAP skill: frameworks.",
@@ -1669,6 +2211,7 @@
     },
     "gsap-scrolltrigger": {
       "type": "domain",
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "high",
       "description": "Official GSAP skill: scrolltrigger.",
@@ -1692,6 +2235,7 @@
     },
     "gsap-plugins": {
       "type": "domain",
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "medium",
       "description": "Official GSAP skill: plugins.",
@@ -1708,12 +2252,17 @@
           "drawsvg",
           "observer",
           "inertia",
-          "customease"
+          "customease",
+          "滚动平滑",
+          "文字拆分动画",
+          "拖拽动画",
+          "svg描边动画"
         ]
       }
     },
     "gsap-timeline": {
       "type": "domain",
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "medium",
       "description": "Official GSAP skill: timeline.",
@@ -1732,6 +2281,7 @@
     },
     "gsap-utils": {
       "type": "domain",
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "low",
       "description": "Official GSAP skill: utils.",
@@ -1751,6 +2301,7 @@
     },
     "gsap-performance": {
       "type": "domain",
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "medium",
       "description": "Official GSAP skill: performance.",
@@ -1791,6 +2342,7 @@
     },
     "website-workflow": {
       "type": "domain",
+      "lane": "frontend",
       "enforcement": "suggest",
       "priority": "medium",
       "description": "Workflow for UI-heavy website work plus the browser-tooling preference order.",
@@ -1803,11 +2355,456 @@
           "网站页面",
           "前端页面",
           "页面布局",
-          "浏览器验证"
+          "浏览器验证",
+          "落地页",
+          "官网",
+          "做个网站",
+          "做个页面",
+          "质感",
+          "高级感",
+          "这个页面",
+          "页面",
+          "改页面",
+          "调页面",
+          "页面样式"
         ],
         "intentPatterns": [
           "(build|redesign|fix).*?(landing page|website|web page)",
           "(check|verify).*?(in the browser|visually)"
+        ]
+      }
+    },
+    "ccf-pipeline-orchestrator": {
+      "type": "ccfa",
+      "lane": "research",
+      "enforcement": "suggest",
+      "priority": "critical",
+      "description": "Plan and coordinate CCF paper-project stages, gates, artifacts, and handoffs.",
+      "promptTriggers": {
+        "keywords": [
+          "pipeline orchestrator",
+          "workflow planning",
+          "task decomposition",
+          "stage gate",
+          "project status",
+          "next skill",
+          "ccfa.yaml",
+          "任务拆解",
+          "流程规划",
+          "项目进度",
+          "下一步做什么",
+          "论文流程"
+        ],
+        "intentPatterns": [
+          "(论文|项目).{0,6}(流程|阶段|拆解|规划)"
+        ]
+      }
+    },
+    "ccf-project-scaffolder": {
+      "type": "ccfa",
+      "lane": "research",
+      "enforcement": "suggest",
+      "priority": "critical",
+      "description": "Create CCF paper project folders, select LaTeX templates, initialize ccfa.yaml.",
+      "promptTriggers": {
+        "keywords": [
+          "project scaffold",
+          "scaffold project",
+          "paper project",
+          "new paper project",
+          "template setup",
+          "初始化项目",
+          "建项目",
+          "论文项目",
+          "新建论文",
+          "模板选择"
+        ]
+      }
+    },
+    "ccf-idea-optimizer": {
+      "type": "ccfa",
+      "lane": "research",
+      "enforcement": "suggest",
+      "priority": "critical",
+      "description": "Turn rough research directions into problem, gap, insight, method, and evidence plans.",
+      "promptTriggers": {
+        "keywords": [
+          "idea optimization",
+          "optimize idea",
+          "research direction",
+          "research idea",
+          "concretize idea",
+          "salvage",
+          "优化idea",
+          "具象化idea",
+          "研究思路",
+          "找方向",
+          "方向探索",
+          "研究方向",
+          "这个方向还能怎么救",
+          "想idea"
+        ],
+        "intentPatterns": [
+          "(优化|具象化|打磨|细化).{0,4}(idea|想法|思路)"
+        ]
+      }
+    },
+    "ccf-idea-reviewer": {
+      "type": "ccfa",
+      "lane": "research",
+      "enforcement": "suggest",
+      "priority": "critical",
+      "description": "Score, rank, compare, and triage early research ideas with prior-art and venue-fit risk.",
+      "promptTriggers": {
+        "keywords": [
+          "idea scoring",
+          "score idea",
+          "rank ideas",
+          "idea review",
+          "idea ranking",
+          "acceptance potential",
+          "idea评分",
+          "选题评分",
+          "选题排名",
+          "严格评审",
+          "给idea打分",
+          "哪个idea更好"
+        ],
+        "intentPatterns": [
+          "(评分|打分|排名|排序).{0,4}(idea|想法|选题)"
+        ]
+      }
+    },
+    "ccf-literature-monitor": {
+      "type": "ccfa",
+      "lane": "research",
+      "enforcement": "suggest",
+      "priority": "critical",
+      "description": "Monitor arXiv, OpenReview, venue feeds, labs, and competitor papers for overlap.",
+      "promptTriggers": {
+        "keywords": [
+          "arxiv watch",
+          "novelty check",
+          "trend scouting",
+          "competitor tracking",
+          "paper tracking",
+          "查重idea",
+          "竞品监控",
+          "新论文追踪",
+          "论文跟踪",
+          "最近有没有类似",
+          "撞车"
+        ]
+      }
+    },
+    "ccf-literature-searcher": {
+      "type": "ccfa",
+      "lane": "research",
+      "enforcement": "suggest",
+      "priority": "critical",
+      "description": "Search and screen external literature, related work, prior art, datasets, and benchmarks.",
+      "promptTriggers": {
+        "keywords": [
+          "literature search",
+          "related work search",
+          "prior art search",
+          "benchmark search",
+          "opportunity map",
+          "文献检索",
+          "查文献",
+          "找文献",
+          "相关工作",
+          "调研文献",
+          "benchmark搜索",
+          "open gap"
+        ],
+        "intentPatterns": [
+          "(搜索|检索|查找|调研).{0,6}(文献|论文|related\\s*work|benchmark)"
+        ]
+      }
+    },
+    "ccf-experiment-designer": {
+      "type": "ccfa",
+      "lane": "research",
+      "enforcement": "suggest",
+      "priority": "critical",
+      "description": "Own experiment evidence semantics: datasets, baselines, metrics, ablations, result-table schemas.",
+      "promptTriggers": {
+        "keywords": [
+          "experiment design",
+          "design experiment",
+          "baseline",
+          "baselines",
+          "run baseline",
+          "ablation",
+          "ablation study",
+          "metrics",
+          "evaluation protocol",
+          "result table",
+          "robustness test",
+          "设计实验",
+          "实验设计",
+          "对比实验",
+          "消融",
+          "消融实验",
+          "基线",
+          "跑baseline",
+          "跑实验",
+          "评价指标",
+          "结果表",
+          "实验方案"
+        ],
+        "intentPatterns": [
+          "(设计|规划|补|加|跑).{0,6}(实验|baseline|基线|消融|ablation)",
+          "(baseline|基线).{0,6}(跑|复现|对比|结果)"
+        ]
+      }
+    },
+    "ccf-visual-composer": {
+      "type": "ccfa",
+      "lane": "research",
+      "enforcement": "suggest",
+      "priority": "critical",
+      "description": "Render, style, and QA publication figures, visual tables, and method/architecture diagrams.",
+      "promptTriggers": {
+        "keywords": [
+          "paper figure",
+          "figure design",
+          "visual table",
+          "render qa",
+          "editable svg",
+          "gpt image",
+          "论文配图",
+          "论文图表",
+          "绘图美化",
+          "图表排版",
+          "论文配色",
+          "画论文图",
+          "figure美化"
+        ],
+        "intentPatterns": [
+          "(论文|paper).{0,6}(图|figure|配图|表格|配色|排版)",
+          "(论文|paper|manuscript).{0,8}(架构图|方法图|architecture diagram|method diagram)",
+          "(架构图|方法图).{0,8}(论文|paper|manuscript)"
+        ]
+      }
+    },
+    "ccf-paper-to-exemplar": {
+      "type": "ccfa",
+      "lane": "research",
+      "enforcement": "suggest",
+      "priority": "critical",
+      "description": "Convert conference paper PDFs into reusable writing exemplar cards.",
+      "promptTriggers": {
+        "keywords": [
+          "writing exemplar",
+          "exemplar card",
+          "pdf to exemplar",
+          "写作范例",
+          "范例卡",
+          "把这篇pdf做成范例",
+          "写作模板"
+        ]
+      }
+    },
+    "ccf-paper-writer": {
+      "type": "ccfa",
+      "lane": "research",
+      "enforcement": "suggest",
+      "priority": "critical",
+      "description": "Draft, rewrite, revise, polish, or compress CCF manuscript and presentation prose.",
+      "promptTriggers": {
+        "keywords": [
+          "write paper",
+          "draft paper",
+          "paper writing",
+          "polish paper",
+          "compress paper",
+          "rewrite section",
+          "write abstract",
+          "write introduction",
+          "write related work",
+          "write method section",
+          "slides",
+          "poster",
+          "talk",
+          "写论文",
+          "润色论文",
+          "论文润色",
+          "改写论文",
+          "压缩论文",
+          "写摘要",
+          "写引言",
+          "写方法",
+          "写相关工作",
+          "论文初稿",
+          "顶会论文",
+          "做slides",
+          "做poster"
+        ],
+        "intentPatterns": [
+          "(写|撰写|起草|润色|改写|压缩).{0,8}(论文|manuscript|paper|摘要|引言|章节)"
+        ]
+      }
+    },
+    "ccf-paper-reviewer": {
+      "type": "ccfa",
+      "lane": "research",
+      "enforcement": "suggest",
+      "priority": "critical",
+      "description": "Assessment-only manuscript review: scientific review, scoring, AC/meta-review, version comparison.",
+      "promptTriggers": {
+        "keywords": [
+          "paper review",
+          "full review",
+          "scientific review",
+          "reviewer report",
+          "meta-review",
+          "score drift",
+          "moving-target review",
+          "assessment only",
+          "do not rewrite",
+          "完整审稿",
+          "模拟审稿",
+          "论文评分",
+          "审稿意见",
+          "版本对比",
+          "写作评审",
+          "不要改写",
+          "帮我审一下论文"
+        ],
+        "intentPatterns": [
+          "(审稿|评审|review).{0,6}(论文|manuscript|paper)"
+        ]
+      }
+    },
+    "ccf-integrity-auditor": {
+      "type": "ccfa",
+      "lane": "research",
+      "enforcement": "suggest",
+      "priority": "critical",
+      "description": "Audit claim-support alignment, numeric consistency, and existing citation integrity.",
+      "promptTriggers": {
+        "keywords": [
+          "integrity audit",
+          "claim audit",
+          "numeric consistency",
+          "citation audit",
+          "consistency check",
+          "引用核验",
+          "claim审计",
+          "数字一致性",
+          "核对引用",
+          "检查数字",
+          "一致性检查"
+        ]
+      }
+    },
+    "ccf-submission-checker": {
+      "type": "ccfa",
+      "lane": "research",
+      "enforcement": "suggest",
+      "priority": "critical",
+      "description": "Check venue format, LaTeX/PDF package, anonymity, metadata, and artifact readiness.",
+      "promptTriggers": {
+        "keywords": [
+          "submission check",
+          "venue format",
+          "page limit",
+          "camera ready",
+          "anonymity check",
+          "artifact checklist",
+          "投稿检查",
+          "会议格式",
+          "页数限制",
+          "匿名检查",
+          "模板检查",
+          "提交前检查"
+        ]
+      }
+    },
+    "ccf-rebuttal-writer": {
+      "type": "ccfa",
+      "lane": "research",
+      "enforcement": "suggest",
+      "priority": "critical",
+      "description": "Write rebuttals, author responses, response letters, revision ledgers, and resubmission plans.",
+      "promptTriggers": {
+        "keywords": [
+          "rebuttal",
+          "write rebuttal",
+          "author response",
+          "response letter",
+          "revision ledger",
+          "reviewer comments",
+          "resubmission",
+          "写rebuttal",
+          "审稿意见回复",
+          "回复审稿人",
+          "修改说明",
+          "重投",
+          "重投迁移",
+          "返修回复"
+        ],
+        "intentPatterns": [
+          "(写|准备|起草).{0,6}(rebuttal|回复|响应)",
+          "(r1|r2|reviewer\\s*\\d).{0,10}(回复|response|rebuttal)"
+        ]
+      }
+    },
+    "ccf-humanization": {
+      "type": "ccfa",
+      "lane": "research",
+      "enforcement": "suggest",
+      "priority": "critical",
+      "description": "Sidecar preflight that strips defensive writing, boilerplate disclaimers, and AI-like risk narration.",
+      "promptTriggers": {
+        "keywords": [
+          "humanization",
+          "humanize",
+          "defensive writing",
+          "de-ai",
+          "ai味",
+          "去掉防御性写作",
+          "去ai味",
+          "人味",
+          "别写免责声明",
+          "精简重复"
+        ]
+      }
+    },
+    "ccf-common": {
+      "type": "ccfa",
+      "lane": "research",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "description": "CCFA family governance: routing, trigger registry, handoff modes, artifact contracts.",
+      "promptTriggers": {
+        "keywords": [
+          "ccfa governance",
+          "ccfa routing",
+          "ccf-common",
+          "trigger registry",
+          "artifact contract",
+          "ccfa治理",
+          "ccfa路由"
+        ]
+      }
+    },
+    "ccf-skill-forger": {
+      "type": "ccfa",
+      "lane": "research",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "description": "Maintain CCFA skills, routing, docs, SVG diagrams, validation, and releases.",
+      "promptTriggers": {
+        "keywords": [
+          "ccfa skill maintenance",
+          "ccf-skill-forger",
+          "skill forger",
+          "routing conflict",
+          "维护ccfa",
+          "ccfa发布"
         ]
       }
     }

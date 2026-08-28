@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "disableAllHooks": true,
+  "enableAllProjectMcpServers": false,
+  "disableBundledSkills": true,
+  "includeGitInstructions": false,
+  "alwaysThinkingEnabled": true,
+  "outputStyle": "default",
+  "env": {
+    "CLAUDE_CODE_EFFORT_LEVEL": "high",
+    "MAX_THINKING_TOKENS": "4000",
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "800"
+  }
+}

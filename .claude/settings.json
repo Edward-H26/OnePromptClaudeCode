@@ -203,7 +203,7 @@
           {
             "type": "command",
             "command": "\"${CLAUDE_PROJECT_DIR:-$PWD}/.claude/hooks/task-orchestrator-hook.sh\"",
-            "timeout": 10
+            "timeout": 25
           }
         ]
       }

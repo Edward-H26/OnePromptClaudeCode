@@ -4,7 +4,7 @@
 
 A complete Claude Code workflow that covers the entire software development lifecycle. Clone it, start coding, and never write a prompt from scratch again.
 
-78 skill entries. 71 commands. 14 agents. 4 local hooks. 4 templates. 10 shared MCP servers. 600+ auto-triggers.
+95 skill entries. 71 commands. 14 agents. 4 local hooks. 4 templates. 10 shared MCP servers. 600+ auto-triggers.
 
 Built for beginners. Scales for power users.
 
@@ -31,7 +31,28 @@ bash scripts/doctor-workflow.sh        # verify hooks, skills, and settings
 claude
 ```
 
-That is the repo setup. `bash scripts/doctor-workflow.sh` auto-creates or merges `.claude/settings.local.json` from the tracked `.claude/settings.local.example.json`, so a fresh clone does not require a manual local-settings copy step. Shared Remotion MCP servers now live in the tracked [`.mcp.json`](/Users/edwardhu/Desktop/agent/claude/.mcp.json), which keeps project-scoped tool wiring out of machine-local settings. The tracked baseline still enables only the repo-stable plugin set; auth-sensitive, duplicate, or machine-fragile integrations such as GitHub, context7, Figma plugin MCP, Playwright plugin MCP, and `superpowers` stay disabled in the example until the local machine is actually configured for them. Run `bash scripts/doctor-workflow.sh` on a fresh clone to confirm the live workflow is ready, and clear any stale local plugin blocklist test entries if the doctor warns about them. After workflow changes, run `bash scripts/audit-workflow.sh`.
+That gets the workflow running **inside this repo only**. Claude Code discovers
+user-scope skills under `~/.claude/skills`, so until you link them, no skill here
+loads in your other projects and the router never fires there. Two ways to go
+global, depending on how much of `~/.claude` you want this repo to own:
+
+```bash
+bash scripts/install.sh --router       # keep your own ~/.claude/settings.json (recommended)
+bash scripts/install.sh --apply        # let this repo own ~/.claude/{hooks,skills,settings.json}
+bash scripts/install.sh --check        # preview what --apply would change
+bash scripts/install.sh --revert       # undo --apply, restoring the most recent backup
+```
+
+`--router` links `~/.claude/skills` here and adds one `UserPromptSubmit` entry to
+your existing `~/.claude/settings.json` pointing at this checkout. It is idempotent
+and rewrites the path if you move the checkout. The absolute path lives only in
+that machine-local file; tracked settings stay path-portable, which
+`scripts/audit-workflow.sh` enforces.
+
+`--apply` is the heavier option: it symlinks hooks, skills, and settings, backing
+up existing real files to `~/.claude/.backup-<timestamp>/` first.
+
+That is the repo setup. `bash scripts/doctor-workflow.sh` auto-creates or merges `.claude/settings.local.json` from the tracked `.claude/settings.local.example.json`, so a fresh clone does not require a manual local-settings copy step. Shared Remotion MCP servers now live in the tracked [`.mcp.json`](.mcp.json), which keeps project-scoped tool wiring out of machine-local settings. The tracked baseline still enables only the repo-stable plugin set; auth-sensitive, duplicate, or machine-fragile integrations such as GitHub, context7, Figma plugin MCP, Playwright plugin MCP, and `superpowers` stay disabled in the example until the local machine is actually configured for them. Run `bash scripts/doctor-workflow.sh` on a fresh clone to confirm the live workflow is ready, and clear any stale local plugin blocklist test entries if the doctor warns about them. After workflow changes, run `bash scripts/audit-workflow.sh`.
 
 ---
 
@@ -76,7 +97,7 @@ Zero prompts to write. Minimal repo setup. Machine-local plugin installs and aut
 
 | Component | Count | Description |
 |---|---|---|
-| **Skills** | 78 | Bundled workflow skill entries available directly from the tracked repo |
+| **Skills** | 95 | Bundled workflow skill entries available directly from the tracked repo |
 | **Commands** | 71 | Slash commands for planning, implementation, review, QA, and release handoff |
 | **Agents** | 14 | Specialized local agents for complex tasks |
 | **Hooks** | 4 | Automated skill activation, type/lint checks, and workflow hooks (all local) |
@@ -219,6 +240,67 @@ Automated hooks run at every stage of your workflow:
 | `workflow-completion-gate.sh` | Session stop | Reminds to verify frontend changes in the browser, and cleans stale cache |
 | `session-start.sh` | Session start | Validates required local tools, bootstraps local settings, and injects baseline repo context |
 
+### Skill routing lanes
+
+`.claude/skills/skill-rules.json` has a top-level `lanes` block that keeps the
+research and frontend skill families from firing on each other's prompts. Each
+lane scores itself against the prompt; the lane that outscores the others owns
+it, and skills tagged with a different `lane` are dropped. A tie means no lane
+wins and every match stays visible, so a bad guess can only hide a skill, never
+surface an irrelevant one. Skills with no `lane` (`qa`, `review`, `ponytail`,
+`investigate`, `testing-verification`) always survive.
+
+Ranking within a match is separate from lanes. A skill marked `"alternate": true`
+is a second choice for a job another installed skill owns, so it drops one tier
+whenever that owner also matched, and keeps its own rank when it is the only
+thing that matched. That is what turns a flat list into a lead plus a bench:
+
+| Prompt | Leads | Bench |
+|---|---|---|
+| 帮我写 NeurIPS 的 rebuttal | `ccf-rebuttal-writer` | `academic-paper-reviewer` |
+| 帮我做一个落地页，要好看有质感 | `ui-styling`, `impeccable` | `gpt-taste`, `minimalist-ui`, `high-end-visual-design`, … |
+| 帮我画一个系统架构图 | `diagram-design` | `fireworks-tech-graph` |
+| 用浏览器打开页面截个图 | `qa` | `chrome-devtools` |
+| nature 期刊润色和引用检查 | `nature-polishing`, `nature-citation` | none, so no demotion |
+
+**Three tiers, cheapest first.** Each only runs when the one above it found
+nothing, so the expensive tier never taxes a prompt the cheap ones can place:
+
+| Tier | What it is | Cost |
+|---|---|---|
+| 1. Keywords | the `skill-rules.json` table | ~120 ms |
+| 2. Session memory | what this session last matched | ~110 ms |
+| 3. Reasoning pass | a model reads the prompt and names skills | ~4.5 s |
+
+**Tier 2, follow-ups.** A prompt like "把按钮改成蓝色", "再改改", or "继续" names
+no skill, and no keyword list can fix that, so the hook remembers what each
+session last matched under `.claude/runtime/skill-context/<session-id>` and
+re-surfaces it, labelled as carried, when the current prompt matches nothing on
+its own. A direct match always wins over a carried one, a matching prompt
+overwrites the memory, sessions never share it, and a session with no history
+recommends nothing rather than guessing. Entries expire after a day.
+
+**Tier 3, the reasoning pass** (`hooks/lib/llm-skill-router.sh`). For a prompt
+whose domain words are not in the table and whose session has no context, a
+nested `claude -p` reads it and names the skills, and its one-line paraphrase is
+surfaced as `READ AS:` to orient the work. It is gated hard: prompts under 10
+characters and plain questions never reach it, and `CLAUDE_SKILL_ROUTER_LLM=0`
+turns it off. Only skill names that exist in `skill-rules.json` survive; the
+free-text paraphrase is labelled as a paraphrase rather than an instruction,
+because it is derived from prompt text and can echo whatever the prompt carried.
+Three details are load-bearing and each was found by a failing run: the
+classifier runs with `disableAllHooks` so it cannot re-enter this hook, its
+reasoning env is pinned (inheriting the session's xhigh effort and 128k thinking
+budget stretched the same call from 4 s to 30-55 s), and `CLAUDE_CONFIG_DIR` is
+restored to the session's original value, since the repo's `.claude/` holds no
+credentials and a nested CLI launched with it answers "Not logged in".
+
+Change routing by editing `skill-rules.json`, not the hook. Adding a skill means
+adding its rule, its `lane` if it belongs to one, and `alternate` if something
+else already owns that job. Watch for over-broad triggers: a bare generic word
+(`pipeline`, `nature`, `review`, `existing`) or a page noun like 首页 fires on
+prompts that have nothing to do with the skill.
+
 ---
 
 ## MCP Servers
@@ -268,7 +350,7 @@ Ready-to-use templates at `.claude/prompt-templates/`:
   commands/              # 71 slash commands
   hooks/                 # 4 local hook scripts
   prompt-templates/      # 4 reusable templates
-  skills/                # 78 skill entries
+  skills/                # 95 skill entries
     skill-rules.json     # 400+ keyword trigger engine
     [local skills]       # Backend, frontend, testing, research, and utility skills
 social/                  # Social media assets and demo video
@@ -293,6 +375,7 @@ This workflow integrates and builds upon the work of incredible community projec
 | Official Plugins | Anthropic | Superpowers, feature-dev, code-review, Figma, Playwright, GitHub, HuggingFace |
 | shadcn/ui | shadcn | Component patterns |
 | Context7 | Context7 | Library documentation |
+| [CCFA-Skills](https://github.com/mikubaka88/CCFA-Skills) | @mikubaka88 | The 17 `ccf-*` skills for CCF conference research, vendored under MIT (see `.claude/skills/CCFA-SKILLS-LICENSE`) |
 
 ---
 

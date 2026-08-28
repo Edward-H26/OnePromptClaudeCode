@@ -133,7 +133,6 @@
 /.claude/scheduled_tasks.lock
 /.claude/hooks/git-guard.sh
 /.claude/hooks/session-rules-reinject.sh
-/scripts/install.sh
 
 # Node modules and lock files anywhere
 **/node_modules/
@@ -238,3 +237,15 @@ terraform.tfvars
 .claude/skills/**/__pycache__/
 .claude/skills/**/*.pyc
 .claude/skills/learned/
+
+# CCFA-Skills bulk payloads (355 MB of source PDFs and venue LaTeX trees).
+# Installed on disk and fully usable; kept out of git so the repo stays small.
+# Re-fetch with: git clone --depth 1 https://github.com/mikubaka88/CCFA-Skills
+/.claude/skills/ccf-paper-writer/references/exemplars/papers/
+/.claude/skills/ccf-paper-writer/paper_ref/
+/.claude/skills/ccf-latex-templates/
+
+# Written by a nested CLI when CLAUDE_CONFIG_DIR pointed at .claude/ (the skill
+# router now restores the session's own value). Account and session state.
+/.claude/.claude.json
+/.claude/backups/
