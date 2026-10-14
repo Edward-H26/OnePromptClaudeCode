@@ -261,6 +261,31 @@ auditHookSmokes() {
         exit 1
     fi
 
+    # The standing guidance is about 900 tokens and stays in the conversation, so it is sent once
+    # per session and again after each compaction rather than with every prompt.
+    local guidance_transcript guidance_session
+    guidance_transcript="$(mktemp)"
+    guidance_session="audit-guidance-$$"
+    TASK_OUTPUT="$(run_task_orchestrator_in "$guidance_session" "$guidance_transcript" "Fix the login bug in the API handler.")"
+    if ! printf "%s\n" "$TASK_OUTPUT" | grep -q "TASK ORCHESTRATOR ACTIVE$"; then
+        rm -f "$guidance_transcript"
+        echo "The first coding prompt of a session should carry the standing guidance" >&2
+        exit 1
+    fi
+    TASK_OUTPUT="$(run_task_orchestrator_in "$guidance_session" "$guidance_transcript" "Now fix the page layout.")"
+    if printf "%s\n" "$TASK_OUTPUT" | grep -q -e "TASK ORCHESTRATOR ACTIVE$" -e "PONYTAIL ACTIVE"; then
+        rm -f "$guidance_transcript"
+        echo "Later prompts in the same session should not repeat the standing guidance" >&2
+        exit 1
+    fi
+    printf '%s\n' '{"type":"system","subtype":"compact_boundary"}' >> "$guidance_transcript"
+    TASK_OUTPUT="$(run_task_orchestrator_in "$guidance_session" "$guidance_transcript" "Continue fixing the page layout.")"
+    rm -f "$guidance_transcript"
+    if ! printf "%s\n" "$TASK_OUTPUT" | grep -q "TASK ORCHESTRATOR ACTIVE$"; then
+        echo "A compaction should bring the standing guidance back" >&2
+        exit 1
+    fi
+
     if command -v zsh >/dev/null 2>&1; then
         zsh -lc '
             source ".claude/hooks/lib/plugin-state.sh"

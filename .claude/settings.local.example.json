@@ -1,10 +1,6 @@
 {
   "enabledPlugins": {
-    "context7@claude-plugins-official": false,
-    "figma@claude-plugins-official": false,
     "github@claude-plugins-official": false,
-    "playwright@claude-plugins-official": false,
-    "superpowers@claude-plugins-official": false,
     "huggingface-skills@claude-plugins-official": false
   }
 }

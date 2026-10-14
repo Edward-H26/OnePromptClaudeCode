@@ -249,3 +249,9 @@ terraform.tfvars
 # router now restores the session's own value). Account and session state.
 /.claude/.claude.json
 /.claude/backups/
+
+# Machine-local Claude Code plugins (the edward-mods marketplace), kept out of the shared repo
+/mods/
+
+# Skills the Claude app syncs from the claude.ai account into ~/.claude/skills (which links here)
+/.claude/skills/synced/

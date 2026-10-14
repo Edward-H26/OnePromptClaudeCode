@@ -1,185 +1,213 @@
 > **Parent**: [CLAUDE.md](./CLAUDE.md) | **Related**: [testing-verification](./skills/testing-verification/SKILL.md), [website-workflow](./skills/website-workflow/SKILL.md), [WORKFLOW-REFERENCE.md](./WORKFLOW-REFERENCE.md)
 
-# Harness 总览参考 (CLAUDE-skills.md)
+# Harness Overview (CLAUDE-skills.md)
 
-本文件是这套 Claude Code harness 的"地图":列出全部 skill、command、MCP、hook、plugin,逐个用大白话解释、给出使用场景,并标出重复或冲突的地方。
+This file is the map of this Claude Code harness: every skill, command, MCP server, hook and plugin, each explained in plain words with when to use it, and where they overlap or conflict.
 
-计数:**77 skills · 72 commands · 14 agents · 4 hooks · 2 MCP(仓库自带)· 6 plugins**。
-验证:`python3 -c "import json; print(len(json.load(open('.claude/skills/skill-rules.json'))['skills']))"`
+Counts: **95 skills · 72 commands · 15 agents · 4 hooks · 2 MCP servers (shipped with the repo) · 15 plugins (12 on)**.
+Check: `python3 -c "import json; print(len(json.load(open('.claude/skills/skill-rules.json'))['skills']))"`
 
-状态图例:🔴 常驻(每条 prompt 都被 `task-orchestrator-hook.sh` 列出)· 🟢 按需(只在命中关键词/意图时出现,或用 `/命令` 手动开)。当前 **常驻 15 / 按需 62**。
-
----
-
-## 一、Skills
-
-### 🔴 常驻 · 设计(11)
-每写 UI 都用得上,所以常驻。彼此有重叠,见下方"重复冲突"。
-
-- **frontend-design** — 给新界面定独特视觉方向、排版、审美,避免模板感。「做新页面/组件,定基调时」
-- **impeccable** — 全面设计/改版/审查/打磨界面(网站、仪表盘、表单、设计系统)。「要把一个界面整体提质时」
-- **ui-ux-pro-max** — 超大 UI/UX 知识库(几十种风格、上百配色、字体搭配、UX 规则)。「找风格/配色/字体灵感时」
-- **design-taste-frontend** — 给落地页/作品集/改版做"去 AI 味"前端,自动判断方向。「做落地页、作品集时」
-- **high-end-visual-design** — 教 AI 像高端设计公司那样做"贵感"网站,屏蔽廉价默认。「要高级感、商业感时」
-- **redesign-existing-projects** — 把现有网站/应用升级到高端品质,识别并替换通用套路。「翻新旧站时」
-- **minimalist-ui** — 极简编辑风(暖色单色调、扁平 bento、无渐变重阴影)。「要极简风格时」
-- **gpt-taste** — 高级 UX/UI + GSAP 动效(AIDA 结构、滚动动画)。「要强动效、滚动叙事时」
-- **shadcn-ui** — shadcn/ui 组件库模式(安装、表单 + Zod、主题、可访问组件)。「用 shadcn 搭组件时」
-- **web-accessibility** — 按 WCAG 做无障碍(ARIA、键盘导航、读屏)。「要过无障碍标准时」
-- **web-design-guidelines** — 拿 Web 界面规范审查 UI 代码。「UI 写完做规范审查时」
-
-### 🔴 常驻 · 学术写作(3)
-论文质量类,每篇都用得上。写整篇论文**主推 `academic-pipeline`**(研究→写→审一条龙)。
-
-- **academic-pipeline** — 把研究→写→审→改串成 10 阶段总编排,是**写论文的主推入口**。「想从研究到成稿一条龙时」
-- **research-paper-writing** — 提升英文 ML/CV/NLP 论文写作质量(结构、段落、面向审稿人)。「写英文顶会论文时」
-- **nature-polishing** — 把中文/粗糙英文润色成 Nature 风格英文,还能修 LaTeX 排版。「润色英文稿、修 LaTeX 排版时」
-
-### 🔴 常驻 · 代码纪律(1)
-让 AI 只写必要代码的"懒惰资深程序员"准则,和 `CLAUDE.md` 的 Simplicity First 一脉相承,所以常驻。
-
-- **ponytail** — 写代码前先过 YAGNI 阶梯(复用 > 标准库 > 原生 > 一行 > 最小实现),绝不简化掉校验/安全/可访问性;`/ponytail lite|full|ultra|off` 调强度。「每次写代码默认生效,想更激进就 `/ponytail ultra`」
-
-### 🟢 按需 · 核心(24)
-原有的开发/研究/审查/工具类,关键词触发或 `/命令` 手动开。
-
-**开发**
-- **backend-dev-guidelines** — Node/Express/TS 后端规范。「写后端路由/服务时」
-- **frontend-dev-guidelines** — React/TS 前端模式(Suspense、TanStack)。「写 React 组件/数据获取时」
-- **ui-styling** — shadcn/ui + Tailwind 组件样式。「调样式、做布局时」
-- **code-refactor** — 批量重命名/替换/改 API 调用。「跨文件大规模改名时」
-
-**研究 / 调试 / 审查**
-- **deep-research** — 13 agent 深度研究团队(系统综述、meta 分析、事实核查)。「要严谨多源研究报告时」
-- **investigate** — 系统化根因调试(假设验证,3 次失败就停)。「查 bug 根因时」
-- **review** — 资深工程师代码审查(`/review-staff`),找过了 CI 的生产 bug。「合并前审代码时」
-- **search-first** — 先搜现有代码再写。「动手改之前先摸代码时」
-- **refine** — 评估-优化循环(生成→批评→改→再批评,最多 3 轮)。「做完想再打磨一轮时」
-
-**计划 / QA**
-- **office-hours** — 写码前头脑风暴、需求澄清(YC Office Hours 风)。「需求没想清、先聊方案时」
-- **plan-design-review** — 资深设计师给方案打分,检测 AI 套路。「评审设计方案时」
-- **plan-eng-review** — 工程经理式架构评审(数据流、边界、测试矩阵)。「评审实现方案时」
-- **design-review** — 视觉审查 + 原子提交修复 + 前后对比截图。「UI 改完查一遍时」
-- **qa** — 浏览器 QA + 自动回归测试。「测网页功能并修时」
-- **qa-only** — 只出 QA 报告、不改码。「只要测试报告时」
-
-**工具 / 插件包装**
-- **chrome-devtools** — 驱动 Chrome(截图/网络/Lighthouse)。「浏览器调试、性能、截图时」
-- **webapp-testing** — Python Playwright 测本地网页。「端到端测本地站时」
-- **playwright** — 转 Playwright 插件。「要跨浏览器自动化时」
-- **figma** — 转 Figma 插件。「读写 Figma 设计时」
-- **github** — 转 GitHub 插件。「仓库/PR/issue/CI 时」
-- **context7** — 转 context7 插件。「查某库最新文档时」
-- **superpowers** — 转 Superpowers 插件(头脑风暴/TDD/调试/审查)。「想用结构化工程流程时」
-- **remotion** — 用 Remotion(React 视频框架)编程做视频。「做程序化视频时」
-
-### 🟢 按需 · 学术(21)
-一整套科研流水线,按需触发。注意:写论文有三套并存(见冲突)。
-
-- **academic-paper** — 12 agent 论文写作流水线,11 种模式。「写整篇英文论文(一套主力)」
-- **academic-paper-reviewer** — 模拟 5 审稿人(主编+3 审稿+唱反调)。「投稿前自审」
-- **citation-check-skill** — 带视觉+联网核查引用真假。「查 AI 有没有编参考文献时」
-- **research-writing-skill** — 中文优先的写作/润色/rebuttal。「用中文写论文时」
-- **nature-academic-search** — 多源文献检索 + 引用管理(PubMed/CrossRef/arXiv)。「查文献、管参考文献时」
-- **nature-citation** — 给段落自动配 Nature/CNS 引用。「补引用时」
-- **office-academic-skill** — 中文优先 Word/PPT 学术工作流(精读报告、组会 PPT、DOCX/PPTX)。「做中文学术汇报材料时」
-- **scientific-figure-making** — figures4papers 发表级作图。「做论文数据图(另一套)」
-- **scientific-toolkit-skill** — 科研计算工具箱(MATLAB/Octave、Python 分析、信号处理)。「做数据分析/科学计算时」
-- **paper-spine** — PaperSpine 流水线主入口,从头写一篇论文出 LaTeX/PDF/Word。「用 PaperSpine 那套写论文时」
-- **paper-spine-***(11 个:`-audit/-build/-citation/-humanize/-intake/-latex/-research/-rewrite/-translate/-ui/-update`)— PaperSpine 的内部步骤,跟着主入口走,平时不单独用。
-
-### 🟢 按需 · 设计降级(4)
-原本常驻、后来降为按需的设计/画图 skill。
-
-- **image-to-code** — 图先行建站:先生成设计图、分析、再还原成网站(依赖图像生成,当前环境可能跑不全)。「有设计图要还原成代码时」
-- **industrial-brutalist-ui** — 粗野工业风(瑞士排版 + 终端美学)。「要这种特定硬核风格时」
-- **fireworks-tech-graph** — 自然语言→技术图(架构/流程/时序),导出 SVG+PNG。「要画架构图/流程图时」
-- **diagram-design** — 技术/产品图做成 HTML+SVG,能抓品牌色。「要带品牌风的图表时」
-
-### 🟢 按需 · 代码纪律(5)
-ponytail 家族的命令式子技能,打 `/ponytail-*` 手动开。
-
-- **ponytail-review** — 审当前 diff 的过度设计,回一份"删除清单"。「写完想砍冗余时」
-- **ponytail-audit** — 审**整个仓库**的过度设计(不只 diff),给可删/可简化排序。「整库瘦身时」
-- **ponytail-debt** — 把代码里 `ponytail:` 标记的简化欠账收集成清单。「想清点欠的技术债时」
-- **ponytail-gain** — 展示 ponytail 的实测收益记分牌(更少代码/成本、更快)。「想看省了多少时」
-- **ponytail-help** — ponytail 所有模式/命令的速查卡。「忘了怎么用时」
-
-### 🟢 按需 · GSAP 动画(8)
-GreenSock 官方动画技能,全部按需(`gsap`/`动画`/`scroll` 等关键词触发),不常驻。
-
-- **gsap-core** — 核心 API:gsap.to/from、缓动、stagger、响应式/reduced-motion。「做 JS 网页动画的入口」
-- **gsap-react** — React/Next 里用 GSAP:useGSAP、refs、卸载清理。「React 动画时」
-- **gsap-frameworks** — Vue/Svelte/Nuxt 里用 GSAP:生命周期、作用域、清理。「Vue/Svelte 动画时」
-- **gsap-scrolltrigger** — 滚动驱动动画、钉住、scrub、视差。「做滚动动画时」
-- **gsap-plugins** — GSAP 插件(ScrollSmoother/Flip/Draggable/SplitText/SVG 等)。「用到某个插件时」
-- **gsap-timeline** — 时间线编排:gsap.timeline、position、嵌套。「排动画序列时」
-- **gsap-utils** — gsap.utils 助手:clamp、mapRange、random、snap、interpolate。「用工具函数时」
-- **gsap-performance** — 动画性能:优先 transform、避免重排、60fps。「动画卡顿优化时」
+Status: every skill is on demand. `task-orchestrator-hook.sh` lists a skill only when the prompt hits its keywords or intent patterns in `skills/skill-rules.json`, and each one can also be started by hand with its `/command`. No skill is marked `alwaysActive` at the moment.
 
 ---
 
-## 二、Commands(72)
+## 1. Skills
 
-机制:**打 `/名字` = 调用同名 skill**(绝大多数 1:1)。名字不同的 4 个:
+### Design (11)
+Useful whenever UI is written. They overlap; see "Overlaps and conflicts" below.
+
+- **frontend-design**: gives a new interface a distinctive visual direction, typography and taste, without the template look. Use when starting a new page or component and setting its tone.
+- **impeccable**: designs, redesigns, reviews and polishes whole interfaces (sites, dashboards, forms, design systems). Use when an interface needs to be raised in quality overall.
+- **ui-ux-pro-max**: a large UI/UX knowledge base (dozens of styles, hundreds of palettes, font pairings, UX rules). Use when looking for style, color or font ideas.
+- **design-taste-frontend**: front-end work for landing pages, portfolios and redesigns that removes the "AI look" and picks a direction on its own. Use for landing pages and portfolios.
+- **high-end-visual-design**: builds sites the way a high-end design studio would and blocks cheap defaults. Use when the result should feel premium and commercial.
+- **redesign-existing-projects**: upgrades an existing site or app to high-end quality, finding and replacing generic patterns. Use when refreshing an old site.
+- **minimalist-ui**: minimal editorial style (warm monochrome, flat bento, no gradients or heavy shadows). Use when a minimal style is wanted.
+- **gpt-taste**: advanced UX/UI with GSAP motion (AIDA structure, scroll animation). Use for strong motion and scroll storytelling.
+- **shadcn-ui**: shadcn/ui component patterns (install, forms with Zod, theming, accessible components). Use when building with shadcn.
+- **web-accessibility**: accessibility to WCAG (ARIA, keyboard navigation, screen readers). Use when a page has to meet accessibility standards.
+- **web-design-guidelines**: reviews UI code against web interface guidelines. Use for a guideline review once the UI is written.
+
+### Academic writing (3)
+Paper-quality skills, useful for every paper. For a whole paper, **start with `academic-pipeline`** (research, writing and review in one flow).
+
+- **academic-pipeline**: chains research, writing, review and revision into one 10-stage pipeline, and is **the main entry point for writing a paper**. Use to go from research to a finished draft in one flow.
+- **research-paper-writing**: improves English ML/CV/NLP paper writing (structure, paragraphs, writing for reviewers). Use for English papers at top venues.
+- **nature-polishing**: polishes Chinese or rough English into Nature-style English, and can fix LaTeX layout. Use to polish an English draft or fix LaTeX layout.
+
+### Code discipline (1)
+The "lazy senior engineer" rules that make the AI write only the code it needs, in the same spirit as Simplicity First in `CLAUDE.md`.
+
+- **ponytail**: before writing code, climb the YAGNI ladder (reuse, then the standard library, then native features, then one line, then the minimal implementation), and never simplify away validation, security or accessibility. `/ponytail lite|full|ultra|off` sets the intensity. The prompt hook injects its ruleset once per session and again after each compaction; use `/ponytail ultra` to go further.
+
+### Core (24)
+The original development, research, review and tool skills, started by keywords or by `/command`.
+
+**Development**
+- **backend-dev-guidelines**: Node/Express/TypeScript back-end conventions. Use when writing back-end routes or services.
+- **frontend-dev-guidelines**: React/TypeScript front-end patterns (Suspense, TanStack). Use when writing React components or data fetching.
+- **ui-styling**: shadcn/ui and Tailwind component styling. Use when adjusting styles or layout.
+- **code-refactor**: bulk renames, replacements and API-call changes. Use for large renames across files.
+
+**Research, debugging and review**
+- **deep-research**: a 13-agent deep research team (systematic reviews, meta-analysis, fact checks). Use when a rigorous multi-source research report is needed.
+- **investigate**: systematic root-cause debugging (test hypotheses, stop after 3 failures). Use when tracking down a bug's root cause.
+- **review**: senior-engineer code review (`/review-staff`) that finds production bugs CI missed. Use to review code before merging.
+- **search-first**: search the existing code before writing. Use to learn the code before changing it.
+- **refine**: an evaluate-and-optimize loop (generate, critique, revise, critique again, at most 3 rounds). Use when finished work should get one more round of polish, and only when the user asks for it.
+
+**Planning and QA**
+- **office-hours**: brainstorming and requirement clarification before coding (YC Office Hours style). Use when the need is not clear yet and the approach should be talked through first.
+- **plan-design-review**: a senior designer scores the plan and flags AI clichés. Use to review a design plan.
+- **plan-eng-review**: an engineering-manager style architecture review (data flow, edge cases, test matrix). Use to review an implementation plan.
+- **design-review**: visual review, atomic fix commits and before/after screenshots. Use to check UI after changing it.
+- **qa**: browser QA plus automatic regression tests. Use to test and fix a web page's behavior.
+- **qa-only**: a QA report only, with no code changes. Use when only a test report is wanted.
+
+**Tools and plugin wrappers**
+- **chrome-devtools**: drives Chrome (screenshots, network, Lighthouse). Use for browser debugging, performance and screenshots.
+- **webapp-testing**: tests a local web app with Python Playwright. Use for end-to-end tests of a local site.
+- **playwright**: hands off to the Playwright plugin. Use for cross-browser automation.
+- **figma**: hands off to the Figma plugin. Use to read or write Figma designs.
+- **github**: hands off to the GitHub plugin. Use for repositories, PRs, issues and CI.
+- **context7**: hands off to the context7 plugin. Use to look up a library's current documentation.
+- **superpowers**: hands off to the Superpowers plugin (brainstorming, TDD, debugging, review). Use for a structured engineering process.
+- **remotion**: makes videos in code with Remotion, a React video framework. Use for programmatic video.
+
+### Academic (21)
+A full research pipeline, triggered on demand. Note that several ways to write a whole paper sit side by side (see "Overlaps and conflicts").
+
+- **academic-paper**: a 12-agent paper-writing pipeline with 11 modes. One of the main ways to write a whole English paper.
+- **academic-paper-reviewer**: simulates 5 reviewers (an editor, 3 reviewers and a devil's advocate). Use to review your own paper before submission.
+- **citation-check-skill**: checks whether citations are real, with vision and web lookup. Use to catch references the AI made up.
+- **research-writing-skill**: Chinese-first writing, polishing and rebuttals. Use when writing a paper in Chinese.
+- **nature-academic-search**: multi-source literature search and reference management (PubMed, CrossRef, arXiv). Use to find literature and manage references.
+- **nature-citation**: adds Nature/CNS citations to a paragraph automatically. Use to fill in citations.
+- **office-academic-skill**: a Chinese-first Word/PPT academic workflow (close-reading reports, group-meeting slides, DOCX/PPTX). Use for Chinese academic presentation material.
+- **scientific-figure-making**: publication-quality figures with figures4papers. Use for a paper's data figures.
+- **scientific-toolkit-skill**: a scientific computing toolbox (MATLAB/Octave, Python analysis, signal processing). Use for data analysis or scientific computing.
+- **paper-spine**: the PaperSpine pipeline's main entry point, which writes a paper from scratch to LaTeX, PDF or Word. Use to write a paper the PaperSpine way.
+- **paper-spine-*** (11: `-audit`, `-build`, `-citation`, `-humanize`, `-intake`, `-latex`, `-research`, `-rewrite`, `-translate`, `-ui`, `-update`): PaperSpine's internal steps. They follow the main entry point and are not used on their own.
+
+### CCF conference research (17)
+The CCFA family, vendored under MIT (see `skills/CCFA-SKILLS-LICENSE`), for papers aimed at CCF-ranked conferences. `ccf-pipeline-orchestrator` plans the stages and hands work to the others; `ccf-common` holds their shared rules.
+
+- **ccf-common**: shared governance for the family: routing, task modes, handoffs, `ccfa.yaml` and artifact contracts.
+- **ccf-pipeline-orchestrator**: plans and coordinates a paper project's stages, gates, artifacts and handoffs.
+- **ccf-project-scaffolder**: creates the project folders, the LaTeX template and `ccfa.yaml`.
+- **ccf-idea-optimizer**: turns a rough research direction into a concrete problem, gap, method and evidence plan.
+- **ccf-idea-reviewer**: scores, ranks and triages early ideas against prior work and venue fit.
+- **ccf-literature-searcher**: searches and screens related work, datasets, benchmarks and citation candidates.
+- **ccf-literature-monitor**: watches arXiv, OpenReview and conference feeds for new work that overlaps an idea.
+- **ccf-experiment-designer**: decides the datasets, baselines, metrics and ablations, and what each result table should show.
+- **ccf-paper-writer**: drafts, rewrites, revises and polishes manuscript prose within the supplied scope and evidence.
+- **ccf-paper-to-exemplar**: turns conference paper PDFs into writing exemplar cards for `ccf-paper-writer`.
+- **ccf-humanization**: a preflight pass that makes publication prose read naturally, never the main task.
+- **ccf-visual-composer**: renders and redesigns figures, visual tables and method diagrams.
+- **ccf-integrity-auditor**: checks claim support, numeric and terminology consistency, and whether figures and text agree.
+- **ccf-paper-reviewer**: assessment only: full reviews, scores, reviewer reports and readiness judgments.
+- **ccf-rebuttal-writer**: rebuttals, author responses, response letters and resubmission plans.
+- **ccf-submission-checker**: checks the venue's template, page, anonymity and camera-ready rules and the LaTeX/PDF build.
+- **ccf-skill-forger**: designs, updates and audits CCFA skills and their documentation.
+
+The `ccf-*` family and the other research skills above are listed to the model by name only (`skillOverrides` set to `name-only` in `settings.json`) to save tokens. They still start from the hook's suggestions or when named.
+
+### Design, moved to on demand (4)
+Design and diagram skills that used to be always on.
+
+- **image-to-code**: image-first site building: generate a design image, analyze it, then rebuild it as a site (it depends on image generation, which may not fully run here). Use when a design image should become code.
+- **industrial-brutalist-ui**: a raw industrial style (Swiss typography with terminal aesthetics). Use for that specific hard-edged style.
+- **fireworks-tech-graph**: natural language to technical diagrams (architecture, flow, sequence), exported as SVG and PNG. Use to draw architecture or flow diagrams.
+- **diagram-design**: technical and product diagrams as HTML and SVG that can pick up brand colors. Use for diagrams in a brand style.
+
+### Code discipline commands (5)
+Command-style members of the ponytail family, started with `/ponytail-*`.
+
+- **ponytail-review**: reviews the current diff for over-engineering and returns a deletion list. Use after writing, to cut excess.
+- **ponytail-audit**: reviews the **whole repository** for over-engineering, not just the diff, and ranks what can be deleted or simplified. Use to slim down a whole codebase.
+- **ponytail-debt**: collects the simplification debts marked `ponytail:` in the code into a list. Use to take stock of deliberate shortcuts.
+- **ponytail-gain**: shows ponytail's measured savings (less code, lower cost, faster). Use to see what it saved.
+- **ponytail-help**: a quick reference for every ponytail mode and command. Use when you forget how it works.
+
+### GSAP animation (8)
+GreenSock's official animation skills, all on demand (triggered by keywords such as `gsap`, `scroll`, or `动画`, Chinese for "animation").
+
+- **gsap-core**: the core API: `gsap.to`/`from`, easing, stagger, responsive and reduced-motion handling. The entry point for JavaScript web animation.
+- **gsap-react**: GSAP in React and Next: `useGSAP`, refs, cleanup on unmount. Use for React animation.
+- **gsap-frameworks**: GSAP in Vue, Svelte and Nuxt: lifecycles, scoping, cleanup. Use for Vue or Svelte animation.
+- **gsap-scrolltrigger**: scroll-driven animation, pinning, scrub and parallax. Use for scroll animation.
+- **gsap-plugins**: GSAP plugins (ScrollSmoother, Flip, Draggable, SplitText, SVG and more). Use when a specific plugin is needed.
+- **gsap-timeline**: timeline sequencing: `gsap.timeline`, position parameters, nesting. Use to sequence animations.
+- **gsap-utils**: the `gsap.utils` helpers: clamp, mapRange, random, snap, interpolate. Use for the utility functions.
+- **gsap-performance**: animation performance: prefer transforms, avoid layout thrashing, keep 60fps. Use when an animation stutters.
+
+---
+
+## 2. Commands (72)
+
+How it works: **typing `/name` calls the skill of the same name** (almost all are one to one). Four names differ:
 - `/backend-dev` → backend-dev-guidelines
 - `/frontend-dev` → frontend-dev-guidelines
 - `/review-staff` → review
-- `/build-fix` → 增量修 build/类型错误
+- `/build-fix` → fixes build and type errors incrementally
 
-常驻 skill 不需要手动开,但也都各有同名 `/命令` 可手动触发。
-
----
-
-## 三、MCP 服务器
-
-- **仓库自带(随仓库走,已启用):** `remotion-docs`(查 Remotion 文档)、`remotion-app`(操作 Remotion 项目)。
-- **会话级(来自你机器的全局配置 / 插件,不在仓库里):** context7、github、playwright、chrome-devtools、figma、computer-use,以及 claude.ai 的 Google Drive 连接器。
+Every skill also has a `/command` of the same name for starting it by hand.
 
 ---
 
-## 四、Hooks(4 个,wired 在 settings.json)
+## 3. MCP servers
 
-一个时机一个钩子:
-
-1. **session-start.sh**(SessionStart,开会话)— 引导本地配置 + 注入仓库规则 + 压缩快照恢复。
-2. **task-orchestrator-hook.sh**(UserPromptSubmit,你发消息)— 判断意图(分析/写代码/纯问)+ 列出该用的 skill(读 skill-rules.json)+ 提示词含糊时提醒先澄清 + auth 类提示 `/security-review` + 每个写代码/分析回合注入 ponytail 规则正文(强化版,卸载 ponytail 即自动关闭)。
-3. **post-edit-check.sh**(PostToolUse 改文件)— 按文件类型跑检查:TS/JS 跑 tsc,Python 跑 pyright/ruff,其它跑对应 linter,并记录改动文件。
-4. **workflow-completion-gate.sh**(Stop,答完)— 改了前端就提醒做浏览器验证 + 清 14 天前的过期缓存。
-
-> 另有两个 gitignore、但仍在用的辅助脚本:`git-guard.sh`(拦 commit/push,audit 冒烟测试依赖它)、`session-rules-reinject.sh`(压缩恢复时重注规则)。不要删。
+- **Shipped with the repo (they travel with it and are enabled):** `remotion-docs` (Remotion documentation) and `remotion-app` (works on a Remotion project).
+- **Per machine (from the machine's own config, plugins or account, not in the repo):** context7, Playwright, Chrome DevTools and Figma come from their plugins; claude.ai connectors come with the account; any other server, such as Blender, is added on that machine with `claude mcp add`.
 
 ---
 
-## 五、Plugins(6 个,enabledPlugins)
+## 4. Hooks (4, wired in settings.json)
 
-`pyright-lsp`、`typescript-lsp`(语言服务/类型检查)、`frontend-design`(更强 UI 实现)、`feature-dev`(代码探索/架构 agent)、`code-review`(定向审查)、`code-simplifier`(清理简化)。
+One hook per moment:
 
----
+1. **session-start.sh** (SessionStart, when a session opens): bootstraps the local settings, injects the repo rules and restores the compaction snapshot.
+2. **task-orchestrator-hook.sh** (UserPromptSubmit, when you send a message): decides the intent (analysis, coding or a plain question), lists the skills to use (from `skill-rules.json`), reminds Claude to clarify when the prompt is vague, suggests `/security-review` for auth-related prompts, and sends the standing guidance (the orchestrator block and the ponytail ruleset) once per session and again after each compaction rather than with every prompt. Removing the ponytail skill turns its ruleset off.
+3. **post-edit-check.sh** (PostToolUse, after a file is edited): runs checks by file type (tsc for TS/JS, pyright and ruff for Python, the matching linter for others) and records the changed files.
+4. **workflow-completion-gate.sh** (Stop, when an answer ends): reminds Claude to verify in a browser when front-end files changed, and clears caches older than 14 days.
 
-## 六、重复 / 冲突(重点)
-
-功能重叠太多时 AI 容易选错,以下是最该注意的几组:
-
-1. **"写一整篇论文"三套并存**:`paper-spine`(12 个)、`academic-paper`、`research-paper-writing`。**主推 `academic-pipeline`**(研究→写→审一条龙,已设为常驻),其余按需。
-2. **示意图两个重叠**:`fireworks-tech-graph` 与 `diagram-design`(架构/示意图),各留一个;科研数据图统一用 `scientific-figure-making`。
-3. **审稿**:统一用 `academic-paper-reviewer`(主题已转 academic 系列)。
-4. **学术 PPT**:统一用 `office-academic-skill`。
-5. **深度研究**:统一用 `deep-research`。
-6. **泛化设计五个**:`frontend-design`/`impeccable`/`ui-ux-pro-max`/`design-taste-frontend`/`high-end-visual-design` 都是"把 UI 做好看",高度重叠。常驻其实留 1 个就够。
-7. **shadcn 两个**:`shadcn-ui` 与 `ui-styling` 都涉及 shadcn + Tailwind。
-8. **风格 skill 互斥审美**:`minimalist-ui`(极简)、`industrial-brutalist-ui`(粗野)、`gpt-taste`(动效)只在选定风格时用。
-9. **浏览器/QA 重叠**:`chrome-devtools`/`playwright`/`webapp-testing` 都驱动浏览器;`qa`/`qa-only`/`design-review`/`web-design-guidelines` 都沾 QA/审查。不冲突但冗余。
-10. **互补不冲突(放心)**:`nature-citation`(加引用)vs `citation-check-skill`(查引用)是两回事,留着都对。
+> Two more helper scripts are gitignored but still in use: `git-guard.sh` (blocks commit and push; the audit smoke test depends on it) and `session-rules-reinject.sh` (re-injects the rules when restoring after a compaction). Do not delete them.
 
 ---
 
-## 七、维护与技术备注
+## 5. Plugins (15 in enabledPlugins, 12 on)
 
-- 改了 skill / command / hook / 模板的数量后,要同步更新 `README.md` 的计数(audit 会校验),并跑 `bash scripts/audit-workflow.sh` 和 `bash scripts/doctor-workflow.sh` 确认全绿。
-- 这套 harness 的"常驻 vs 按需"完全由 `skills/skill-rules.json` 的 `alwaysActive` 决定,改那个 JSON 就改了行为,不用动 hook。
-- **Source vs Runtime**:跟踪的是 `.claude/CLAUDE*.md`、`hooks/`、`commands/`、`prompt-templates/`、`agents/`、`skills/`、`settings.json`;gitignore 的是 `plugins/`、`projects/`、`.claude/runtime/`、`.claude.json`、`settings.local.json`。`skills/ui-styling/canvas-fonts/` 是设计工作流的一部分,有意纳入跟踪。
-- **可选插件**:对鉴权敏感、重复或依赖机器环境的集成,应在 `.claude/settings.local.json` 里启用,而不是放进共享的跟踪配置。
-- **`effortLevel` 语义**:`settings.json` 里的 `max` 只在当前会话生效,除非同时在 `env` 里设 `CLAUDE_CODE_EFFORT_LEVEL`。两者都设才把意图和持久化绑定。参见 https://code.claude.com/docs/en/model-config#adjust-effort-level
-- **流式与思考**:思考预算超过 32K token 时 Anthropic 建议用批处理。Claude Code 是交互式流式,所以把 `MAX_THINKING_TOKENS` 控制在 32000 以内,避免长思考阶段 `Stream idle timeout`。参见 https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking
+On: `pyright-lsp` and `typescript-lsp` (language servers and type checks), `frontend-design` (stronger UI implementation), `feature-dev` (code exploration and architecture agents), `code-review` (targeted review), `code-simplifier` (cleanup and simplification), `superpowers` (structured engineering workflows), `context7` (library documentation), `figma` (Figma designs), `playwright` (browser automation), `chrome-devtools-mcp` (Chrome debugging and performance) and `security-guidance` (security warnings plus an LLM review of each turn's diff, run on Sonnet through `SECURITY_REVIEW_MODEL`).
+
+Off: `github`, `huggingface-skills` and `greptile`.
+
+context7 and figma each need a one-time sign-in through `/mcp`.
+
+---
+
+## 6. Overlaps and conflicts (important)
+
+When too many skills overlap, the AI picks the wrong one more easily. These groups matter most:
+
+1. **Several ways to write a whole paper**: `paper-spine` (12 skills), `academic-paper`, `research-paper-writing`, and the `ccf-*` family for CCF conferences. **Start with `academic-pipeline`** (research, writing and review in one flow), and use the `ccf-*` family for CCF venues.
+2. **Two overlapping diagram skills**: `fireworks-tech-graph` and `diagram-design` both draw architecture and schematic diagrams; both stay, the first for technical diagrams and the second for brand-styled ones. Research data figures all go through `scientific-figure-making`.
+3. **Reviewing papers**: use `academic-paper-reviewer` (the topic moved to the academic family), or `ccf-paper-reviewer` for CCF venues.
+4. **Academic slides**: use `office-academic-skill`.
+5. **Deep research**: use `deep-research`.
+6. **Five general design skills**: `frontend-design`, `impeccable`, `ui-ux-pro-max`, `design-taste-frontend` and `high-end-visual-design` all "make the UI look good" and overlap heavily. One of them is usually enough.
+7. **Two shadcn skills**: `shadcn-ui` and `ui-styling` both cover shadcn and Tailwind.
+8. **Style skills with clashing tastes**: `minimalist-ui` (minimal), `industrial-brutalist-ui` (brutalist) and `gpt-taste` (motion) are only for when that style has been chosen.
+9. **Browser and QA overlap**: `chrome-devtools`, `playwright` and `webapp-testing` all drive a browser; `qa`, `qa-only`, `design-review` and `web-design-guidelines` all touch QA and review. Not conflicting, but redundant.
+10. **Complementary, not conflicting (keep both)**: `nature-citation` (adds citations) and `citation-check-skill` (checks citations) do different jobs.
+
+---
+
+## 7. Maintenance and technical notes
+
+- After changing the number of skills, commands, hooks or templates, update the counts in `README.md` (the audit checks them), then run `bash scripts/audit-workflow.sh` and `bash scripts/doctor-workflow.sh` and confirm both pass.
+- Whether a skill is always listed or on demand is decided entirely by `alwaysActive` in `skills/skill-rules.json`. Changing that JSON changes the behavior, with no hook edits.
+- **Source vs runtime**: tracked are `.claude/CLAUDE*.md`, `hooks/`, `commands/`, `prompt-templates/`, `agents/`, `skills/` and `settings.json`; gitignored are `plugins/`, `projects/`, `.claude/runtime/`, `.claude.json`, `settings.local.json`, `mods/` and `.claude/skills/synced/`. `skills/ui-styling/canvas-fonts/` is part of the design workflow and is tracked on purpose.
+- **Plugins**: the shared `settings.json` enables the maintainer's plugin set, including ones that need a sign-in. On a machine that lacks one, turn it off in `.claude/settings.local.json`, whose values win over the shared config.
+- **Personal rules**: preferences that should stay off the public repo, such as a reply language, go in `~/.claude/rules/` on that machine, which Claude Code loads in every project.
+- **`effortLevel` semantics**: `max` in `settings.json` only applies to the current session unless `CLAUDE_CODE_EFFORT_LEVEL` is also set in `env`. Setting both ties the intent to persistence. See https://code.claude.com/docs/en/model-config#adjust-effort-level
+- **Streaming and thinking**: Anthropic recommends batch processing for thinking budgets above 32K tokens. Claude Code streams interactively, so keep `MAX_THINKING_TOKENS` at 32000 or below to avoid a `Stream idle timeout` during long thinking. See https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking

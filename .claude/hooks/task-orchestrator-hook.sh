@@ -17,7 +17,31 @@ export CLAUDE_CONFIG_DIR="$CLAUDE_HOME_DIR"
 INPUT=$(cat)
 PROMPT=$(echo "$INPUT" | jq -r '.prompt // empty' 2>/dev/null || echo "")
 SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // empty' 2>/dev/null || echo "")
+TRANSCRIPT_PATH=$(echo "$INPUT" | jq -r '.transcript_path // empty' 2>/dev/null || echo "")
 PROMPT_LOWER=$(echo "$PROMPT" | tr '[:upper:]' '[:lower:]')
+
+# The standing guidance (the task orchestrator block and the ponytail ruleset) is the same text
+# on every prompt, and every copy stays in the conversation until it is compacted: about 900
+# tokens a message. It is printed once per session and again after each compaction, which
+# summarizes the earlier copy away. A compaction shows in the transcript as a compact_boundary.
+GUIDANCE_DIR="$CLAUDE_HOME_DIR/runtime/guidance-seen"
+GUIDANCE_SESSION="$(sanitize_session_id "${SESSION_ID:-default}")"
+GUIDANCE_EPOCH=0
+if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" ]]; then
+    GUIDANCE_EPOCH=$(grep -c '"subtype":"compact_boundary"' "$TRANSCRIPT_PATH" 2>/dev/null || true)
+fi
+
+# Each block is tracked on its own, so an analysis prompt that shows only the ruleset does not
+# stop the orchestrator block reaching the first coding prompt.
+guidance_due() {
+    [[ "$(cat "$GUIDANCE_DIR/$GUIDANCE_SESSION.$1" 2>/dev/null || true)" != "${GUIDANCE_EPOCH:-0}" ]]
+}
+
+mark_guidance_sent() {
+    mkdir -p "$GUIDANCE_DIR" 2>/dev/null || true
+    printf '%s' "${GUIDANCE_EPOCH:-0}" > "$GUIDANCE_DIR/$GUIDANCE_SESSION.$1" 2>/dev/null || true
+    find "$GUIDANCE_DIR" -maxdepth 1 -type f -mtime +2 -delete 2>/dev/null || true
+}
 
 prompt_matches() {
     local pattern="$1"
@@ -320,7 +344,10 @@ EOF
 
 run_skill_and_clarify() {
     print_skill_activation_check
-    print_ponytail_ruleset
+    if guidance_due ponytail; then
+        print_ponytail_ruleset
+        mark_guidance_sent ponytail
+    fi
     print_clarify_first
 }
 
@@ -406,6 +433,8 @@ else
     PLUGIN_SECTION="Installed plugin availability varies by local state.\n"
 fi
 
+if guidance_due orchestrator; then
+mark_guidance_sent orchestrator
 printf '%b\n' "================================================================================
 TASK ORCHESTRATOR ACTIVE
 ================================================================================
@@ -427,14 +456,11 @@ Helpful skills in this repo:
 - investigate for systematic root-cause debugging
 - review for staff-level code review via /review-staff
 - qa, qa-only, and webapp-testing for browser verification
-- refine for the evaluator-optimizer loop
+- refine for a generate, critique and apply pass, when the user asks for one
 
 $PLUGIN_SECTION
-Evaluator-optimizer loop:
-- After the implementation is complete and all checks pass, run /refine to close the loop with a generate to critique to apply to re-critique pass (bounded at 3 rounds).
-- Skip /refine only for trivial one-line changes or when the task explicitly forbids it.
-
 ================================================================================
 "
+fi
 
 run_skill_and_clarify

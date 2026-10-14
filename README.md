@@ -52,7 +52,7 @@ that machine-local file; tracked settings stay path-portable, which
 `--apply` is the heavier option: it symlinks hooks, skills, and settings, backing
 up existing real files to `~/.claude/.backup-<timestamp>/` first.
 
-That is the repo setup. `bash scripts/doctor-workflow.sh` auto-creates or merges `.claude/settings.local.json` from the tracked `.claude/settings.local.example.json`, so a fresh clone does not require a manual local-settings copy step. Shared Remotion MCP servers now live in the tracked [`.mcp.json`](.mcp.json), which keeps project-scoped tool wiring out of machine-local settings. The tracked baseline still enables only the repo-stable plugin set; auth-sensitive, duplicate, or machine-fragile integrations such as GitHub, context7, Figma plugin MCP, Playwright plugin MCP, and `superpowers` stay disabled in the example until the local machine is actually configured for them. Run `bash scripts/doctor-workflow.sh` on a fresh clone to confirm the live workflow is ready, and clear any stale local plugin blocklist test entries if the doctor warns about them. After workflow changes, run `bash scripts/audit-workflow.sh`.
+That is the repo setup. `bash scripts/doctor-workflow.sh` auto-creates or merges `.claude/settings.local.json` from the tracked `.claude/settings.local.example.json`, so a fresh clone does not require a manual local-settings copy step. Shared Remotion MCP servers now live in the tracked [`.mcp.json`](.mcp.json), which keeps project-scoped tool wiring out of machine-local settings. The tracked settings enable the plugin set the maintainer uses day to day, including context7, Figma, Playwright, Chrome DevTools MCP, `superpowers` and security-guidance; GitHub, Hugging Face and Greptile stay off. On a machine where one of them is not installed or signed in, turn it off in `.claude/settings.local.json`, whose values win over the shared config. Run `bash scripts/doctor-workflow.sh` on a fresh clone to confirm the live workflow is ready, and clear any stale local plugin blocklist test entries if the doctor warns about them. After workflow changes, run `bash scripts/audit-workflow.sh`.
 
 ---
 
@@ -75,7 +75,7 @@ Zero prompts to write. Minimal repo setup. Machine-local plugin installs and aut
 ## Runtime Prerequisites
 
 - Install the shared Claude Code baseline plugin set once on the machine that uses this repo.
-- Add auth-sensitive, duplicate, or machine-fragile plugin integrations in `.claude/settings.local.json`, not the shared tracked config.
+- Turn off, in `.claude/settings.local.json`, any shared plugin this machine has not installed or signed in to.
 - `bash scripts/doctor-workflow.sh` auto-seeds `.claude/settings.local.json` from the tracked example on first run, then preserves local overrides on later merges.
 - Ensure required MCP connectors and auth are healthy for the tools you actually use.
 - Run `bash scripts/doctor-workflow.sh` after clone, and again after workflow or plugin changes.
@@ -372,7 +372,7 @@ This workflow integrates and builds upon the work of incredible community projec
 | Continuous Claude | @AnandChowdhary | Continuous PR loop pattern |
 | Infinite Agentic Loop | @disler | Self-running agent pattern |
 | Ralphinho | @enitrat | RFC-driven DAG orchestration |
-| Official Plugins | Anthropic | Superpowers, feature-dev, code-review, Figma, Playwright, GitHub, HuggingFace |
+| Official Plugins | Anthropic | Superpowers, feature-dev, code-review, code-simplifier, frontend-design, context7, Figma, Playwright, Chrome DevTools MCP, security-guidance |
 | shadcn/ui | shadcn | Component patterns |
 | Context7 | Context7 | Library documentation |
 | [CCFA-Skills](https://github.com/mikubaka88/CCFA-Skills) | @mikubaka88 | The 17 `ccf-*` skills for CCF conference research, vendored under MIT (see `.claude/skills/CCFA-SKILLS-LICENSE`) |

@@ -52,6 +52,15 @@ run_task_orchestrator() {
         CLAUDE_PROJECT_DIR="$ROOT" bash "$ROOT/.claude/hooks/task-orchestrator-hook.sh"
 }
 
+run_task_orchestrator_in() {
+    local session_id="$1"
+    local transcript="$2"
+    local prompt="$3"
+    jq -n --arg prompt "$prompt" --arg session_id "$session_id" --arg transcript "$transcript" \
+        '{prompt: $prompt, session_id: $session_id, transcript_path: $transcript}' |
+        CLAUDE_PROJECT_DIR="$ROOT" bash "$ROOT/.claude/hooks/task-orchestrator-hook.sh"
+}
+
 run_git_guard() {
     local command="$1"
     jq -n \
