@@ -273,7 +273,7 @@ PYEOF
     fi
     output="${output}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
     if [[ -n "$critical" ]]; then
-        output="${output}CRITICAL SKILLS (REQUIRED):\n${critical}\n"
+        output="${output}LIKELY SKILLS:\n${critical}\n"
     fi
     if [[ -n "$high" ]]; then
         output="${output}RECOMMENDED SKILLS:\n${high}\n"
@@ -284,16 +284,43 @@ PYEOF
     if [[ -n "$low" ]]; then
         output="${output}OPTIONAL SKILLS:\n${low}\n"
     fi
-    output="${output}ACTION: Use Skill tool BEFORE responding\n"
+    output="${output}These are suggestions. Load a skill only when this task needs its instructions.\n"
     output="${output}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     printf '%b\n' "$output"
 }
 
+# Length of a prompt in words. Chinese, Japanese and Korean text has no spaces
+# between words, so a space-based count reads a whole sentence as one word.
+# Each such character counts as half a word (a Chinese word averages about two
+# characters); text in other scripts counts one word per space-separated token.
+prompt_word_units() {
+    PROMPT_TEXT="$1" python3 - <<'PY' 2>/dev/null
+import math
+import os
+import re
+
+
+def is_cjk(ch):
+    code = ord(ch)
+    return (0x3040 <= code <= 0x30FF or 0x3400 <= code <= 0x4DBF or 0x4E00 <= code <= 0x9FFF
+            or 0xAC00 <= code <= 0xD7AF or 0xF900 <= code <= 0xFAFF)
+
+
+units = 0
+for token in os.environ.get("PROMPT_TEXT", "").split():
+    cjk_chars = sum(1 for ch in token if is_cjk(ch))
+    if cjk_chars == 0:
+        units += 1
+    else:
+        units += math.ceil(cjk_chars / 2) + len(re.findall(r"[A-Za-z0-9_]+", token))
+print(units)
+PY
+}
+
 print_clarify_first() {
     local word_count
-    word_count=$(printf "%s" "$PROMPT" | tr -s '[:space:]' ' ' | sed 's/^ //;s/ $//' | grep -o ' ' | wc -l | tr -d ' ')
-    word_count=$((word_count + 1))
-    [[ -z "$PROMPT" ]] && word_count=0
+    word_count=$(prompt_word_units "$PROMPT")
+    [[ "$word_count" =~ ^[0-9]+$ ]] || word_count=0
 
     local is_vague=false
     if [[ "$word_count" -gt 0 && "$word_count" -le 5 ]]; then

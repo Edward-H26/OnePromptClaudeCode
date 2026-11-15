@@ -38,6 +38,10 @@ Hooks fire in the order they appear in `.claude/settings.json`:
 
 **SessionStart:**
 1. `session-start.sh` - Validates tools, bootstraps local settings, and injects baseline repo context
+2. `compact-restore.sh` (matcher `compact`) - After a compaction, prints the project's handoff file, its newest memory files and recent commits as context
+
+**PreCompact:**
+1. `compact-keep.sh` - Tells the compaction summary what to keep, plus a project's own lines from `.claude/compact-keep.md`
 
 ---
 

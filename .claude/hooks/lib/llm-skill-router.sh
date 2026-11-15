@@ -9,8 +9,10 @@
 # Three things here are load-bearing, each found by a failing run:
 #   disableAllHooks (in the settings file) stops the classifier re-entering the
 #     hook that launched it.
-#   The pinned reasoning env keeps the call near 4s; inheriting the session's
-#     xhigh effort and 128k thinking budget stretched the same call to 30-55s.
+#   The settings file pins the classifier's own effort, so the call does not
+#     inherit the session's level. On Sonnet at xhigh with no token caps it
+#     takes about 3s; with the session's effort and a
+#     128k thinking budget the same call took 30-55s.
 #   CLAUDE_CONFIG_DIR must be the session's original value, not the repo's
 #     .claude/ that the calling hook exports, or the nested CLI finds no
 #     credentials and answers "Not logged in".
@@ -65,7 +67,7 @@ llm_route_prompt() {
         launcher=(env -u CLAUDE_CONFIG_DIR CLAUDE_SKILL_ROUTER=1)
     fi
 
-    "${launcher[@]}" claude -p --model opus --settings "$settings" \
+    "${launcher[@]}" claude -p --model sonnet --settings "$settings" \
         --strict-mcp-config "$request" </dev/null >"$out_file" 2>/dev/null &
     local worker=$!
     ( sleep 15; kill "$worker" ) >/dev/null 2>&1 &
