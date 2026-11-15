@@ -6,7 +6,6 @@
     "MAX_THINKING_TOKENS": "32000",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_CODE_NO_FLICKER": "1",
-    "CLAUDE_CODE_EFFORT_LEVEL": "max",
     "BASH_DEFAULT_TIMEOUT_MS": "1800000",
     "BASH_MAX_TIMEOUT_MS": "7200000",
     "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "1800000",
@@ -241,6 +240,27 @@
             "timeout": 30
           }
         ]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PROJECT_DIR:-$PWD}/.claude/hooks/compact-restore.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PROJECT_DIR:-$PWD}/.claude/hooks/compact-keep.sh\"",
+            "timeout": 10
+          }
+        ]
       }
     ]
   },
@@ -253,7 +273,7 @@
     "typescript-lsp@claude-plugins-official": true,
     "frontend-design@claude-plugins-official": true,
     "feature-dev@claude-plugins-official": true,
-    "superpowers@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": false,
     "code-review@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
     "huggingface-skills@claude-plugins-official": false,
@@ -263,9 +283,18 @@
     "playwright@claude-plugins-official": true,
     "chrome-devtools-mcp@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
-    "greptile@claude-plugins-official": false
+    "greptile@claude-plugins-official": false,
+    "show-your-work@iamumeransari": true
   },
-  "extraKnownMarketplaces": {},
+  "extraKnownMarketplaces": {
+    "iamumeransari": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/iamumeransari/claude-show-your-work.git",
+        "ref": "releases"
+      }
+    }
+  },
   "outputStyle": "Explanatory",
   "alwaysThinkingEnabled": true,
   "promptSuggestionEnabled": true,
@@ -312,7 +341,9 @@
     "research-paper-writing": "name-only",
     "research-writing-skill": "name-only",
     "scientific-figure-making": "name-only",
-    "scientific-toolkit-skill": "name-only"
+    "scientific-toolkit-skill": "name-only",
+    "update-config": "user-invocable-only",
+    "claude-api": "user-invocable-only"
   },
   "plansDirectory": "./plans",
   "environment": [
@@ -322,5 +353,20 @@
     "Trusted source-control host: github.com/Edward-H26/OnePromptClaudeCode. Trusted documentation domains: docs.anthropic.com, code.claude.com, platform.claude.com, developer.mozilla.org, react.dev, nodejs.org, python.org, docs.python.org, npmjs.com, pypi.org.",
     "Destructive git operations (commit, push, reset --hard, clean -f) remain forbidden by explicit deny rules; the user is the sole author of all commits and pushes per CLAUDE.md."
   ],
-  "defaultMode": "auto"
+  "defaultMode": "auto",
+  "advisorModel": "fable",
+  "modelSettings": {
+    "claude-fable-5-2": {
+      "effortLevel": "xhigh"
+    },
+    "claude-opus-5-5": {
+      "effortLevel": "xhigh"
+    },
+    "claude-sonnet-5-5": {
+      "effortLevel": "xhigh"
+    },
+    "claude-haiku-5-5": {
+      "effortLevel": "high"
+    }
+  }
 }

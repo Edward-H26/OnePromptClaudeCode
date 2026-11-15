@@ -52,7 +52,7 @@ that machine-local file; tracked settings stay path-portable, which
 `--apply` is the heavier option: it symlinks hooks, skills, and settings, backing
 up existing real files to `~/.claude/.backup-<timestamp>/` first.
 
-That is the repo setup. `bash scripts/doctor-workflow.sh` auto-creates or merges `.claude/settings.local.json` from the tracked `.claude/settings.local.example.json`, so a fresh clone does not require a manual local-settings copy step. Shared Remotion MCP servers now live in the tracked [`.mcp.json`](.mcp.json), which keeps project-scoped tool wiring out of machine-local settings. The tracked settings enable the plugin set the maintainer uses day to day, including context7, Figma, Playwright, Chrome DevTools MCP, `superpowers` and security-guidance; GitHub, Hugging Face and Greptile stay off. On a machine where one of them is not installed or signed in, turn it off in `.claude/settings.local.json`, whose values win over the shared config. Run `bash scripts/doctor-workflow.sh` on a fresh clone to confirm the live workflow is ready, and clear any stale local plugin blocklist test entries if the doctor warns about them. After workflow changes, run `bash scripts/audit-workflow.sh`.
+That is the repo setup. `bash scripts/doctor-workflow.sh` auto-creates or merges `.claude/settings.local.json` from the tracked `.claude/settings.local.example.json`, so a fresh clone does not require a manual local-settings copy step. Shared Remotion MCP servers now live in the tracked [`.mcp.json`](.mcp.json), which keeps project-scoped tool wiring out of machine-local settings. The tracked settings enable the plugin set the maintainer uses day to day, including context7, Figma, Playwright, Chrome DevTools MCP, `superpowers`, security-guidance and [show-your-work](https://github.com/iamumeransari/claude-show-your-work) (pictures and videos of Claude's work in Ghostty or kitty, from the `iamumeransari` marketplace on its `releases` branch); GitHub, Hugging Face and Greptile stay off. On a machine where one of them is not installed or signed in, turn it off in `.claude/settings.local.json`, whose values win over the shared config. Run `bash scripts/doctor-workflow.sh` on a fresh clone to confirm the live workflow is ready, and clear any stale local plugin blocklist test entries if the doctor warns about them. After workflow changes, run `bash scripts/audit-workflow.sh`.
 
 ---
 
@@ -239,6 +239,8 @@ Automated hooks run at every stage of your workflow:
 | `post-edit-check.sh` | After Edit/MultiEdit/Write | Runs TypeScript checks on affected repos, the native linter (ruff/eslint/biome/shellcheck) on edited files, a Python check (pyright or ruff) on edited `.py` files, and records the edit log |
 | `workflow-completion-gate.sh` | Session stop | Reminds to verify frontend changes in the browser, and cleans stale cache |
 | `session-start.sh` | Session start | Validates required local tools, bootstraps local settings, and injects baseline repo context |
+| `compact-keep.sh` | Before compaction | Tells the compaction summary what to keep |
+| `compact-restore.sh` | After compaction | Reads the handoff file, the newest memory files and recent commits back into context |
 
 ### Skill routing lanes
 
