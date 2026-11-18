@@ -1,6 +1,8 @@
 ---
 name: frontend-developer
 description: Full-stack frontend development agent specializing in React, TypeScript, modern UI frameworks, state management, routing, and performance optimization. Use this agent for building components, implementing features, setting up routing, managing state, and creating complete frontend applications.
+model: opus
+effort: xhigh
 tools: ["Read", "Grep", "Glob", "Edit", "Write"]
 color: cyan
 ---

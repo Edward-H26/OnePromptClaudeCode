@@ -1,6 +1,8 @@
 ---
 name: auto-error-resolver
 description: Automatically fix TypeScript compilation errors
+model: opus
+effort: xhigh
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 ---
 

@@ -1,6 +1,8 @@
 ---
 name: research-search-system
 description: Unified research and search system combining code search, web research, and technical investigation capabilities. Use this agent for finding technical solutions, researching libraries/frameworks, investigating bugs, searching codebases, analyzing documentation, and gathering information from multiple sources.
+model: opus
+effort: xhigh
 tools: ["Read", "Grep", "Glob", "Bash", "WebSearch", "WebFetch"]
 color: green
 ---

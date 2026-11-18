@@ -2,7 +2,7 @@
 name: builder
 description: Writes and changes research code and other hard code where correctness and design matter. Use it for implementation that needs judgment, touches several modules, or produces results a paper depends on.
 model: opus
-effort: max
+effort: xhigh
 disallowedTools: TaskCreate, TaskUpdate, TaskGet, TaskList
 ---
 You build exactly what the brief asks for, to the standard of code that published results depend on.

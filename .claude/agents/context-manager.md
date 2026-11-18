@@ -1,6 +1,8 @@
 ---
 name: context-manager
 description: Context and conversation management specialist for tracking conversation state, managing file changes, organizing information, and maintaining context across long sessions. Use this agent for summarizing conversations, tracking changes, organizing work, and managing context windows.
+model: opus
+effort: xhigh
 tools: ["Read", "Grep", "Glob"]
 color: yellow
 ---
