@@ -39,7 +39,7 @@ HAS_ERRORS=false
 
 count_tsc_errors() {
     local output="$1"
-    echo "$output" | grep -cE "\.tsx?.*:.*error TS[0-9]+:" 2>/dev/null || echo "0"
+    echo "$output" | grep -cE "\.tsx?.*:.*error TS[0-9]+:" 2>/dev/null || true
 }
 
 > "$RESULTS_DIR/error-summary.txt"

@@ -18,7 +18,7 @@ if command -v jq >/dev/null 2>&1; then
 fi
 dir="${dir:-${CLAUDE_PROJECT_DIR:-$PWD}}"
 
-mtime() { stat -f '%Sm' -t '%Y-%m-%d %H:%M' "$1" 2>/dev/null; }
+mtime() { date -r "$1" '+%Y-%m-%d %H:%M' 2>/dev/null || stat -f '%Sm' -t '%Y-%m-%d %H:%M' "$1" 2>/dev/null; }
 
 # head -c can cut a multi-byte character in half; drop the broken bytes.
 valid_utf8() {

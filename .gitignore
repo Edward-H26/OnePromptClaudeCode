@@ -255,3 +255,4 @@ terraform.tfvars
 
 # Skills the Claude app syncs from the claude.ai account into ~/.claude/skills (which links here)
 /.claude/skills/synced/
+/.claude/skills/.trash/

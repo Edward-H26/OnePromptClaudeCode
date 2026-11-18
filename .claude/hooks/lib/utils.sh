@@ -158,6 +158,9 @@ get_repo_for_file() {
 get_tsc_command() {
     local repo_path="$1"
 
+    # Without npx the Stop hook would report "npx: command not found" as a type error.
+    command -v npx >/dev/null 2>&1 || { echo ""; return; }
+
     if [ -f "$repo_path/tsconfig.app.json" ]; then
         echo "npx tsc --project tsconfig.app.json --noEmit"
     elif [ -f "$repo_path/tsconfig.build.json" ]; then
