@@ -1,0 +1,403 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "cleanupPeriodDays": 30,
+  "env": {
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "64000",
+    "MAX_THINKING_TOKENS": "128000",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_EXPERIMENTAL_CODE_MODE": "1",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "opus",
+    "SECURITY_REVIEW_MODEL": "claude-sonnet-5-5"
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "includeGitInstructions": true,
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:m3.material.io)",
+      "WebFetch(domain:www.radix-ui.com)",
+      "WebFetch(domain:ui.shadcn.com)",
+      "WebFetch(domain:deepwiki.com)",
+      "WebFetch(domain:gist.github.com)",
+      "WebFetch(domain:www.figma.com)",
+      "WebFetch(domain:web.archive.org)",
+      "WebSearch",
+      "Bash(rg:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(cat:*)",
+      "Bash(echo:*)",
+      "Bash(printf:*)",
+      "Bash(jq:*)",
+      "Bash(sed:*)",
+      "Bash(awk:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(du:*)",
+      "Bash(cut:*)",
+      "Bash(sort:*)",
+      "Bash(paste:*)",
+      "Bash(diff:*)",
+      "Bash(readlink:*)",
+      "Bash(realpath:*)",
+      "Bash(ls:*)",
+      "Bash(tree:*)",
+      "Bash(wc:*)",
+      "Bash(which:*)",
+      "Bash(test:*)",
+      "Bash(lsof:*)",
+      "Bash(stat:*)",
+      "Bash(file:*)",
+      "Bash(touch:*)",
+      "Bash(date:*)",
+      "Bash(pwd:*)",
+      "Bash(tee:*)",
+      "Bash(tr:*)",
+      "Bash(xargs:*)",
+      "Bash(basename:*)",
+      "Bash(dirname:*)",
+      "Bash(mktemp:*)",
+      "Bash(sleep:*)",
+      "Bash(nohup:*)",
+      "Bash(open:*)",
+      "Bash(env:*)",
+      "Bash(source:*)",
+      "Bash(command:*)",
+      "Bash(type:*)",
+      "Bash(bash:*)",
+      "Bash(sh:*)",
+      "Bash(rm:*)",
+      "Bash(chmod:*)",
+      "Bash(gh:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(git add:*)",
+      "Bash(git fetch:*)",
+      "Bash(git remote:*)",
+      "Bash(git show:*)",
+      "Bash(git blame:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git tag:*)",
+      "Bash(git worktree:*)",
+      "Bash(git ls-files:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(git stash:*)",
+      "Bash(git checkout:*)",
+      "Bash(git config:*)",
+      "Bash(git rm:*)",
+      "Bash(git clean:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(mkdir:*)",
+      "Bash(zip:*)",
+      "Bash(unzip:*)",
+      "Bash(curl:*)",
+      "Bash(bundle exec:*)",
+      "Bash(streamlit:*)",
+      "Bash(sqlite3:*)",
+      "Bash(iconv:*)",
+      "Bash(node:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(pnpm:*)",
+      "Bash(yarn:*)",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(pip:*)",
+      "Bash(pip3:*)",
+      "Bash(pip install:*)",
+      "Bash(pip3 install:*)",
+      "Bash(pytest:*)",
+      "Bash(uv:*)",
+      "Bash(ruff:*)",
+      "Bash(mypy:*)",
+      "Bash(pyright:*)",
+      "Bash(codex:*)",
+      "Bash(claude:*)",
+      "mcp__claude-in-chrome",
+      "mcp__playwright",
+      "mcp__context7",
+      "mcp__github",
+      "mcp__plugin_figma_figma",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools",
+      "mcp__remotion-docs",
+      "mcp__remotion-app",
+      "Edit",
+      "Write",
+      "MultiEdit",
+      "NotebookEdit",
+      "Bash(ssh js2:*)",
+      "Bash(scp:*)",
+      "Bash(rsync:*)"
+    ],
+    "deny": [
+      "Bash(git commit:*)",
+      "Bash(git commit)",
+      "Bash(git push:*)",
+      "Bash(git push)",
+      "Bash(git reset --hard:*)",
+      "Bash(rm -rf:*)",
+      "Bash(rm -r:*)",
+      "Bash(sudo:*)",
+      "Bash(chmod 777:*)",
+      "Bash(chmod -R 777:*)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./.claude.json)",
+      "Read(./.claude/settings.local.json)",
+      "Read(./settings.json)",
+      "Read(./history.jsonl)",
+      "Read(./mcp-needs-auth-cache.json)",
+      "Read(./backups/**)",
+      "Read(./file-history/**)",
+      "Read(./projects/**)",
+      "Read(./session-env/**)",
+      "Read(./sessions/**)",
+      "Read(./.claude/runtime/**)",
+      "Read(./.credentials.json)",
+      "Bash(cat .env*)",
+      "Bash(cat .credentials*)",
+      "Bash(cat **/auth.json)",
+      "mcp__github__add_comment_to_pending_review",
+      "mcp__github__add_issue_comment",
+      "mcp__github__add_reply_to_pull_request_comment",
+      "mcp__github__create_branch",
+      "mcp__github__create_or_update_file",
+      "mcp__github__create_pull_request",
+      "mcp__github__create_repository",
+      "mcp__github__delete_file",
+      "mcp__github__delete_repository",
+      "mcp__github__fork_repository",
+      "mcp__github__issue_write",
+      "mcp__github__merge_pull_request",
+      "mcp__github__pull_request_review_write",
+      "mcp__github__push_files",
+      "mcp__github__request_copilot_review",
+      "mcp__github__run_secret_scanning",
+      "mcp__github__sub_issue_write",
+      "mcp__github__update_issue_comment",
+      "mcp__github__update_pull_request",
+      "mcp__github__update_pull_request_branch"
+    ],
+    "ask": [
+      "Bash(git merge:*)",
+      "Bash(git rebase:*)",
+      "Bash(git cherry-pick:*)"
+    ],
+    "defaultMode": "auto"
+  },
+  "model": "fable",
+  "enableAllProjectMcpServers": false,
+  "skillOverrides": {
+    "academic-paper": "name-only",
+    "academic-paper-reviewer": "name-only",
+    "academic-pipeline": "name-only",
+    "ccf-common": "name-only",
+    "ccf-experiment-designer": "name-only",
+    "ccf-humanization": "name-only",
+    "ccf-idea-optimizer": "name-only",
+    "ccf-idea-reviewer": "name-only",
+    "ccf-integrity-auditor": "name-only",
+    "ccf-literature-monitor": "name-only",
+    "ccf-literature-searcher": "name-only",
+    "ccf-paper-reviewer": "name-only",
+    "ccf-paper-to-exemplar": "name-only",
+    "ccf-paper-writer": "name-only",
+    "ccf-pipeline-orchestrator": "name-only",
+    "ccf-project-scaffolder": "name-only",
+    "ccf-rebuttal-writer": "name-only",
+    "ccf-skill-forger": "name-only",
+    "ccf-submission-checker": "name-only",
+    "ccf-visual-composer": "name-only",
+    "citation-check-skill": "name-only",
+    "deep-research": "name-only",
+    "nature-academic-search": "name-only",
+    "nature-citation": "name-only",
+    "nature-polishing": "name-only",
+    "office-academic-skill": "name-only",
+    "paper-spine": "name-only",
+    "paper-spine-audit": "name-only",
+    "paper-spine-build": "name-only",
+    "paper-spine-citation": "name-only",
+    "paper-spine-humanize": "name-only",
+    "paper-spine-intake": "name-only",
+    "paper-spine-latex": "name-only",
+    "paper-spine-research": "name-only",
+    "paper-spine-rewrite": "name-only",
+    "paper-spine-translate": "name-only",
+    "paper-spine-ui": "name-only",
+    "paper-spine-update": "name-only",
+    "research-paper-writing": "name-only",
+    "research-writing-skill": "name-only",
+    "scientific-figure-making": "name-only",
+    "scientific-toolkit-skill": "name-only",
+    "update-config": "user-invocable-only",
+    "claude-api": "user-invocable-only"
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/post-tool-use-tracker.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/workflow-step-tracker.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/workflow-step-tracker.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__claude-in-chrome__*|mcp__plugin_playwright_playwright__*|mcp__playwright__*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/workflow-step-tracker.sh"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -x \"${CLAUDE_PROJECT_DIR:-$PWD}/.claude/hooks/compact-keep.sh\" ] || $HOME/.claude/hooks/compact-keep.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -x \"${CLAUDE_PROJECT_DIR:-$PWD}/.claude/hooks/compact-restore.sh\" ] || $HOME/.claude/hooks/compact-restore.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/stop-build-check-enhanced.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -x \"${CLAUDE_PROJECT_DIR:-$PWD}/.claude/hooks/task-orchestrator-hook.sh\" ] || \"$HOME/.claude/hooks/task-orchestrator-hook.sh\"",
+            "timeout": 25
+          }
+        ]
+      }
+    ]
+  },
+  "worktree": {
+    "baseRef": "fresh"
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash $HOME/.claude/statusline.sh"
+  },
+  "enabledPlugins": {
+    "pyright-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": false,
+    "code-review@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true,
+    "huggingface-skills@claude-plugins-official": false,
+    "context7@claude-plugins-official": true,
+    "figma@claude-plugins-official": false,
+    "github@claude-plugins-official": false,
+    "playwright@claude-plugins-official": true,
+    "chrome-devtools-mcp@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": true,
+    "greptile@claude-plugins-official": false,
+    "progress-ledger@edward-mods": false,
+    "cc-plugin-you-should-know@builtin": true,
+    "show-your-work@iamumeransari": true
+  },
+  "extraKnownMarketplaces": {
+    "edward-mods": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/edwardhu/Desktop/agent/claude/mods"
+      }
+    },
+    "iamumeransari": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/iamumeransari/claude-show-your-work.git",
+        "ref": "releases"
+      }
+    }
+  },
+  "outputStyle": "Essentials",
+  "feedbackDrafts": "notify",
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "xhigh"
+    },
+    "claude-sonnet-5-5": {
+      "effortLevel": "xhigh"
+    },
+    "claude-haiku-5-5": {
+      "effortLevel": "high"
+    },
+    "claude-fable-5-2": {
+      "effortLevel": "xhigh"
+    }
+  },
+  "advisorModel": "fable",
+  "promptSuggestionEnabled": false,
+  "askUserQuestionTimeout": "never",
+  "plansDirectory": "./plans",
+  "tui": "fullscreen",
+  "showThinkingSummaries": true,
+  "skipWorkflowUsageWarning": true,
+  "verbose": false,
+  "switchModelsOnFlag": false,
+  "autoContinueAtUsageLimit": true,
+  "autoScrollEnabled": true,
+  "terminalProgressBarEnabled": true,
+  "teammateMode": "auto",
+  "remoteControlAtStartup": true,
+  "agentPushNotifEnabled": false,
+  "skipAutoPermissionPrompt": true
+}

@@ -1,6 +1,6 @@
 # Hooks
 
-Claude Code hooks that enable skill auto-activation, type and lint checks, and workflow reminders. All 4 hooks are repo-local and wired in `.claude/settings.json`.
+Claude Code hooks that enable skill auto-activation, type and lint checks, and workflow reminders. All hooks live in this repo. `.claude/settings.json` wires six of them for this repo, and `.claude/settings.user.json` wires the set under [User-scope hooks](#user-scope-hooks) for every project once `install.sh --apply` links it.
 
 ---
 
@@ -42,6 +42,15 @@ Hooks fire in the order they appear in `.claude/settings.json`:
 
 **PreCompact:**
 1. `compact-keep.sh` - Tells the compaction summary what to keep, plus a project's own lines from `.claude/compact-keep.md`
+
+### User-scope hooks
+
+`.claude/settings.user.json` reaches these through `$HOME/.claude/hooks`, which `install.sh --apply` links here:
+
+1. `post-tool-use-tracker.sh` (PostToolUse, Edit|MultiEdit|Write) - Logs edited files and queues TypeScript checks for the affected repos
+2. `workflow-step-tracker.sh` (PostToolUse, Bash, Skill and browser tools) - Records workflow-step markers for the session
+3. `stop-build-check-enhanced.sh` (Stop) - Reruns the queued TypeScript checks and reports any errors
+4. `task-orchestrator-hook.sh`, `compact-keep.sh` and `compact-restore.sh` - The scripts listed above; each stands down when the project has its own copy, so this repo runs them once
 
 ---
 

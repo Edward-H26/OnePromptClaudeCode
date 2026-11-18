@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 # One-time post-clone installer. Idempotent. Safe to re-run.
 #
-# Makes this repo the canonical source for ~/.claude/hooks, ~/.claude/skills, and
-# ~/.claude/settings.json so that Claude Code sessions in OTHER projects also pick
-# up the repo's hooks, skills, and global env vars. Existing real files are backed
-# up to ~/.claude/.backup-<ts>/.
+# Makes this repo the canonical source for ~/.claude: settings.json links to the
+# tracked user-scope .claude/settings.user.json, and hooks, skills, agents,
+# commands, CLAUDE.md, statusline.sh and output-styles link to their copies here,
+# so every project runs the same setup and any change Claude Code saves to user
+# settings lands in this checkout. Existing real files are backed up to
+# ~/.claude/.backup-<ts>/.
 #
 # Usage:
 #   bash scripts/install.sh            # dry-run: show what would change
 #   bash scripts/install.sh --check    # dry-run: show what would change
 #   bash scripts/install.sh --apply    # apply with backup
 #   bash scripts/install.sh --router   # register the skill router globally
-#   bash scripts/install.sh --revert   # restore from the most recent backup
 
 set -euo pipefail
 
@@ -27,9 +28,8 @@ for arg in "$@"; do
         --check) MODE="check" ;;
         --apply) MODE="apply" ;;
         --router) MODE="router" ;;
-        --revert) MODE="revert" ;;
         --help|-h)
-            sed -n "2,14p" "${BASH_SOURCE[0]}" | sed "s/^# //;s/^#//"
+            sed -n "2,15p" "${BASH_SOURCE[0]}" | sed "s/^# //;s/^#//"
             exit 0
             ;;
         *) echo "Unknown flag: $arg" >&2; exit 2 ;;
@@ -37,7 +37,7 @@ for arg in "$@"; do
 done
 
 [[ "$REPO_CLAUDE/hooks" == "$HOME_CLAUDE/hooks" ]] && { echo "install.sh: repo IS ~/.claude; nothing to deploy." ; exit 0 ; }
-[[ -d "$REPO_CLAUDE/hooks" && -d "$REPO_CLAUDE/skills" && -f "$REPO_CLAUDE/settings.json" ]] || { echo "install.sh: $REPO_CLAUDE does not look like a Claude Code config root (missing hooks/, skills/, or settings.json)." >&2 ; exit 1 ; }
+[[ -d "$REPO_CLAUDE/hooks" && -d "$REPO_CLAUDE/skills" && -f "$REPO_CLAUDE/settings.json" && -f "$REPO_CLAUDE/settings.user.json" ]] || { echo "install.sh: $REPO_CLAUDE does not look like a Claude Code config root (missing hooks/, skills/, settings.json, or settings.user.json)." >&2 ; exit 1 ; }
 
 # --router is the "keep my own ~/.claude/settings.json" path: link the skills so
 # Claude Code can see them from any project, then register the router there with
@@ -60,7 +60,7 @@ if [[ "$MODE" == "router" ]]; then
 
     if [[ -L "$USER_SETTINGS" ]]; then
         echo "install.sh: $USER_SETTINGS is a symlink, so --router cannot add a machine-local path." >&2
-        echo "install.sh: use --revert first if you want to keep your own settings file." >&2
+        echo "install.sh: replace the link with a real file first if you want to keep your own settings file." >&2
         exit 1
     fi
     [[ -f "$USER_SETTINGS" ]] || { mkdir -p "$HOME_CLAUDE" ; printf '{}\n' > "$USER_SETTINGS" ; }
@@ -117,28 +117,22 @@ if [[ "$MODE" != "check" ]]; then
     trap 'rmdir "$LOCK_DIR" 2>/dev/null || true' EXIT
 fi
 
-if [[ "$MODE" == "revert" ]]; then
-    LATEST="$(ls -1dt "$HOME_CLAUDE"/.backup-* 2>/dev/null | head -1 || true)"
-    [[ -n "$LATEST" ]] || { echo "install.sh: no backup directory found in $HOME_CLAUDE" >&2 ; exit 1 ; }
-    echo "install.sh: restoring from $LATEST"
-    for f in hooks skills settings.json; do
-        if [[ -L "$LATEST/$f" ]]; then
-            echo "install.sh: REFUSING to restore $LATEST/$f because it is a symlink (potential tampering)." >&2
-            continue
-        fi
-        if [[ -e "$LATEST/$f" ]]; then
-            [[ -L "$HOME_CLAUDE/$f" ]] && rm -f "$HOME_CLAUDE/$f"
-            mv "$LATEST/$f" "$HOME_CLAUDE/$f"
-            echo "install.sh: restored ~/.claude/$f"
-        fi
-    done
-    rmdir "$LATEST" 2>/dev/null || true
-    rm -f "$MARKER_FILE"
-    echo "install.sh: revert complete."
-    exit 0
-fi
-
 mkdir -p "$HOME_CLAUDE" "$MARKER_DIR"
+
+# Each entry is "<name under ~/.claude>:<name under this repo's .claude>".
+# settings.json takes the user-scope file because .claude/settings.json is this
+# repo's own project settings. Claude Code only discovers user-scope skills under
+# ~/.claude/skills, so without that link no skill here loads in other projects.
+LINKS=(
+    "hooks:hooks"
+    "skills:skills"
+    "settings.json:settings.user.json"
+    "statusline.sh:statusline.sh"
+    "output-styles:output-styles"
+    "CLAUDE.md:CLAUDE.md"
+    "agents:agents"
+    "commands:commands"
+)
 
 check_target() {
     local home_path="$1"
@@ -152,17 +146,16 @@ check_target() {
     fi
 }
 
-HOOKS_STATE=$(check_target "$HOME_CLAUDE/hooks" "$REPO_CLAUDE/hooks")
-# Claude Code only discovers user-scope skills under ~/.claude/skills, so without
-# this link a fresh clone gets the hooks and settings but none of the skills.
-SKILLS_STATE=$(check_target "$HOME_CLAUDE/skills" "$REPO_CLAUDE/skills")
-SETTINGS_STATE=$(check_target "$HOME_CLAUDE/settings.json" "$REPO_CLAUDE/settings.json")
+STATES=()
+ALL_OK=true
+for link in "${LINKS[@]}"; do
+    state=$(check_target "$HOME_CLAUDE/${link%%:*}" "$REPO_CLAUDE/${link#*:}")
+    STATES+=("$state")
+    [[ "$state" == "ok" ]] || ALL_OK=false
+    echo "install.sh: ~/.claude/${link%%:*} -> $state"
+done
 
-echo "install.sh: ~/.claude/hooks -> $HOOKS_STATE"
-echo "install.sh: ~/.claude/skills -> $SKILLS_STATE"
-echo "install.sh: ~/.claude/settings.json -> $SETTINGS_STATE"
-
-if [[ "$HOOKS_STATE" == "ok" && "$SKILLS_STATE" == "ok" && "$SETTINGS_STATE" == "ok" ]]; then
+if [[ "$ALL_OK" == "true" ]]; then
     if [[ "$MODE" == "apply" ]]; then
         touch "$MARKER_FILE"
     fi
@@ -196,9 +189,10 @@ deploy_target() {
     echo "install.sh: linked ~/.claude/$label -> $repo_path"
 }
 
-deploy_target "$HOME_CLAUDE/hooks" "$REPO_CLAUDE/hooks" "hooks" "$HOOKS_STATE"
-deploy_target "$HOME_CLAUDE/skills" "$REPO_CLAUDE/skills" "skills" "$SKILLS_STATE"
-deploy_target "$HOME_CLAUDE/settings.json" "$REPO_CLAUDE/settings.json" "settings.json" "$SETTINGS_STATE"
+for i in "${!LINKS[@]}"; do
+    link="${LINKS[$i]}"
+    deploy_target "$HOME_CLAUDE/${link%%:*}" "$REPO_CLAUDE/${link#*:}" "${link%%:*}" "${STATES[$i]}"
+done
 
 touch "$MARKER_FILE"
 
@@ -206,4 +200,3 @@ echo ""
 echo "install.sh: deploy complete."
 echo "install.sh: marker: $MARKER_FILE"
 echo "install.sh: backup: $BACKUP_DIR (empty if nothing was replaced)"
-echo "install.sh: revert via: bash scripts/install.sh --revert"

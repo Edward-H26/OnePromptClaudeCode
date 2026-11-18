@@ -4,7 +4,7 @@
 
 A complete Claude Code workflow that covers the entire software development lifecycle. Clone it, start coding, and never write a prompt from scratch again.
 
-95 skill entries. 71 commands. 14 agents. 4 local hooks. 4 templates. 10 shared MCP servers. 600+ auto-triggers.
+95 skill entries. 71 commands. 19 agents. 9 local hooks. 4 templates. 10 shared MCP servers. 600+ auto-triggers.
 
 Built for beginners. Scales for power users.
 
@@ -38,19 +38,25 @@ global, depending on how much of `~/.claude` you want this repo to own:
 
 ```bash
 bash scripts/install.sh --router       # keep your own ~/.claude/settings.json (recommended)
-bash scripts/install.sh --apply        # let this repo own ~/.claude/{hooks,skills,settings.json}
+bash scripts/install.sh --apply        # let this repo own ~/.claude (settings, hooks, skills and more)
 bash scripts/install.sh --check        # preview what --apply would change
-bash scripts/install.sh --revert       # undo --apply, restoring the most recent backup
 ```
 
 `--router` links `~/.claude/skills` here and adds one `UserPromptSubmit` entry to
 your existing `~/.claude/settings.json` pointing at this checkout. It is idempotent
 and rewrites the path if you move the checkout. The absolute path lives only in
-that machine-local file; tracked settings stay path-portable, which
+that machine-local file; `.claude/settings.json` stays path-portable, which
 `scripts/audit-workflow.sh` enforces.
 
-`--apply` is the heavier option: it symlinks hooks, skills, and settings, backing
-up existing real files to `~/.claude/.backup-<timestamp>/` first.
+`--apply` is the heavier option: it links `~/.claude/settings.json` to the tracked
+user-scope [`.claude/settings.user.json`](.claude/settings.user.json), and links
+hooks, skills, agents, commands, `CLAUDE.md`, `statusline.sh` and `output-styles`
+to this checkout, backing up existing real files to `~/.claude/.backup-<timestamp>/`
+first. Every machine set up this way runs the same configuration, and any change
+Claude Code saves to user settings lands in this checkout, ready to commit.
+`.claude/settings.json` stays this repo's project settings. The user-scope file
+turns on Code Mode, which needs Claude Code 2.1.326 or later from the native
+installer and asks once per machine to confirm.
 
 That is the repo setup. `bash scripts/doctor-workflow.sh` auto-creates or merges `.claude/settings.local.json` from the tracked `.claude/settings.local.example.json`, so a fresh clone does not require a manual local-settings copy step. Shared Remotion MCP servers now live in the tracked [`.mcp.json`](.mcp.json), which keeps project-scoped tool wiring out of machine-local settings. The tracked settings enable the plugin set the maintainer uses day to day, including context7, Figma, Playwright, Chrome DevTools MCP, `superpowers`, security-guidance and [show-your-work](https://github.com/iamumeransari/claude-show-your-work) (pictures and videos of Claude's work in Ghostty or kitty, from the `iamumeransari` marketplace on its `releases` branch); GitHub, Hugging Face and Greptile stay off. On a machine where one of them is not installed or signed in, turn it off in `.claude/settings.local.json`, whose values win over the shared config. Run `bash scripts/doctor-workflow.sh` on a fresh clone to confirm the live workflow is ready, and clear any stale local plugin blocklist test entries if the doctor warns about them. After workflow changes, run `bash scripts/audit-workflow.sh`.
 
@@ -99,8 +105,8 @@ Zero prompts to write. Minimal repo setup. Machine-local plugin installs and aut
 |---|---|---|
 | **Skills** | 95 | Bundled workflow skill entries available directly from the tracked repo |
 | **Commands** | 71 | Slash commands for planning, implementation, review, QA, and release handoff |
-| **Agents** | 14 | Specialized local agents for complex tasks |
-| **Hooks** | 4 | Automated skill activation, type/lint checks, and workflow hooks (all local) |
+| **Agents** | 19 | Specialized local agents for complex tasks |
+| **Hooks** | 9 | Automated skill activation, type/lint checks, and workflow hooks (all local) |
 | **Templates** | 4 | Reusable prompt templates for common workflows |
 | **MCP Servers** | 10 | Figma, GitHub, context7, Chrome DevTools, Playwright, and other shared or user-scoped connectors |
 
@@ -208,7 +214,7 @@ The repo tracks 71 slash commands. Common entry points are listed below.
 
 ## Agents
 
-14 specialized agents handle complex tasks:
+19 specialized agents handle complex tasks:
 
 | Agent | Purpose |
 |---|---|
@@ -226,6 +232,11 @@ The repo tracks 71 slash commands. Common entry points are listed below.
 | `architecture-review-system` | Architecture review and improvement |
 | `auto-error-resolver` | Automated error resolution post-hook |
 | `context-manager` | Conversation context and state management |
+| `builder` | Research code and other implementation that needs judgment |
+| `checker` | Independent PASS or FAIL review of a delivery against its done criteria |
+| `explorer` | Read-only search for files, symbols, call sites and facts |
+| `runner` | Runs tests, builds and commands exactly as given and reports the result |
+| `writer` | Routine content written from an exact spec |
 
 ---
 
@@ -241,6 +252,11 @@ Automated hooks run at every stage of your workflow:
 | `session-start.sh` | Session start | Validates required local tools, bootstraps local settings, and injects baseline repo context |
 | `compact-keep.sh` | Before compaction | Tells the compaction summary what to keep |
 | `compact-restore.sh` | After compaction | Reads the handoff file, the newest memory files and recent commits back into context |
+| `post-tool-use-tracker.sh` | After Edit/MultiEdit/Write | Logs edited files and queues TypeScript checks for the affected repos |
+| `workflow-step-tracker.sh` | After Bash, Skill and browser tools | Records workflow-step markers for the session |
+| `stop-build-check-enhanced.sh` | Session stop | Reruns the queued TypeScript checks and reports any errors |
+
+`.claude/settings.json` wires the first six hooks for this repo. `.claude/settings.user.json` wires the last three, plus the router and the compaction pair, for every project once `install.sh --apply` links it.
 
 ### Skill routing lanes
 
@@ -347,10 +363,12 @@ Ready-to-use templates at `.claude/prompt-templates/`:
   CLAUDE-skills.md       # Skills inventory reference
   WORKFLOW-REFERENCE.md  # Complete reference (single source of truth)
   settings.json          # Permissions, hooks, plugins, env
+  settings.user.json     # User-scope settings that install.sh --apply links to ~/.claude
+  output-styles/         # Output styles linked by install.sh --apply
   runtime/               # Repo-local ignored runtime state for safety and workflow artifacts
-  agents/                # 14 local agent definitions
+  agents/                # 19 local agent definitions
   commands/              # 71 slash commands
-  hooks/                 # 4 local hook scripts
+  hooks/                 # 9 local hook scripts
   prompt-templates/      # 4 reusable templates
   skills/                # 95 skill entries
     skill-rules.json     # 400+ keyword trigger engine
