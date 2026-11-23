@@ -1,6 +1,6 @@
 # Hooks
 
-Claude Code hooks that enable skill auto-activation, type and lint checks, and workflow reminders. All hooks live in this repo. `.claude/settings.json` wires six of them for this repo, and `.claude/settings.user.json` wires the set under [User-scope hooks](#user-scope-hooks) for every project once `install.sh --apply` links it.
+Claude Code hooks that enable skill auto-activation, type and lint checks, and workflow reminders. All hooks live in this repo. `.claude/settings.json` wires five of them for this repo, and `.claude/settings.user.json` wires the set under [User-scope hooks](#user-scope-hooks) for every project once `install.sh --apply` links it.
 
 ---
 
@@ -27,9 +27,6 @@ Hooks are scripts that run at specific points in Claude's workflow:
 
 Hooks fire in the order they appear in `.claude/settings.json`:
 
-**UserPromptSubmit:**
-1. `task-orchestrator-hook.sh` - Detects analysis vs coding tasks, injects concise workflow reminders, runs the skill-activation engine, and flags vague prompts for clarification
-
 **PostToolUse (Edit|MultiEdit|Write):**
 1. `post-edit-check.sh` - Runs the TypeScript check, the native linter, and a Python check on edited files, and records the edit log
 
@@ -50,7 +47,7 @@ Hooks fire in the order they appear in `.claude/settings.json`:
 1. `post-tool-use-tracker.sh` (PostToolUse, Edit|MultiEdit|Write) - Logs edited files and queues TypeScript checks for the affected repos
 2. `workflow-step-tracker.sh` (PostToolUse, Bash, Skill and browser tools) - Records workflow-step markers for the session
 3. `stop-build-check-enhanced.sh` (Stop) - Reruns the queued TypeScript checks and reports any errors
-4. `task-orchestrator-hook.sh`, `compact-keep.sh` and `compact-restore.sh` - The scripts listed above; each stands down when the project has its own copy, so this repo runs them once
+4. `compact-keep.sh` and `compact-restore.sh` - The scripts listed above; each stands down when the project has its own copy, so this repo runs them once
 
 ---
 
@@ -69,7 +66,7 @@ Shared utility functions sourced by multiple hooks:
 - `resolve_claude_home()` - Resolves the active repo-local `.claude/` root with a safe fallback
 
 ### `lib/patterns.sh`
-Shared regex patterns sourced by `task-orchestrator-hook.sh`:
+Shared regex patterns sourced by the audit tooling (`scripts/audit-workflow.sh`):
 - `ANALYSIS_PATTERN` - Matches analysis/research prompts (audit, review, explain, etc.)
 - `CODING_PATTERN` - Matches coding task prompts (fix, implement, build, etc.)
 - `PURE_QUESTION_PATTERN` - Matches question-form prompts
@@ -78,7 +75,7 @@ Shared regex patterns sourced by `task-orchestrator-hook.sh`:
 - `WORKFLOW_IMPLEMENTATION_PATTERN` - Treats workflow/config edits as concrete implementation intent
 
 ### `lib/plugin-state.sh`
-Shared plugin state helpers sourced by `task-orchestrator-hook.sh` and audit tooling:
+Shared plugin state helpers sourced by the audit tooling (`scripts/audit-workflow.sh` and `scripts/lib/audit-steps.sh`):
 - `plugin_enabled_names()` - Lists plugins enabled in `.claude/settings.json`
 - `plugin_installed_names()` - Lists locally installed plugins when `plugins/installed_plugins.json` exists
 - `plugin_blocklisted_names()` - Lists locally blocklisted plugins when `plugins/blocklist.json` exists
@@ -99,22 +96,6 @@ Shared instrumentation helpers sourced by `session-start.sh`:
 ---
 
 ## Hook Details
-
-### task-orchestrator-hook (UserPromptSubmit)
-
-**Purpose:** Detects whether a prompt is analysis-only or a coding task, injects a compact reminder, runs the skill-activation engine, and flags vague prompts.
-
-**Analysis mode:** If the prompt matches `ANALYSIS_PATTERN` without concrete edit intent, outputs a short analysis reminder followed by the skill-activation check.
-
-**Pure informational mode:** If the prompt is only a question and does not imply edits, exits quietly instead of injecting coding-task guidance.
-
-**Memory or preference mode:** If the prompt is only a memory or preference note without concrete implementation intent, exits quietly.
-
-**Coding mode:** Outputs concise workflow guidance, points to the most relevant local skills, and only lists plugins that are locally available.
-
-**Skill activation:** Reads `skill-rules.json`, matches the prompt against each skill's `promptTriggers` (keywords + intentPatterns), respects `keywordExclusions`, and groups results by priority (critical, high, medium, low). Falls back to `$PWD` when `CLAUDE_PROJECT_DIR` is not exported.
-
-**Clarify first:** When the prompt is vague (five words or fewer, or only a bare verb such as fix/update/change/改/弄 with no specifics), appends a short reminder to ask one or two clarifying questions before implementing.
 
 ### post-edit-check (PostToolUse, Edit|MultiEdit|Write)
 

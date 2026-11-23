@@ -2,7 +2,7 @@
   "promptCacheTtl": "1h",
   "subagentPromptCacheTtl": "1h",
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "cleanupPeriodDays": 30,
+  "cleanupPeriodDays": 90,
   "env": {
     "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "64000",
     "MAX_THINKING_TOKENS": "128000",

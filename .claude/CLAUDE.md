@@ -117,14 +117,13 @@ These rules govern every piece of academic prose in every project on this machin
 
 **2. Logical cohesion**
 
-Make the logical relation between sentences and between paragraphs explicit, through substance and not through connectors.
+Make the logical relation between sentences and between paragraphs explicit, mainly through substance. Add a connector only where the logic needs one.
 
 - Paragraphs: each one links to what comes before and after it, has one clear point, and follows a clear logic. Its first sentence establishes its place in the argument (the topic sentence as signpost). The summary judgment comes first and the evidence follows. Paragraphs relate as a vector (contrast, specification, deepening, mechanism), not as a parallel list. Never write "one paragraph on A, one paragraph on B, Together, these". End a paragraph with an analytic statement, never with narration left hanging.
-- Sentences: each one continues, turns or deepens the sentence before it. Never use "First, Second, Third" or similar rigid enumeration. Use "Furthermore", "Additionally", "Moreover" and "In addition". Every "this", "these" and "it" has an antecedent that is clear at once. The chain of reasoning skips no step. Cohesion comes from logic, not from repeated keywords.
+- Sentences: each one continues, turns or deepens the sentence before it. Never use "First, Second, Third" or similar rigid enumeration. Where a connector is needed, use ones such as "Furthermore", "Additionally", "Moreover" and "In addition". Every "this", "these" and "it" has an antecedent that is clear at once. The chain of reasoning skips no step. Cohesion comes from logic, not from repeated keywords.
 
 **3. Tone and register**
 
-- American spelling and grammar only.
 - No boosters: really, very, hugely, remarkably, strikingly, notably.
 - No hedging as politeness: I think, I feel, in my opinion, to be honest.
 - No stakes-raising adverbs: Unsurprisingly, Interestingly, Indeed, Of course, Naturally.
@@ -136,7 +135,7 @@ Make the logical relation between sentences and between paragraphs explicit, thr
 
 **4. Hard bans on words and constructions**
 
-- The em dash, the semicolon and the colon. Wherever a period can break the sentence, use a period.
+- The semicolon and the colon, as far as possible. Wherever a period can break the sentence, use a period. The em dash and the en dash are banned everywhere by the Prose style rule.
 - Bullet points.
 - "namely" and "arm".
 - "Together", anywhere.

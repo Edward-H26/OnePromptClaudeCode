@@ -108,20 +108,13 @@ This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, T
 
 | Agent | Purpose | When to use |
 |---|---|---|
-| `architect` | Architecture design | Designing system architecture with implementation focus |
-| `architecture-review-system` | Architecture review | Reviewing existing architecture for issues |
-| `build-error-resolver` | Fix build errors | Automated build error resolution |
-| `auto-error-resolver` | Fix errors post-hook | Suggested by post-edit-check when TypeScript errors are found |
-| `code-refactor-master` | Bulk refactoring | Large-scale code transformations |
-| `context-manager` | Context management | Managing conversation context and state |
-| `database-reviewer` | Database review | Reviewing schemas, queries, migrations, indexes |
-| `documentation-system` | Generate docs | Creating or updating project documentation |
-| `frontend-developer` | Frontend work | Building React components, pages, layouts |
-| `frontend-error-fixer` | Fix frontend errors | Resolving TypeScript, React, CSS errors |
-| `plan-reviewer` | Review plans | Validating implementation plans before execution |
-| `research-search-system` | Deep research | Multi-source research with synthesis |
-| `task-orchestrator` | Task breakdown | Decomposing complex tasks into steps |
-| `ui-ux-designer` | Design work | UI/UX design decisions and implementation |
+| `explorer` | Read-only search, and the context pack that costlier agents start from (Haiku 5.5, max) | Locating files, symbols, definitions, call sites and facts, and writing the pack its brief names before every designer, builder or verifier |
+| `runner` | Runs tests, builds and commands exactly as given and reports the result (Haiku 5.5, max) | Test suites, lint runs, builds and scripted checks |
+| `designer` | Design notes with no code (Fable 5.2, xhigh) | Before any build whose design is not settled |
+| `builder` | Large code: research code and implementation that needs judgment (Opus 5.5, xhigh) | Implementation that needs judgment, touches several modules, or produces results a paper depends on |
+| `writer` | Small edits and small code from an exact spec (Sonnet 5.5, max) | A fix of a few lines, one small function, glue scripts, fixtures, config, format conversions and documentation cleanup |
+| `verifier` | PASS or FAIL verification of one delivery by running it (Opus 5.5, xhigh) | Every delivery, with the same verifier through the rounds of one delivery |
+| `checker` | Final verification once per push on the exact tree that ships (Fable 5.2, max) | Once per push or release, on the exact tree or file that ships |
 | `ralph-*` (5 sub-agents) | 
 
 ---
@@ -166,11 +159,10 @@ Availability depends on the local Claude installation, enabled plugins, ignored 
 
 ## Hooks System
 
-The 4 locally-maintained tracked hook scripts live in `.claude/hooks/`. All hooks are repo-local and wired in `settings.json`.
+The 8 locally-maintained tracked hook scripts live in `.claude/hooks/`. All hooks are repo-local and wired in `settings.json`.
 
 | Hook | When | What it does |
 |---|---|---|
-| **UserPromptSubmit** | On prompt | `task-orchestrator-hook.sh`: Detects analysis vs coding, injects guidance, runs the skill-activation engine, and flags vague prompts for clarification |
 | **PostToolUse** | After Edit/MultiEdit/Write | `post-edit-check.sh`: Runs TypeScript checks on affected repos, the native linter (ruff/eslint/biome/shellcheck) on edited files, and a Python check (pyright or ruff) on edited `.py` files, and records the edit log |
 | **Stop** | Session end | `workflow-completion-gate.sh`: Reminds to verify frontend changes in the browser, cleans stale cache |
 | **SessionStart** | New session | `session-start.sh`: Validates required local tools, auto-bootstraps local settings, and re-injects baseline repo rules |

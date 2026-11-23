@@ -99,7 +99,7 @@ if [[ "$HAS_ERRORS" == "true" ]]; then
             fi
         done < "$RESULTS_DIR/error-summary.txt"
         echo "" >&2
-        echo "Please use the auto-error-resolver agent to fix these errors systematically." >&2
+        echo "Please use the writer agent for small fixes or the builder agent for larger ones to fix these errors systematically." >&2
         echo "" >&2
     else
         echo "" >&2
@@ -123,7 +123,7 @@ ERRORS DETECTED: $TOTAL_ERRORS TypeScript errors
 AFFECTED AREAS: $AFFECTED_REPOS
 
 RECOMMENDED ACTION:
-Use the auto-error-resolver agent to fix these TypeScript errors automatically.
+Use the writer agent for small fixes or the builder agent for larger ones to fix these TypeScript errors automatically.
 
 TSC COMMANDS FOR VERIFICATION:
 $TSC_COMMANDS

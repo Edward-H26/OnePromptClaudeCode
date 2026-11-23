@@ -26,7 +26,6 @@ Plugin-provided agents below become available only when their plugin is installe
 ## Usage Guidance
 
 - Use these as local prompts or subagent definitions only when their assumptions match the active task.
-- `task-orchestrator` is for lightweight, interactive coordination. Use `/super-ralph` for fully autonomous multi-phase execution.
 - The Ralph sub-agents live under `.claude/skills/super-ralph/agents/` and are part of that bundled workflow, not standalone top-level agents.
 
 ## Maintenance Rule

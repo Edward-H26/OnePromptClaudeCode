@@ -277,7 +277,21 @@ source "$ROOT/scripts/lib/doctor-steps.sh"
 
 run_step "Repo-local workflow surface" doctorRepoLocalSurface
 run_step "Static audit" doctorStaticAudit
+# The live user settings are a plain file (Claude Code rewrites the link it was), so compare them with the repo copy.
+doctorSettingsMirror() {
+    local live="$HOME/.claude/settings.json"
+    local mirror="$ROOT/.claude/settings.user.json"
+    if [[ ! -f "$live" || ! -f "$mirror" ]]; then
+        warn "Settings mirror: $live or $mirror is missing"
+    elif cmp -s "$live" "$mirror"; then
+        pass "Settings mirror: ~/.claude/settings.json equals .claude/settings.user.json"
+    else
+        warn "Settings mirror: ~/.claude/settings.json differs from .claude/settings.user.json; review the diff, then sync with: cp ~/.claude/settings.json $mirror"
+    fi
+}
+
 run_step "Skill symlink health" doctorSymlinkHealth
+run_step "Settings mirror" doctorSettingsMirror
 run_step "Hook executable permissions" doctorHookPermissions
 run_step "Shared plugin health" doctorPluginHealth
 
