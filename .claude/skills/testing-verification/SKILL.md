@@ -1,46 +1,50 @@
 ---
 name: testing-verification
-description: Verification protocol for finishing a code change. Use when deciding what to run before claiming work is done, choosing between targeted and full-suite checks, or reporting verification evidence.
+description: Verification protocol for finishing a change. Use before claiming any change done, when designing the tests of a change, when a check fails or flakes, and when reporting verification evidence.
 ---
 
-# Testing and Verification Protocol
+# Testing and Verification
 
-> **Related**: [website-workflow](../website-workflow/SKILL.md) for browser and UI verification.
+> **Related**: [website-workflow](../website-workflow/SKILL.md) for browser and UI verification. Source of the method: "How the Claude Code team thinks about verification" (claude.dev blog, 2026-11-16).
 
-## Core Rule
+## Core rule
 
-Use verification that matches the scope of the change.
+Done is proven by running the change on the path that ships, with evidence. Reading the diff proves nothing, and a passing unit test alone does not prove that a feature works.
 
-- Run existing tests when they cover the code you changed.
-- Prefer targeted checks before full-suite checks.
-- Do not add new tests unless the task requires them or the change is large enough that missing tests would be unsafe.
-- Do not rely on nonexistent hooks or promised automation. Verify with the commands and tools that are actually available.
+## Which tests to invest in
 
-## Baseline Workflow
+1. **End-to-end**: drive the real flow (the command, the driver, the app, the exact file the user opens) and check the result the user sees. Use the project's `verify` skill when one exists; a project without one should get one that boots, drives and inspects the change in minutes.
+2. **Property tests**: state what cannot break and let a library (Hypothesis, fast-check, proptest) search for a counterexample. Typical properties are round trips (encode then decode gives the input back), invariants (a budget never goes negative), idempotency (doing it twice equals doing it once) and equivalence (the optimized version equals a naive one).
+3. **Differential tests**: when a change replaces existing behavior, run the old and the new on the same random or recorded inputs and compare. Normalize what does not matter and keep a written list of approved differences.
 
-### 1. Before Editing
-- Identify which tests, type checks, or builds are relevant.
-- Check whether the area already has tests.
+Unit tests support these three; they do not replace them.
 
-### 2. During Implementation
-- Re-run the smallest useful verification after meaningful changes.
-- Use Bash or the available MCP and plugin tools to inspect outputs.
+## Order: cheap checks first
 
-### 3. After Implementation
-Run the project's own test, type-check, lint, and build commands, using only the ones that exist in the target project. Read the package manifest's scripts rather than assuming a package manager.
+| Tier | What | When |
+|---|---|---|
+| 0, seconds | lint, types, import or collection, the tests of the changed code | after every change |
+| 1, minutes | the end-to-end smoke run (`verify` skill) | before every delivery |
+| 2, long | the full suite and slow statistical tests | once, on the integrated tree, before a push or release |
 
-### 4. Frontend Validation
-If the task changes visible UI, verify it in the browser. See the `website-workflow` skill for the browser tooling preference order.
+Run a tier only after the one before it passes. Do not run tier 2 after every change: it blocks shared test capacity and slows every agent.
 
-## Failure Response
+## When a check fails
 
-- **Type checks fail**: fix the root cause instead of suppressing the error.
-- **Browser verification is not possible**: say so explicitly, and state what was verified instead.
+- Fix and rerun at most three rounds. A check still failing after the third round stops the work: report the failing output to the user.
+- A flaky test is never rerun until it passes, padded with sleeps or retries, or skipped. Find the cause, or delete the test and write down why.
+- A type or lint failure is fixed at its root cause, never suppressed.
 
-## Evidence to Report
+## Keep the checks honest
 
-When you finish a non-trivial code task, report:
+- A change never edits the check that judges it. The done criteria and the checks come from the base, and a change to a check is a task of its own.
+- A verdict holds only for the tree or file it ran on, named by its hash. Any later edit voids it, so verify the exact artifact that ships (the integrated tree, the file the user will submit).
+- A new gate starts in observe mode, logging what it would block, before it enforces.
+- A bug that a check should have caught becomes a diff-triggered checklist item (its trigger, its check, the incident behind it) once it has happened twice. Prune items that stop firing.
 
-- What checks ran
-- Whether they passed
-- What could not be run
+## Evidence to report
+
+- Each check: the command, its exit code, the counts it printed, and the hash of the tree or file it ran on.
+- What could not be run, and why.
+- "Verified: none" when nothing ran.
+- The delivery note and every drafted commit message state how the change was verified.

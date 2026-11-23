@@ -20,6 +20,15 @@ These are the maintained local agent prompts in this directory:
 - `task-orchestrator` (lightweight interactive task coordination)
 - `ui-ux-designer` (UI/UX design patterns and accessibility)
 
+Role agents, with the model and effort of each (see the Model roles rule of `.claude/CLAUDE.md`):
+- `explorer` (Haiku 5.5, max: read-only search and the context pack)
+- `runner` (Haiku 5.5, max: runs commands and reports)
+- `designer` (Fable 5.2, xhigh: design notes, no code)
+- `builder` (Opus 5.5, xhigh: large code)
+- `writer` (Sonnet 5.5, max: small edits and small code)
+- `verifier` (Opus 5.5, xhigh: verification of each delivery)
+- `checker` (Fable 5.2, max: final verification once per push)
+
 ## Plugin-Provided Agents
 
 Plugin-provided agents below become available only when their plugin is installed and enabled. Check the `enabledPlugins` block in `.claude/settings.json` or the local override at `.claude/settings.local.json` before invoking them. If a plugin is not installed, the agent will not resolve and the task should fall back to a local agent or a specialist Explore or Plan dispatch.

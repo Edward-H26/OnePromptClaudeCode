@@ -232,11 +232,13 @@ The repo tracks 71 slash commands. Common entry points are listed below.
 | `architecture-review-system` | Architecture review and improvement |
 | `auto-error-resolver` | Automated error resolution post-hook |
 | `context-manager` | Conversation context and state management |
-| `builder` | Research code and other implementation that needs judgment |
-| `checker` | Independent PASS or FAIL review of a delivery against its done criteria |
-| `explorer` | Read-only search for files, symbols, call sites and facts |
-| `runner` | Runs tests, builds and commands exactly as given and reports the result |
-| `writer` | Routine content written from an exact spec |
+| `designer` | Design notes with no code (Fable 5.2, xhigh) |
+| `builder` | Large code: research code and implementation that needs judgment (Opus 5.5, xhigh) |
+| `writer` | Small edits and small code from an exact spec (Sonnet 5.5, max) |
+| `verifier` | PASS or FAIL verification of one delivery by running it (Opus 5.5, xhigh) |
+| `checker` | Final verification once per push on the exact tree that ships (Fable 5.2, max) |
+| `explorer` | Read-only search, and the context pack that costlier agents start from (Haiku 5.5, max) |
+| `runner` | Runs tests, builds and commands exactly as given and reports the result (Haiku 5.5, max) |
 
 ---
 
