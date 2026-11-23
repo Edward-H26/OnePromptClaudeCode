@@ -170,7 +170,6 @@
       "Read(./mcp-needs-auth-cache.json)",
       "Read(./backups/**)",
       "Read(./file-history/**)",
-      "Read(./projects/**)",
       "Read(./session-env/**)",
       "Read(./sessions/**)",
       "Read(./.credentials.json)",
@@ -201,17 +200,6 @@
     "remotion-app"
   ],
   "hooks": {
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"${CLAUDE_PROJECT_DIR:-$PWD}/.claude/hooks/task-orchestrator-hook.sh\"",
-            "timeout": 25
-          }
-        ]
-      }
-    ],
     "PostToolUse": [
       {
         "matcher": "Edit|MultiEdit|Write",
@@ -286,7 +274,7 @@
     "github@claude-plugins-official": false,
     "playwright@claude-plugins-official": true,
     "chrome-devtools-mcp@claude-plugins-official": true,
-    "security-guidance@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": false,
     "greptile@claude-plugins-official": false,
     "show-your-work@iamumeransari": true
   },

@@ -4,7 +4,7 @@
 
 A complete Claude Code workflow that covers the entire software development lifecycle. Clone it, start coding, and never write a prompt from scratch again.
 
-95 skill entries. 71 commands. 19 agents. 9 local hooks. 4 templates. 10 shared MCP servers. 600+ auto-triggers.
+95 skill entries. 71 commands. 7 agents. 8 local hooks. 4 templates. 10 shared MCP servers. 600+ auto-triggers.
 
 Built for beginners. Scales for power users.
 
@@ -105,7 +105,7 @@ Zero prompts to write. Minimal repo setup. Machine-local plugin installs and aut
 |---|---|---|
 | **Skills** | 95 | Bundled workflow skill entries available directly from the tracked repo |
 | **Commands** | 71 | Slash commands for planning, implementation, review, QA, and release handoff |
-| **Agents** | 19 | Specialized local agents for complex tasks |
+| **Agents** | 7 | Specialized local agents for complex tasks |
 | **Hooks** | 9 | Automated skill activation, type/lint checks, and workflow hooks (all local) |
 | **Templates** | 4 | Reusable prompt templates for common workflows |
 | **MCP Servers** | 10 | Figma, GitHub, context7, Chrome DevTools, Playwright, and other shared or user-scoped connectors |
@@ -214,24 +214,10 @@ The repo tracks 71 slash commands. Common entry points are listed below.
 
 ## Agents
 
-19 specialized agents handle complex tasks:
+7 role agents handle delegated work:
 
 | Agent | Purpose |
 |---|---|
-| `architect` | Architecture design |
-| `build-error-resolver` | Automated build error resolution |
-| `code-refactor-master` | Large-scale code transformations |
-| `database-reviewer` | Schema, query, migration review |
-| `documentation-system` | Documentation generation |
-| `frontend-developer` | React component development |
-| `frontend-error-fixer` | TypeScript, React, CSS error resolution |
-| `plan-reviewer` | Implementation plan validation |
-| `research-search-system` | Multi-source research with synthesis |
-| `task-orchestrator` | Task decomposition |
-| `ui-ux-designer` | UI/UX design decisions |
-| `architecture-review-system` | Architecture review and improvement |
-| `auto-error-resolver` | Automated error resolution post-hook |
-| `context-manager` | Conversation context and state management |
 | `designer` | Design notes with no code (Fable 5.2, xhigh) |
 | `builder` | Large code: research code and implementation that needs judgment (Opus 5.5, xhigh) |
 | `writer` | Small edits and small code from an exact spec (Sonnet 5.5, max) |
@@ -248,7 +234,6 @@ Automated hooks run at every stage of your workflow:
 
 | Hook | When | What it does |
 |---|---|---|
-| `task-orchestrator-hook.sh` | On prompt | Detects analysis vs coding tasks, injects guidance, runs the skill-activation engine, and flags vague prompts for clarification |
 | `post-edit-check.sh` | After Edit/MultiEdit/Write | Runs TypeScript checks on affected repos, the native linter (ruff/eslint/biome/shellcheck) on edited files, a Python check (pyright or ruff) on edited `.py` files, and records the edit log |
 | `workflow-completion-gate.sh` | Session stop | Reminds to verify frontend changes in the browser, and cleans stale cache |
 | `session-start.sh` | Session start | Validates required local tools, bootstraps local settings, and injects baseline repo context |
@@ -368,7 +353,7 @@ Ready-to-use templates at `.claude/prompt-templates/`:
   settings.user.json     # User-scope settings that install.sh --apply links to ~/.claude
   output-styles/         # Output styles linked by install.sh --apply
   runtime/               # Repo-local ignored runtime state for safety and workflow artifacts
-  agents/                # 19 local agent definitions
+  agents/                # 7 role agent definitions
   commands/              # 71 slash commands
   hooks/                 # 9 local hook scripts
   prompt-templates/      # 4 reusable templates

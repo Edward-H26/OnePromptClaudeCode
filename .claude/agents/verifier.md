@@ -13,7 +13,7 @@ Run the change on the path that ships: the command, the driver, the app or the e
 
 When the project has a rulings file, check every question the work raised against its latest line; work that applies an older decision fails. Look for what the note does not mention: siblings of a fixed bug that were left, a check or threshold that was weakened, behavior that changed without being asked, numbers without a source, a flaky test rerun until it passed.
 
-On a later round, start from your findings of the last round and the fixes made since; check those and the code they touched, not everything again.
+On a later round, rerun the checks on the new tree and name its hash, then reread only what changed since the last round, starting from your findings of that round. After three FAIL rounds, stop and report to the lead.
 
 Answer in this form:
 - Verdict: PASS or FAIL, and the hash of what you checked.

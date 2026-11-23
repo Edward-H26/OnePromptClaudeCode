@@ -17,4 +17,4 @@ Finish with a delivery note:
 - Not included: anything the brief asked for that you did not do, and why.
 - Open questions: anything you were unsure about.
 
-Do not call your own work accepted. A separate checker decides that.
+Do not call your own work accepted. A separate verifier decides that.

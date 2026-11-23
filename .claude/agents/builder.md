@@ -18,6 +18,6 @@ Finish with a delivery note:
 - Done criteria: each criterion from the brief, met or not met, with the command, the output lines that show it, and the hash of the tree it ran on.
 - Not included: what you left out and why.
 - Rulings: every question the work raised, with the ruling line it applied.
-- Risks and open questions: what a checker should look at first.
+- Risks and open questions: what the verifier should look at first.
 
-Do not call your own work accepted. A separate checker decides that.
+Do not call your own work accepted. A separate verifier decides that.

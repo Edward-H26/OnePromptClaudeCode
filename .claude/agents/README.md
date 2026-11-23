@@ -4,22 +4,6 @@ Local agent definitions for this workspace.
 
 ## Local Agents
 
-These are the maintained local agent prompts in this directory:
-- `architect` (initial system design, scalability, technical decisions)
-- `architecture-review-system` (comprehensive post-implementation review: architecture, code quality, database)
-- `auto-error-resolver` (TypeScript compilation errors only, uses tsc-cache)
-- `build-error-resolver` (broad build errors: TypeScript, bundling, config)
-- `code-refactor-master` (bulk refactoring: renames, pattern replacement, import updates)
-- `context-manager` (conversation context management)
-- `database-reviewer` (PostgreSQL query optimization, schema design, security)
-- `documentation-system` (documentation generation and updates)
-- `frontend-developer` (React/TypeScript frontend implementation)
-- `frontend-error-fixer` (frontend runtime and build errors)
-- `plan-reviewer` (development plan review before implementation)
-- `research-search-system` (web research and information gathering)
-- `task-orchestrator` (lightweight interactive task coordination)
-- `ui-ux-designer` (UI/UX design patterns and accessibility)
-
 Role agents, with the model and effort of each (see the Model roles rule of `.claude/CLAUDE.md`):
 - `explorer` (Haiku 5.5, max: read-only search and the context pack)
 - `runner` (Haiku 5.5, max: runs commands and reports)
