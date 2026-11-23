@@ -1,4 +1,7 @@
 {
+  "promptCacheTtl": "1h",
+  "subagentPromptCacheTtl": "1h",
+  "autoCompactWindow": 400000,
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "cleanupPeriodDays": 30,
   "env": {

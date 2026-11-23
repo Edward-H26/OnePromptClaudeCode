@@ -1,4 +1,6 @@
 {
+  "promptCacheTtl": "1h",
+  "subagentPromptCacheTtl": "1h",
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "cleanupPeriodDays": 30,
   "env": {
@@ -189,12 +191,11 @@
     ],
     "ask": [
       "Bash(git merge:*)",
-      "Bash(git rebase:*)",
-      "Bash(git cherry-pick:*)"
+      "Bash(git rebase:*)"
     ],
     "defaultMode": "auto"
   },
-  "model": "fable",
+  "model": "claude-opus-5-5",
   "enableAllProjectMcpServers": false,
   "skillOverrides": {
     "academic-paper": "name-only",
@@ -351,7 +352,8 @@
     "greptile@claude-plugins-official": false,
     "progress-ledger@edward-mods": false,
     "cc-plugin-you-should-know@builtin": true,
-    "show-your-work@iamumeransari": true
+    "show-your-work@iamumeransari": true,
+    "clangd-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "edward-mods": {
@@ -382,8 +384,12 @@
     },
     "claude-fable-5-2": {
       "effortLevel": "xhigh"
+    },
+    "claude-fable-5-1": {
+      "effortLevel": "xhigh"
     }
   },
+  "autoCompactWindow": 400000,
   "advisorModel": "fable",
   "promptSuggestionEnabled": false,
   "askUserQuestionTimeout": "never",
@@ -399,5 +405,34 @@
   "teammateMode": "auto",
   "remoteControlAtStartup": true,
   "agentPushNotifEnabled": false,
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "autoMode": {
+    "environment": [
+      "### Org-wide",
+      "**Organization**: None configured",
+      "**Cloud provider(s)**: None configured",
+      "**Repository visibility**: Private (Edward-H26/CIS, confirmed via gh)",
+      "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
+      "**Secrets management**: None configured",
+      "**Default / protected branches**: Default branch main; no classic branch protection listed and rulesets not queryable here — treat main as unprotected but do not assume it is unguarded",
+      "**CI/CD deploy targets**: None configured",
+      "**Network posture**: None configured",
+      "**Host containment**: None configured — assume Claude Code runs on an ordinary developer machine or CI runner with open internet",
+      "**Source control**: The trusted repo (github.com/Edward-H26/CIS) and its remote only — no additional orgs configured",
+      "**Trusted internal domains**: chessintheschools.org and test.chessintheschools.org (this project's own hosts, per recent usage)",
+      "**Trusted cloud buckets**: None configured",
+      "**Key internal services**: None configured",
+      "**Internal package registry**: None configured",
+      "**Sensitive data locations & audiences**: .env and .env.example (contain ADMIN_USERNAME, ADMIN_PASSWORD, DATABASE_URL, DATABASE_PASSWORD, GLITCHESS_API_KEY); /private/ (gitignored); any file or store holding personal data, confidential business data, credentials, regulated data, or similarly sensitive material — share only with audiences cleared at the [named+specifics] bar",
+      "**Data retention / declassification**: None configured",
+      "**Sensitive remote targets**: any namespace, host, or container whose name carries prod or production as a whole word or name segment",
+      "**Protected deployment namespaces / environments**: None configured — fall back to the Sensitive remote targets heuristic",
+      "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries prod or production as a whole word or name segment",
+      "### User-specific",
+      "**Primary use of Claude Code**: software development (this project: Chess in the Schools landing page, React/TypeScript/Node/Express/PostgreSQL)",
+      "**Trusted repo**: github.com/Edward-H26/CIS (private), the working directory and its origin remote",
+      "**Org-specific CLIs**: None configured",
+      "routine actions under this repo's own paths (src/, scripts/) are in scope; actions outside this repo's directory or remote are not"
+    ]
+  }
 }
