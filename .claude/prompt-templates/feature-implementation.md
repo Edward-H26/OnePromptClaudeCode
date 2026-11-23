@@ -430,7 +430,7 @@ Status: SHIP IT / NEEDS WORK
 
 ### Step 5.4: Documentation Update
 
-Launch the `documentation-system` agent or use the `frontend-dev` skill.
+Launch the `writer` agent or use the `frontend-dev` skill.
 
 - Update README, ARCHITECTURE, CONTRIBUTING, and project-specific documentation.
 - Add setup instructions for new dependencies or configuration.

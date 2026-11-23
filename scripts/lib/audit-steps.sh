@@ -46,76 +46,6 @@ auditHookSmokes() {
     expect_true 'printf "%s\n" "go through the workflow and find all issues, then improve the process" | grep -qiE "$ANALYSIS_PATTERN" && printf "%s\n" "go through the workflow and find all issues, then improve the process" | grep -qiE "$WORKFLOW_IMPLEMENTATION_PATTERN"' "workflow audit prompt triggers implementation override"
     expect_true 'printf "%s\n" "audit the workflow and fix hooks in settings.json" | grep -qiE "$ANALYSIS_PATTERN" && printf "%s\n" "audit the workflow and fix hooks in settings.json" | grep -qiE "$EXPLICIT_IMPLEMENTATION_PATTERN"' "analysis prompt with concrete edit intent"
 
-    local SKILL_OUTPUT
-
-    SKILL_OUTPUT="$(run_skill_activation "What is the relationship between the modules?")"
-    if printf "%s\n" "$SKILL_OUTPUT" | grep -q "ship"; then
-        echo "Unexpected ship activation for relationship prompt" >&2
-        exit 1
-    fi
-
-    SKILL_OUTPUT="$(run_skill_activation "Please retrofit this config explanation.")"
-    if printf "%s\n" "$SKILL_OUTPUT" | grep -q "retro"; then
-        echo "Unexpected retro activation for retrofit prompt" >&2
-        exit 1
-    fi
-
-    SKILL_OUTPUT="$(run_skill_activation "Can you check the theme of this report?")"
-    if printf "%s\n" "$SKILL_OUTPUT" | grep -q -- "-> ui-styling"; then
-        echo "Unexpected ui-styling activation for theme-in-prose prompt" >&2
-        exit 1
-    fi
-
-    SKILL_OUTPUT="$(run_skill_activation "Audit the Claude workflow hooks, settings.json, gitignore, plugins, and secrets exposure.")"
-    for expected_skill in search-first; do
-        if ! printf "%s\n" "$SKILL_OUTPUT" | grep -q "$expected_skill"; then
-            echo "Missing expected skill activation: $expected_skill" >&2
-            exit 1
-        fi
-    done
-
-    SKILL_OUTPUT="$(run_skill_activation "Implement a secure route testing workflow in .claude hooks and update gitignore for runtime state.")"
-    if printf "%s\n" "$SKILL_OUTPUT" | grep -q -- "-> backend-dev-guidelines"; then
-        echo "Unexpected backend skill activation for workflow-hardening prompt" >&2
-        exit 1
-    fi
-
-    SKILL_OUTPUT="$(run_skill_activation_no_env "Audit the Claude workflow hooks and settings.json.")"
-    if ! printf "%s\n" "$SKILL_OUTPUT" | grep -q "search-first"; then
-        echo "task-orchestrator-hook.sh should work without CLAUDE_PROJECT_DIR" >&2
-        exit 1
-    fi
-
-    SKILL_OUTPUT="$(run_skill_activation "Implement a secure full-stack feature with React frontend, API routes, database migration, Docker deployment, and browser verification.")"
-    for expected_skill in frontend-dev-guidelines backend-dev-guidelines; do
-        if ! printf "%s\n" "$SKILL_OUTPUT" | grep -q "$expected_skill"; then
-            echo "Missing expected feature skill activation: $expected_skill" >&2
-            exit 1
-        fi
-    done
-
-    SKILL_OUTPUT="$(run_skill_activation "Debug the failing TypeScript route handler and find the root cause of the regression.")"
-    if ! printf "%s\n" "$SKILL_OUTPUT" | grep -q "investigate"; then
-        echo "Missing expected debug skill activation: investigate" >&2
-        exit 1
-    fi
-
-    SKILL_OUTPUT="$(run_skill_activation "Implement this Figma-inspired landing page in React with polished UI styling and browser QA.")"
-    for expected_skill in frontend-dev-guidelines ui-styling qa; do
-        if ! printf "%s\n" "$SKILL_OUTPUT" | grep -q "$expected_skill"; then
-            echo "Missing expected design skill activation: $expected_skill" >&2
-            exit 1
-        fi
-    done
-
-    SKILL_OUTPUT="$(run_skill_activation "Test the local webapp with Playwright Python, verify the browser flow, and capture screenshots.")"
-    for expected_skill in webapp-testing; do
-        if ! printf "%s\n" "$SKILL_OUTPUT" | grep -q "$expected_skill"; then
-            echo "Missing expected local webapp test skill activation: $expected_skill" >&2
-            exit 1
-        fi
-    done
-
     local GIT_GUARD_OUTPUT
     GIT_GUARD_OUTPUT="$(run_git_guard "git commit -m 'test'")"
     if ! printf "%s\n" "$GIT_GUARD_OUTPUT" | jq -e '.hookSpecificOutput.permissionDecision == "deny"' >/dev/null; then
@@ -232,60 +162,6 @@ auditHookSmokes() {
         exit 1
     fi
 
-    local TASK_OUTPUT
-    TASK_OUTPUT="$(run_task_orchestrator "What is the current plan?")"
-    if printf "%s\n" "$TASK_OUTPUT" | grep -q "TASK ORCHESTRATOR ACTIVE$"; then
-        echo "Pure informational question should not trigger full coding guidance" >&2
-        exit 1
-    fi
-    if printf "%s\n" "$TASK_OUTPUT" | grep -q "SECURITY REVIEW REMINDER"; then
-        echo "Pure informational question should not trigger the security review reminder" >&2
-        exit 1
-    fi
-
-    TASK_OUTPUT="$(run_task_orchestrator "remember this preference for future workflow")"
-    if [[ -n "$TASK_OUTPUT" ]]; then
-        echo "Memory preference prompt should stay quiet without concrete implementation intent" >&2
-        exit 1
-    fi
-
-    TASK_OUTPUT="$(run_task_orchestrator "Update the auth endpoint permissions and validate tokens.")"
-    if ! printf "%s\n" "$TASK_OUTPUT" | grep -q "SECURITY REVIEW REMINDER"; then
-        echo "Security-sensitive coding prompt should surface the security review reminder" >&2
-        exit 1
-    fi
-
-    TASK_OUTPUT="$(run_task_orchestrator "Review the workflow and explain the problems without making changes.")"
-    if ! printf "%s\n" "$TASK_OUTPUT" | grep -q "Analysis Mode"; then
-        echo "Analysis prompt should trigger analysis mode guidance" >&2
-        exit 1
-    fi
-
-    # The standing guidance is about 900 tokens and stays in the conversation, so it is sent once
-    # per session and again after each compaction rather than with every prompt.
-    local guidance_transcript guidance_session
-    guidance_transcript="$(mktemp)"
-    guidance_session="audit-guidance-$$"
-    TASK_OUTPUT="$(run_task_orchestrator_in "$guidance_session" "$guidance_transcript" "Fix the login bug in the API handler.")"
-    if ! printf "%s\n" "$TASK_OUTPUT" | grep -q "TASK ORCHESTRATOR ACTIVE$"; then
-        rm -f "$guidance_transcript"
-        echo "The first coding prompt of a session should carry the standing guidance" >&2
-        exit 1
-    fi
-    TASK_OUTPUT="$(run_task_orchestrator_in "$guidance_session" "$guidance_transcript" "Now fix the page layout.")"
-    if printf "%s\n" "$TASK_OUTPUT" | grep -q -e "TASK ORCHESTRATOR ACTIVE$" -e "PONYTAIL ACTIVE"; then
-        rm -f "$guidance_transcript"
-        echo "Later prompts in the same session should not repeat the standing guidance" >&2
-        exit 1
-    fi
-    printf '%s\n' '{"type":"system","subtype":"compact_boundary"}' >> "$guidance_transcript"
-    TASK_OUTPUT="$(run_task_orchestrator_in "$guidance_session" "$guidance_transcript" "Continue fixing the page layout.")"
-    rm -f "$guidance_transcript"
-    if ! printf "%s\n" "$TASK_OUTPUT" | grep -q "TASK ORCHESTRATOR ACTIVE$"; then
-        echo "A compaction should bring the standing guidance back" >&2
-        exit 1
-    fi
-
     if command -v zsh >/dev/null 2>&1; then
         zsh -lc '
             source ".claude/hooks/lib/plugin-state.sh"
@@ -304,25 +180,6 @@ auditHookSmokes() {
             echo "zsh helper smoke test failed" >&2
             exit 1
         }
-    fi
-
-
-    SKILL_OUTPUT="$(run_skill_activation "How do these modules relate to each other?")"
-    if printf "%s\n" "$SKILL_OUTPUT" | grep -q "ship"; then
-        echo "Unexpected ship activation for relation prompt" >&2
-        exit 1
-    fi
-
-    SKILL_OUTPUT="$(run_skill_activation "Refresh the browser page to see the latest changes.")"
-    if printf "%s\n" "$SKILL_OUTPUT" | grep -q "security-review"; then
-        echo "Unexpected security-review activation for browser refresh prompt" >&2
-        exit 1
-    fi
-
-    SKILL_OUTPUT="$(run_skill_activation "What did we discuss in the last session?")"
-    if printf "%s\n" "$SKILL_OUTPUT" | grep -q -- "-> backend-dev-guidelines"; then
-        echo "Unexpected backend skill activation for conversation prompt" >&2
-        exit 1
     fi
 
     local CACHE_KEY

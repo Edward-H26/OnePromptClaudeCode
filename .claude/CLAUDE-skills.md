@@ -4,10 +4,10 @@
 
 This file is the map of this Claude Code harness: every skill, command, MCP server, hook and plugin, each explained in plain words with when to use it, and where they overlap or conflict.
 
-Counts: **95 skills · 72 commands · 15 agents · 4 hooks · 2 MCP servers (shipped with the repo) · 15 plugins (12 on)**.
+Counts: **95 skills · 71 commands · 7 agents · 3 hooks · 2 MCP servers (shipped with the repo) · 15 plugins (12 on)**.
 Check: `python3 -c "import json; print(len(json.load(open('.claude/skills/skill-rules.json'))['skills']))"`
 
-Status: every skill is on demand. `task-orchestrator-hook.sh` lists a skill only when the prompt hits its keywords or intent patterns in `skills/skill-rules.json`, and each one can also be started by hand with its `/command`. No skill is marked `alwaysActive` at the moment.
+Status: every skill is on demand. Claude chooses the skills itself: before starting a task it searches the installed skills (the session's skill list and `~/.claude/skills`) for the ones that fit, uses them, and names them in the reply, as the Skills line of `CLAUDE.md` says. Each one can also be started by hand with its `/command`.
 
 ---
 
@@ -38,10 +38,10 @@ Paper-quality skills, useful for every paper. For a whole paper, **start with `a
 ### Code discipline (1)
 The "lazy senior engineer" rules that make the AI write only the code it needs, in the same spirit as Simplicity First in `CLAUDE.md`.
 
-- **ponytail**: before writing code, climb the YAGNI ladder (reuse, then the standard library, then native features, then one line, then the minimal implementation), and never simplify away validation, security or accessibility. `/ponytail lite|full|ultra|off` sets the intensity. The prompt hook injects its ruleset once per session and again after each compaction; use `/ponytail ultra` to go further.
+- **ponytail**: before writing code, climb the YAGNI ladder (reuse, then the standard library, then native features, then one line, then the minimal implementation), and never simplify away validation, security or accessibility. It is always on through the Simplicity First section of `CLAUDE.md`. `/ponytail lite|full|ultra|off` sets the intensity. Use `/ponytail ultra` to go further.
 
 ### Core (24)
-The original development, research, review and tool skills, started by keywords or by `/command`.
+The original development, research, review and tool skills, started on demand or by `/command`.
 
 **Development**
 - **backend-dev-guidelines**: Node/Express/TypeScript back-end conventions. Use when writing back-end routes or services.
@@ -110,7 +110,7 @@ The CCFA family, vendored under MIT (see `skills/CCFA-SKILLS-LICENSE`), for pape
 - **ccf-submission-checker**: checks the venue's template, page, anonymity and camera-ready rules and the LaTeX/PDF build.
 - **ccf-skill-forger**: designs, updates and audits CCFA skills and their documentation.
 
-The `ccf-*` family and the other research skills above are listed to the model by name only (`skillOverrides` set to `name-only` in `settings.json`) to save tokens. They still start from the hook's suggestions or when named.
+The `ccf-*` family and the other research skills above are listed to the model by name only (`skillOverrides` set to `name-only` in `settings.json`) to save tokens. They still start when named.
 
 ### Design, moved to on demand (4)
 Design and diagram skills that used to be always on.
@@ -130,7 +130,7 @@ Command-style members of the ponytail family, started with `/ponytail-*`.
 - **ponytail-help**: a quick reference for every ponytail mode and command. Use when you forget how it works.
 
 ### GSAP animation (8)
-GreenSock's official animation skills, all on demand (triggered by keywords such as `gsap`, `scroll`, or `动画`, Chinese for "animation").
+GreenSock's official animation skills, all on demand.
 
 - **gsap-core**: the core API: `gsap.to`/`from`, easing, stagger, responsive and reduced-motion handling. The entry point for JavaScript web animation.
 - **gsap-react**: GSAP in React and Next: `useGSAP`, refs, cleanup on unmount. Use for React animation.
@@ -162,14 +162,13 @@ Every skill also has a `/command` of the same name for starting it by hand.
 
 ---
 
-## 4. Hooks (4, wired in settings.json)
+## 4. Hooks (3, wired in settings.json)
 
 One hook per moment:
 
 1. **session-start.sh** (SessionStart, when a session opens): bootstraps the local settings, injects the repo rules and restores the compaction snapshot.
-2. **task-orchestrator-hook.sh** (UserPromptSubmit, when you send a message): decides the intent (analysis, coding or a plain question), lists the skills to use (from `skill-rules.json`), reminds Claude to clarify when the prompt is vague, suggests `/security-review` for auth-related prompts, and sends the standing guidance (the orchestrator block and the ponytail ruleset) once per session and again after each compaction rather than with every prompt. Removing the ponytail skill turns its ruleset off.
-3. **post-edit-check.sh** (PostToolUse, after a file is edited): runs checks by file type (tsc for TS/JS, pyright and ruff for Python, the matching linter for others) and records the changed files.
-4. **workflow-completion-gate.sh** (Stop, when an answer ends): reminds Claude to verify in a browser when front-end files changed, and clears caches older than 14 days.
+2. **post-edit-check.sh** (PostToolUse, after a file is edited): runs checks by file type (tsc for TS/JS, pyright and ruff for Python, the matching linter for others) and records the changed files.
+3. **workflow-completion-gate.sh** (Stop, when an answer ends): reminds Claude to verify in a browser when front-end files changed, and clears caches older than 14 days.
 
 > Two more helper scripts are gitignored but still in use: `git-guard.sh` (blocks commit and push; the audit smoke test depends on it) and `session-rules-reinject.sh` (re-injects the rules when restoring after a compaction). Do not delete them.
 
@@ -205,7 +204,7 @@ When too many skills overlap, the AI picks the wrong one more easily. These grou
 ## 7. Maintenance and technical notes
 
 - After changing the number of skills, commands, hooks or templates, update the counts in `README.md` (the audit checks them), then run `bash scripts/audit-workflow.sh` and `bash scripts/doctor-workflow.sh` and confirm both pass.
-- Whether a skill is always listed or on demand is decided entirely by `alwaysActive` in `skills/skill-rules.json`. Changing that JSON changes the behavior, with no hook edits.
+- `skills/skill-rules.json` no longer drives any hook. The audit and the doctor only check that it lists the same skills as the skill folders, so adding or removing a skill means editing both.
 - **Source vs runtime**: tracked are `.claude/CLAUDE*.md`, `hooks/`, `commands/`, `prompt-templates/`, `agents/`, `skills/` and `settings.json`; gitignored are `plugins/`, `projects/`, `.claude/runtime/`, `.claude.json`, `settings.local.json`, `mods/` and `.claude/skills/synced/`. `skills/ui-styling/canvas-fonts/` is part of the design workflow and is tracked on purpose.
 - **Plugins**: the shared `settings.json` enables the maintainer's plugin set, including ones that need a sign-in. On a machine that lacks one, turn it off in `.claude/settings.local.json`, whose values win over the shared config.
 - **Personal rules**: preferences that should stay off the public repo, such as a reply language, go in `~/.claude/rules/` on that machine, which Claude Code loads in every project.

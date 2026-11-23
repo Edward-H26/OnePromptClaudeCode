@@ -1,6 +1,6 @@
 # Hooks
 
-Claude Code hooks that enable skill auto-activation, type and lint checks, and workflow reminders. All hooks live in this repo. `.claude/settings.json` wires five of them for this repo, and `.claude/settings.user.json` wires the set under [User-scope hooks](#user-scope-hooks) for every project once `install.sh --apply` links it.
+Claude Code hooks that enable type and lint checks and workflow reminders. All hooks live in this repo. `.claude/settings.json` wires five of them for this repo, and `.claude/settings.user.json` wires the set under [User-scope hooks](#user-scope-hooks) for every project once `install.sh --apply` links it.
 
 ---
 

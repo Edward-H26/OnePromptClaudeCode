@@ -71,8 +71,6 @@ source "$ROOT/scripts/lib/audit-steps.sh"
 
 for fn in auditShellSyntax auditSymlinkIntegrity auditHookSmokes \
           auditPluginAlignment expect_match expect_no_match expect_true \
-          run_skill_activation run_skill_activation_no_env \
-          run_task_orchestrator \
           run_git_guard run_session_start_smoke run_session_rules_reinject_smoke \
           run_check_careful run_check_freeze run_tsc_hook_regression \
           plugin_settings_path plugin_local_settings_path \

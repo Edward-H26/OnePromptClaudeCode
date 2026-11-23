@@ -12,7 +12,6 @@
 #   bash scripts/install.sh            # dry-run: show what would change
 #   bash scripts/install.sh --check    # dry-run: show what would change
 #   bash scripts/install.sh --apply    # apply with backup
-#   bash scripts/install.sh --router   # register the skill router globally
 
 set -euo pipefail
 
@@ -27,9 +26,8 @@ for arg in "$@"; do
     case "$arg" in
         --check) MODE="check" ;;
         --apply) MODE="apply" ;;
-        --router) MODE="router" ;;
         --help|-h)
-            sed -n "2,15p" "${BASH_SOURCE[0]}" | sed "s/^# //;s/^#//"
+            sed -n "2,14p" "${BASH_SOURCE[0]}" | sed "s/^# //;s/^#//"
             exit 0
             ;;
         *) echo "Unknown flag: $arg" >&2; exit 2 ;;
@@ -38,69 +36,6 @@ done
 
 [[ "$REPO_CLAUDE/hooks" == "$HOME_CLAUDE/hooks" ]] && { echo "install.sh: repo IS ~/.claude; nothing to deploy." ; exit 0 ; }
 [[ -d "$REPO_CLAUDE/hooks" && -d "$REPO_CLAUDE/skills" && -f "$REPO_CLAUDE/settings.json" && -f "$REPO_CLAUDE/settings.user.json" ]] || { echo "install.sh: $REPO_CLAUDE does not look like a Claude Code config root (missing hooks/, skills/, settings.json, or settings.user.json)." >&2 ; exit 1 ; }
-
-# --router is the "keep my own ~/.claude/settings.json" path: link the skills so
-# Claude Code can see them from any project, then register the router there with
-# this checkout's absolute path. The path is machine-specific by nature, which is
-# why it is written here and never into the tracked .claude/settings.json.
-if [[ "$MODE" == "router" ]]; then
-    HOOK="$REPO_CLAUDE/hooks/task-orchestrator-hook.sh"
-    USER_SETTINGS="$HOME_CLAUDE/settings.json"
-    [[ -x "$HOOK" ]] || { echo "install.sh: $HOOK is missing or not executable." >&2 ; exit 1 ; }
-    command -v python3 >/dev/null 2>&1 || { echo "install.sh: --router needs python3." >&2 ; exit 1 ; }
-
-    if [[ ! -e "$HOME_CLAUDE/skills" ]]; then
-        mkdir -p "$HOME_CLAUDE"
-        ln -snf "$REPO_CLAUDE/skills" "$HOME_CLAUDE/skills"
-        echo "install.sh: linked ~/.claude/skills -> $REPO_CLAUDE/skills"
-    elif [[ ! -L "$HOME_CLAUDE/skills" || "$(readlink "$HOME_CLAUDE/skills")" != "$REPO_CLAUDE/skills" ]]; then
-        echo "install.sh: ~/.claude/skills already exists and does not point here."
-        echo "install.sh: run --apply to back it up and relink, or fix it by hand."
-    fi
-
-    if [[ -L "$USER_SETTINGS" ]]; then
-        echo "install.sh: $USER_SETTINGS is a symlink, so --router cannot add a machine-local path." >&2
-        echo "install.sh: replace the link with a real file first if you want to keep your own settings file." >&2
-        exit 1
-    fi
-    [[ -f "$USER_SETTINGS" ]] || { mkdir -p "$HOME_CLAUDE" ; printf '{}\n' > "$USER_SETTINGS" ; }
-
-    HOOK_PATH="$HOOK" SETTINGS_PATH="$USER_SETTINGS" python3 - <<'PY'
-import json
-import os
-from collections import OrderedDict
-
-hook = os.environ["HOOK_PATH"]
-path = os.environ["SETTINGS_PATH"]
-# Stand down when the project registers the router itself, so the config repo
-# does not print the activation block twice.
-command = ('[ -x "${CLAUDE_PROJECT_DIR:-$PWD}/.claude/hooks/task-orchestrator-hook.sh" ] '
-           f'|| "{hook}"')
-
-with open(path, encoding="utf-8") as f:
-    data = json.load(f, object_pairs_hook=OrderedDict)
-
-groups = data.setdefault("hooks", OrderedDict()).setdefault("UserPromptSubmit", [])
-existing = [h for g in groups for h in g.get("hooks", [])
-            if "task-orchestrator-hook.sh" in h.get("command", "")]
-if existing:
-    for hook_entry in existing:      # refresh the path in case the checkout moved
-        hook_entry["command"] = command
-        hook_entry.setdefault("timeout", 10)
-    action = "refreshed"
-else:
-    groups.append(OrderedDict([("hooks", [OrderedDict([
-        ("type", "command"), ("command", command), ("timeout", 10)])])]))
-    action = "registered"
-
-with open(path, "w", encoding="utf-8") as f:
-    json.dump(data, f, indent=2, ensure_ascii=False)
-    f.write("\n")
-print(f"install.sh: router {action} in {path}")
-print(f"install.sh: -> {hook}")
-PY
-    exit 0
-fi
 
 if [[ "$MODE" != "check" ]]; then
     mkdir -p "$MARKER_DIR"

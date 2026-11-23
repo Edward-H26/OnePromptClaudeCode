@@ -45,8 +45,7 @@ Prompt templates are pre-built starting points for common workflows. Copy a temp
 ## How Templates Work
 
 1. You fill in the placeholders and paste the template into Claude Code.
-2. The `UserPromptSubmit` hook scans the prompt and suggests relevant skills from `skill-rules.json`.
-3. The template instructions activate specific skills and workflows in sequence.
-4. Post-completion steps guide you through verification and optional follow-ups.
+2. The template instructions activate specific skills and workflows in sequence.
+3. Post-completion steps guide you through verification and optional follow-ups.
 
 Templates do not commit, push, or create PRs. The user owns all git operations.

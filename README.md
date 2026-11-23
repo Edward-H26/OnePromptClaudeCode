@@ -18,7 +18,7 @@ Every Claude Code user hits the same wall:
 2. Finding great community tools (gstack, Superpowers, everything-claude-code) but struggling to combine them
 3. Missing features they don't even know exist
 
-OnePromptClaudeCode solves all three. It integrates the best of the Claude Code ecosystem into one workflow with a 600+ keyword trigger engine that activates the right skills automatically.
+OnePromptClaudeCode solves all three. It integrates the best of the Claude Code ecosystem into one workflow in which Claude searches the installed skills and picks the right ones for each task.
 
 ---
 
@@ -33,22 +33,14 @@ claude
 
 That gets the workflow running **inside this repo only**. Claude Code discovers
 user-scope skills under `~/.claude/skills`, so until you link them, no skill here
-loads in your other projects and the router never fires there. Two ways to go
-global, depending on how much of `~/.claude` you want this repo to own:
+loads in your other projects. To go global, let this repo own `~/.claude`:
 
 ```bash
-bash scripts/install.sh --router       # keep your own ~/.claude/settings.json (recommended)
 bash scripts/install.sh --apply        # let this repo own ~/.claude (settings, hooks, skills and more)
 bash scripts/install.sh --check        # preview what --apply would change
 ```
 
-`--router` links `~/.claude/skills` here and adds one `UserPromptSubmit` entry to
-your existing `~/.claude/settings.json` pointing at this checkout. It is idempotent
-and rewrites the path if you move the checkout. The absolute path lives only in
-that machine-local file; `.claude/settings.json` stays path-portable, which
-`scripts/audit-workflow.sh` enforces.
-
-`--apply` is the heavier option: it links `~/.claude/settings.json` to the tracked
+`--apply` links `~/.claude/settings.json` to the tracked
 user-scope [`.claude/settings.user.json`](.claude/settings.user.json), and links
 hooks, skills, agents, commands, `CLAUDE.md`, `statusline.sh` and `output-styles`
 to this checkout, backing up existing real files to `~/.claude/.backup-<timestamp>/`
@@ -64,9 +56,9 @@ That is the repo setup. `bash scripts/doctor-workflow.sh` auto-creates or merges
 
 ## How It Works
 
-The workflow watches what you do and activates the right tools automatically:
+Claude chooses the skills itself: before starting a task it searches the installed skills (the session's skill list and `~/.claude/skills`) for the ones that fit, uses them, and names them in the reply, as the Skills line of `.claude/CLAUDE.md` says. For example:
 
-| You do this | This activates |
+| You do this | Claude can use |
 |---|---|
 | Edit a React file | `frontend-dev-guidelines` |
 | Write tests | `tdd-workflow` |
@@ -106,7 +98,7 @@ Zero prompts to write. Minimal repo setup. Machine-local plugin installs and aut
 | **Skills** | 95 | Bundled workflow skill entries available directly from the tracked repo |
 | **Commands** | 71 | Slash commands for planning, implementation, review, QA, and release handoff |
 | **Agents** | 7 | Specialized local agents for complex tasks |
-| **Hooks** | 9 | Automated skill activation, type/lint checks, and workflow hooks (all local) |
+| **Hooks** | 8 | Type/lint checks and workflow hooks (all local) |
 | **Templates** | 4 | Reusable prompt templates for common workflows |
 | **MCP Servers** | 10 | Figma, GitHub, context7, Chrome DevTools, Playwright, and other shared or user-scoped connectors |
 
@@ -156,7 +148,7 @@ The workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Te
 | `ui-ux-pro-max` | ask about design decisions | 67 UI styles, 161 palettes, 57 fonts, 99 UX guidelines, 25 chart types |
 | `shadcn-ui` | ask about shadcn/ui | shadcn/ui component composition, theming, registry, OKLCH tokens |
 | `code-refactor` | ask to refactor | Grep + Edit workflow for bulk refactoring |
-| `ponytail` | always active (`/ponytail lite/full/ultra/off`) | Lazy senior-dev mode: minimal solution via the YAGNI ladder, never cutting validation, security, or accessibility |
+| `ponytail` | always active through `.claude/CLAUDE.md` (`/ponytail lite/full/ultra/off`) | Lazy senior-dev mode: minimal solution via the YAGNI ladder, never cutting validation, security, or accessibility |
 
 ### Review and Testing
 
@@ -243,68 +235,7 @@ Automated hooks run at every stage of your workflow:
 | `workflow-step-tracker.sh` | After Bash, Skill and browser tools | Records workflow-step markers for the session |
 | `stop-build-check-enhanced.sh` | Session stop | Reruns the queued TypeScript checks and reports any errors |
 
-`.claude/settings.json` wires the first six hooks for this repo. `.claude/settings.user.json` wires the last three, plus the router and the compaction pair, for every project once `install.sh --apply` links it.
-
-### Skill routing lanes
-
-`.claude/skills/skill-rules.json` has a top-level `lanes` block that keeps the
-research and frontend skill families from firing on each other's prompts. Each
-lane scores itself against the prompt; the lane that outscores the others owns
-it, and skills tagged with a different `lane` are dropped. A tie means no lane
-wins and every match stays visible, so a bad guess can only hide a skill, never
-surface an irrelevant one. Skills with no `lane` (`qa`, `review`, `ponytail`,
-`investigate`, `testing-verification`) always survive.
-
-Ranking within a match is separate from lanes. A skill marked `"alternate": true`
-is a second choice for a job another installed skill owns, so it drops one tier
-whenever that owner also matched, and keeps its own rank when it is the only
-thing that matched. That is what turns a flat list into a lead plus a bench:
-
-| Prompt | Leads | Bench |
-|---|---|---|
-| 帮我写 NeurIPS 的 rebuttal | `ccf-rebuttal-writer` | `academic-paper-reviewer` |
-| 帮我做一个落地页，要好看有质感 | `ui-styling`, `impeccable` | `gpt-taste`, `minimalist-ui`, `high-end-visual-design`, … |
-| 帮我画一个系统架构图 | `diagram-design` | `fireworks-tech-graph` |
-| 用浏览器打开页面截个图 | `qa` | `chrome-devtools` |
-| nature 期刊润色和引用检查 | `nature-polishing`, `nature-citation` | none, so no demotion |
-
-**Three tiers, cheapest first.** Each only runs when the one above it found
-nothing, so the expensive tier never taxes a prompt the cheap ones can place:
-
-| Tier | What it is | Cost |
-|---|---|---|
-| 1. Keywords | the `skill-rules.json` table | ~120 ms |
-| 2. Session memory | what this session last matched | ~110 ms |
-| 3. Reasoning pass | a model reads the prompt and names skills | ~4.5 s |
-
-**Tier 2, follow-ups.** A prompt like "把按钮改成蓝色", "再改改", or "继续" names
-no skill, and no keyword list can fix that, so the hook remembers what each
-session last matched under `.claude/runtime/skill-context/<session-id>` and
-re-surfaces it, labelled as carried, when the current prompt matches nothing on
-its own. A direct match always wins over a carried one, a matching prompt
-overwrites the memory, sessions never share it, and a session with no history
-recommends nothing rather than guessing. Entries expire after a day.
-
-**Tier 3, the reasoning pass** (`hooks/lib/llm-skill-router.sh`). For a prompt
-whose domain words are not in the table and whose session has no context, a
-nested `claude -p` reads it and names the skills, and its one-line paraphrase is
-surfaced as `READ AS:` to orient the work. It is gated hard: prompts under 10
-characters and plain questions never reach it, and `CLAUDE_SKILL_ROUTER_LLM=0`
-turns it off. Only skill names that exist in `skill-rules.json` survive; the
-free-text paraphrase is labelled as a paraphrase rather than an instruction,
-because it is derived from prompt text and can echo whatever the prompt carried.
-Three details are load-bearing and each was found by a failing run: the
-classifier runs with `disableAllHooks` so it cannot re-enter this hook, its
-reasoning env is pinned (inheriting the session's xhigh effort and 128k thinking
-budget stretched the same call from 4 s to 30-55 s), and `CLAUDE_CONFIG_DIR` is
-restored to the session's original value, since the repo's `.claude/` holds no
-credentials and a nested CLI launched with it answers "Not logged in".
-
-Change routing by editing `skill-rules.json`, not the hook. Adding a skill means
-adding its rule, its `lane` if it belongs to one, and `alternate` if something
-else already owns that job. Watch for over-broad triggers: a bare generic word
-(`pipeline`, `nature`, `review`, `existing`) or a page noun like 首页 fires on
-prompts that have nothing to do with the skill.
+`.claude/settings.json` wires the first five hooks for this repo. `.claude/settings.user.json` wires the last three, plus the compaction pair, for every project once `install.sh --apply` links it.
 
 ---
 
@@ -355,10 +286,10 @@ Ready-to-use templates at `.claude/prompt-templates/`:
   runtime/               # Repo-local ignored runtime state for safety and workflow artifacts
   agents/                # 7 role agent definitions
   commands/              # 71 slash commands
-  hooks/                 # 9 local hook scripts
+  hooks/                 # 8 local hook scripts
   prompt-templates/      # 4 reusable templates
   skills/                # 95 skill entries
-    skill-rules.json     # 400+ keyword trigger engine
+    skill-rules.json     # Skill list the audit and doctor match against the skill folders
     [local skills]       # Backend, frontend, testing, research, and utility skills
 social/                  # Social media assets and demo video
 ```

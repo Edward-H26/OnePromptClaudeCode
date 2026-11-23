@@ -4,7 +4,7 @@
 
 ## Workflow Overview
 
-This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Test, Ship, Reflect**. Each phase has dedicated skills that feed into the next. Skills are activated automatically via keyword triggers or manually via slash commands.
+This workflow follows a structured sprint cycle: **Think, Plan, Build, Review, Test, Ship, Reflect**. Each phase has dedicated skills that feed into the next. Claude searches the installed skills for the ones that fit a task, uses them and names them in the reply (the Skills line of `.claude/CLAUDE.md`), and any skill can also be started manually via its slash command.
 
 **Global config**: On some local setups, a user-scoped Claude home directory may be symlinked to this project directory. This is a machine-specific convention, not a requirement of the published repo.
 **Repo-local multi-model flow**: `/multi-plan` and `/multi-execute` use installed plugin agents.
