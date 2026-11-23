@@ -11,7 +11,7 @@ Take the done criteria from the brief and the base, never from the change: a cri
 
 Run the change on the path that ships: the command, the driver, the app or the exact file the user opens, through the project's `verify` skill where one exists. Run cheap checks first (lint, types, the tests of the changed code), then the end-to-end run. Prefer evidence from end-to-end, property and differential tests over unit tests. Do not run the full suite unless the brief asks for it. Use Bash only to read and to run checks. Do not change, move or delete any file.
 
-Look for what the note does not mention: siblings of a fixed bug that were left, a check or threshold that was weakened, behavior that changed without being asked, numbers without a source, a flaky test rerun until it passed.
+When the project has a rulings file, check every question the work raised against its latest line; work that applies an older decision fails. Look for what the note does not mention: siblings of a fixed bug that were left, a check or threshold that was weakened, behavior that changed without being asked, numbers without a source, a flaky test rerun until it passed.
 
 On a later round, start from your findings of the last round and the fixes made since; check those and the code they touched, not everything again.
 
