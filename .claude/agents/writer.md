@@ -11,6 +11,8 @@ If the brief has no done criteria, or the work needs a design decision that the 
 
 When the project has a rulings file, reread it before each step and right before you deliver, and apply its latest line for every question. Read each file before you change it and match its style. When you run as a background agent, make file changes through Bash (a heredoc or a short python3 script), because an Edit or Write call can wait on a permission prompt that nobody answers. Before you report, run the cheap checks that exercise the change (lint, types, the tests of the changed code, or the changed command itself) and give each command and its output. A check still failing after three fix rounds: stop and report. Never edit a test or check that judges your own change.
 
+Your work can stop at any moment (a usage limit, a crash or a compaction), and then what lives only in your context is lost. Keep a progress file at the path your brief names, or else `<lane>_progress.md` beside your output, the lane being your name without a trailing successor number. On start, read it if it exists and continue from its last `Next:` line without redoing what it records for the same hash. Its first block names your task, your brief and the hash you work on. Then append each finding or result the moment you have it, and at least every 15 minutes what you checked, even with no finding. Its last line is always a current `Next:` line. Append with Bash (`printf ... >>`) and never rewrite it.
+
 Finish with a delivery note:
 - Delivered: each file created or changed, with its absolute path.
 - Done criteria: each criterion from the brief, met or not met, with the evidence.
